@@ -1037,6 +1037,335 @@ tbody tr.drag-over {
 }
 
 /* ==========================================
+   RESPONSIVE / MOBILE
+   Breakpoints: 900px (Tablet), 768px (Mobile), 480px (Kleine Phones)
+========================================== */
+
+/* --- Grundlagen: iOS-Zoom bei Fokus verhindern, Safe-Area für Notch-Geräte --- */
+@media (max-width: 900px) {
+  input, select, textarea {
+    font-size: 16px; /* verhindert automatisches Hineinzoomen auf iOS bei Fokus */
+  }
+
+  body {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 768px) {
+
+  body {
+    padding: 12px;
+  }
+
+  /* --- Header --- */
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding-bottom: 16px;
+  }
+
+  .logo-area h1 {
+    font-size: 21px;
+  }
+
+  .header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .header-actions .btn {
+    flex: 1 1 auto;
+    min-width: calc(50% - 4px);
+    min-height: 44px;
+  }
+
+  /* --- Betriebsdaten-Leiste --- */
+  .company-info-bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .company-details-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 12px;
+  }
+
+  #btn-edit-company {
+    margin-left: 0;
+    width: 100%;
+    min-height: 40px;
+  }
+
+  /* --- Formulare --- */
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .company-setup {
+    padding: 20px;
+  }
+
+  /* --- Wizard --- */
+  .wizard-header {
+    padding: 14px 12px;
+    gap: 4px;
+  }
+
+  .step-indicator {
+    font-size: 0;
+    padding: 6px;
+  }
+
+  .step-indicator span {
+    margin-right: 0;
+    font-size: 12px;
+  }
+
+  .wizard-body {
+    padding: 18px 16px;
+  }
+
+  .wizard-footer {
+    padding: 14px 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .wizard-footer .btn {
+    min-height: 46px;
+    flex: 1 1 auto;
+  }
+
+  .bereich-selector {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .bereich-selector select {
+    max-width: 100%;
+  }
+
+  /* --- Risikomatrix --- */
+  .risk-assessment-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .dual-matrix-container {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .matrix-col {
+    width: auto;
+    flex: 1 1 0;
+  }
+
+  /* --- STOP-Prinzip --- */
+  .stop-row {
+    gap: 10px;
+  }
+
+  .stop-indicator {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .btn-remove {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* --- Toolbar über der Tabelle --- */
+  .table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .template-buttons {
+    max-width: 100%;
+  }
+
+  /* --- Datentabelle: Umwandlung in Karten-Ansicht --- */
+  .table-container {
+    border-radius: var(--radius);
+    overflow-x: visible;
+  }
+
+  table, thead, tbody, tr {
+    display: block;
+    width: 100%;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody tr {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 14px;
+    padding: 4px 0;
+    box-shadow: var(--shadow-sm);
+  }
+
+  tbody tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .group-header-row {
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+
+  .group-header-row td {
+    border-left: 4px solid var(--primary);
+  }
+
+  td {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  tr td:last-of-type {
+    border-bottom: none;
+  }
+
+  td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .drag-cell {
+    display: none; /* Drag & Drop per Touch ist unpraktisch – auf Mobile ausgeblendet */
+  }
+
+  .action-td {
+    background: #f8fafc;
+  }
+
+  .action-cell {
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .action-cell .btn-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* --- Modals: als Bottom-Sheet über die volle Breite --- */
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-container,
+  .modal-container[style] {
+    width: 100% !important;
+    max-width: 100%;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+    animation: modalInMobile 0.25s ease;
+  }
+
+  @keyframes modalInMobile {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-header, .modal-footer {
+    padding: 16px;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .modal-footer > div {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .modal-footer .btn {
+    flex: 1 1 auto;
+    min-height: 44px;
+  }
+
+  .module-switcher {
+    flex-direction: column;
+  }
+
+  /* --- Allgemeine Touch-Targets --- */
+  .btn {
+    min-height: 40px;
+  }
+
+  .btn-icon {
+    min-width: 36px;
+    min-height: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-area h1 {
+    font-size: 19px;
+  }
+
+  .header-actions .btn {
+    min-width: 100%;
+  }
+
+  .company-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dual-matrix-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .matrix-col {
+    width: 160px;
+  }
+
+  .wizard-footer {
+    flex-direction: column-reverse;
+  }
+
+  .wizard-footer .btn {
+    width: 100%;
+  }
+}
+
+/* ==========================================
    PRINT STYLES
 ========================================== */
 
