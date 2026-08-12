@@ -122,6 +122,8 @@ function renderCompanySetup() {
 function renderWorkspace() {
   return `
     <div id="gb-workspace">
+      <!-- TAB-PANEL: ERSTELLUNG -->
+      <div class="tab-panel active" id="tab-panel-create" data-panel="create">
       <!-- WIZARD FORM -->
       <form id="gb-form" class="card no-print" style="padding: 0;">
         <div class="wizard-header">
@@ -275,6 +277,11 @@ function renderWorkspace() {
             <button type="submit" id="btn-submit" class="btn btn-primary" style="display: none; background-color: #10b981;">Gefährdung speichern ✓</button>
         </div>
       </form>
+      </div>
+      <!-- /TAB-PANEL: ERSTELLUNG -->
+
+      <!-- TAB-PANEL: ÜBERSICHT -->
+      <div class="tab-panel" id="tab-panel-table" data-panel="table">
 
       <!-- Table Section -->
       <div id="table-anchor" class="table-toolbar no-print" style="margin-top: 20px;">
@@ -311,6 +318,25 @@ function renderWorkspace() {
               <tbody></tbody>
           </table>
       </div>
+      </div>
+      <!-- /TAB-PANEL: ÜBERSICHT -->
+
+      <!-- MOBILE-TABLEISTE (nur < 768px sichtbar, siehe style.css) -->
+      <nav class="mobile-tabbar no-print" id="mobile-tabbar">
+          <button type="button" class="mobile-tab active" data-tab="create">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+              <span>Erstellen</span>
+          </button>
+          <button type="button" class="mobile-tab" data-tab="table">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
+              <span>Übersicht</span>
+              <span class="mobile-tab-count" id="mobile-tab-count" style="display:none;"></span>
+          </button>
+          <button type="button" class="mobile-tab" data-tab="settings" id="mobile-tab-settings">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              <span>Einstellungen</span>
+          </button>
+      </nav>
     </div>
   `;
 }
@@ -348,6 +374,7 @@ function renderSettingsModal() {
               <div class="module-switcher">
                   <button type="button" class="module-tab active" id="st-tab-psa">🛡️ PSA-Katalog verwalten</button>
                   <button type="button" class="module-tab" id="st-tab-tpl">📋 Branchen-Templates verwalten</button>
+                  <button type="button" class="module-tab" id="st-tab-backup">💾 Daten-Backup</button>
               </div>
               
               <div id="st-content-psa">
@@ -371,6 +398,23 @@ function renderSettingsModal() {
                   </div>
                   <div id="settings-tpl-list"></div>
                   <button type="button" class="btn btn-outline" id="btn-add-tpl-item" style="margin-top: 10px;">+ Neue Vorlagen-Zeile hinzufügen</button>
+              </div>
+
+              <div id="st-content-backup" style="display:none;">
+                  <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">
+                      Exportiert alle Betriebe, Gefährdungsbeurteilungen und dokumentierten Risiken als eine Datei –
+                      geeignet als Sicherung oder zum Übertragen auf ein anderes Gerät.
+                  </p>
+                  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                      <button type="button" class="btn btn-primary" id="btn-export-all">⬇️ Alle Daten exportieren (.json)</button>
+                      <label class="btn btn-outline" for="input-import-all" style="cursor:pointer; margin: 0;">⬆️ Backup importieren
+                          <input type="file" id="input-import-all" accept="application/json" style="display:none;">
+                      </label>
+                  </div>
+                  <p id="backup-status-msg" style="font-size: 12px; margin-top: 12px; font-weight: 600;"></p>
+                  <p style="font-size: 11px; color: var(--text-muted); margin-top: 16px;">
+                      ⚠️ Ein Import überschreibt <strong>alle</strong> aktuell gespeicherten Betriebe, Beurteilungen und Risiken auf diesem Gerät.
+                  </p>
               </div>
           </div>
           <div class="modal-footer">
