@@ -52,6 +52,20 @@ export async function initializeLogic() {
     updateUIBasedOnState();
 }
 
+/**
+ * Schaltet zwischen den Tab-Panels (Erstellung / Übersicht) um.
+ * Auf Desktop ohne visuellen Effekt (beide Panels bleiben sichtbar),
+ * auf Mobile (< 768px) steuert dies, welches Panel angezeigt wird.
+ */
+function switchMobileTab(tab) {
+    document.querySelectorAll('.tab-panel').forEach(p => {
+        p.classList.toggle('active', p.dataset.panel === tab);
+    });
+    document.querySelectorAll('.mobile-tab[data-tab="create"], .mobile-tab[data-tab="table"]').forEach(b => {
+        b.classList.toggle('active', b.dataset.tab === tab);
+    });
+}
+
 function updateUIBasedOnState() {
     // Prüfen, ob wir uns im Setup oder Workspace befinden
     if (document.getElementById('company-info-bar')) {
@@ -117,6 +131,24 @@ function setupEventDelegation() {
         if (e.target.closest('.btn-icon.delete')) {
             await deleteRecord(Number(e.target.closest('tr').dataset.id));
         }
+
+        // --- Einstellungen: Tab-Umschaltung ---
+        if (e.target.closest('.module-tab')) {
+            switchSettingsTab(e.target.closest('.module-tab').id);
+        }
+
+        // --- Einstellungen: Backup Export ---
+        if (e.target.closest('#btn-export-all')) {
+            await exportAllDataToFile();
+        }
+
+        // --- Mobile-Tableiste ---
+        if (e.target.closest('.mobile-tab')) {
+            const tabBtn = e.target.closest('.mobile-tab');
+            const tab = tabBtn.dataset.tab;
+            if (tab === 'settings') openSettingsModal();
+            else switchMobileTab(tab);
+        }
     });
 
     // Form Submits abfangen
@@ -134,6 +166,7 @@ function setupEventDelegation() {
             if (e.target.value === 'datum') { di.style.display = 'block'; di.required = true; } 
             else { di.style.display = 'none'; di.required = false; di.value = ''; }
         }
+        if (e.target.id === 'input-import-all') importAllDataFromFile(e.target.files[0]);
     });
 }
 
@@ -316,6 +349,7 @@ async function saveAssessmentRecord() {
     
     applyCurrentSort(); 
     renderTable(); 
+    switchMobileTab('table');
     document.getElementById('table-anchor').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -340,6 +374,16 @@ function renderTable() {
     const tbody = document.querySelector('#gb-table tbody');
     if(!tbody) return;
     tbody.innerHTML = '';
+
+    const countBadge = document.getElementById('mobile-tab-count');
+    if (countBadge) {
+        if (assessmentList.length > 0) {
+            countBadge.textContent = assessmentList.length;
+            countBadge.style.display = 'inline-flex';
+        } else {
+            countBadge.style.display = 'none';
+        }
+    }
 
     const groupMap = {};
     assessmentList.forEach(item => {
@@ -496,7 +540,9 @@ function editRecord(id) {
     } else {
         document.getElementById('frist-typ').value = 'datum'; document.getElementById('frist-datum').style.display = 'block'; document.getElementById('frist-datum').required = true; document.getElementById('frist-datum').value = fristVal;
     }
-    currentStep = 1; showStep(currentStep); document.getElementById('gb-form').scrollIntoView({ behavior: 'smooth' });
+    currentStep = 1; showStep(currentStep);
+    switchMobileTab('create');
+    document.getElementById('gb-form').scrollIntoView({ behavior: 'smooth' });
 }
 
 function cancelEditMode() {
@@ -603,6 +649,83 @@ function renderStep3PsaPreview() {
 // ==========================================
 // EINSTELLUNGEN MODAL
 // ==========================================
+
+function switchSettingsTab(tabId) {
+    const tabMap = {
+        'st-tab-psa': 'st-content-psa',
+        'st-tab-tpl': 'st-content-tpl',
+        'st-tab-backup': 'st-content-backup'
+    };
+    document.querySelectorAll('.module-tab').forEach(b => b.classList.toggle('active', b.id === tabId));
+    Object.entries(tabMap).forEach(([btnId, contentId]) => {
+        const el = document.getElementById(contentId);
+        if (el) el.style.display = (btnId === tabId) ? 'block' : 'none';
+    });
+}
+
+async function exportAllDataToFile() {
+    const statusEl = document.getElementById('backup-status-msg');
+    try {
+        const backup = await storage.exportAllData();
+        const json = JSON.stringify(backup, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const datestamp = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `riskflow-backup-${datestamp}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        if (statusEl) {
+            statusEl.style.color = '#10b981';
+            statusEl.textContent = `✓ Export erfolgreich (${backup.companies.length} Betrieb(e), ${backup.gbs.length} Beurteilung(en), ${backup.assessments.length} Risiko-Einträge).`;
+        }
+    } catch (err) {
+        console.error('Export fehlgeschlagen:', err);
+        if (statusEl) {
+            statusEl.style.color = '#ef4444';
+            statusEl.textContent = '✗ Export fehlgeschlagen. Bitte erneut versuchen.';
+        }
+    }
+}
+
+async function importAllDataFromFile(file) {
+    const statusEl = document.getElementById('backup-status-msg');
+    if (!file) return;
+
+    const confirmed = window.confirm(
+        'Achtung: Beim Import wird ALLES, was aktuell auf diesem Gerät gespeichert ist ' +
+        '(alle Betriebe, Beurteilungen und Risiken), unwiderruflich überschrieben. Fortfahren?'
+    );
+    if (!confirmed) {
+        document.getElementById('input-import-all').value = '';
+        return;
+    }
+
+    try {
+        const text = await file.text();
+        const backup = JSON.parse(text);
+        await storage.importAllData(backup);
+
+        assessmentList = await storage.getAllAssessments();
+        renderTable();
+
+        if (statusEl) {
+            statusEl.style.color = '#10b981';
+            statusEl.textContent = `✓ Backup importiert (${backup.companies.length} Betrieb(e), ${backup.gbs.length} Beurteilung(en), ${backup.assessments.length} Risiko-Einträge). Bitte Seite neu laden.`;
+        }
+    } catch (err) {
+        console.error('Import fehlgeschlagen:', err);
+        if (statusEl) {
+            statusEl.style.color = '#ef4444';
+            statusEl.textContent = '✗ Import fehlgeschlagen – Datei ungültig oder beschädigt.';
+        }
+    } finally {
+        document.getElementById('input-import-all').value = '';
+    }
+}
 
 function openSettingsModal() { 
     document.getElementById('settings-modal').style.display = 'flex'; 
