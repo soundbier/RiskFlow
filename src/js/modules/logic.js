@@ -382,15 +382,15 @@ function renderTable() {
             if(item.id === highlightRecordId) tr.classList.add('highlight-record');
 
             tr.innerHTML = `
-                <td class="no-print"><div class="drag-handle">☰</div></td>
-                <td style="font-weight: 600; font-size: 12px; color: #475569;">${item.taetigkeit}</td>
-                <td><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #334155;">${item.gefaehrdung}</span></td>
-                <td><div><span class="badge ${riskVor.class}">${riskVor.level}</span><span class="risk-arrow">➔</span><span class="badge ${riskNach.class}">${riskNach.level}</span></div></td>
-                <td>${stopHtml}</td>
-                <td>${psaColHtml}</td>
-                <td>${item.verantwortlich}</td>
-                <td><div class="frist-container"><div class="status-dot ${getFristColor(item.frist)}"></div>${formatFrist(item.frist)}</div></td>
-                <td class="no-print">
+                <td class="no-print drag-cell"><div class="drag-handle">☰</div></td>
+                <td data-label="Tätigkeit" style="font-weight: 600; font-size: 12px; color: #475569;">${item.taetigkeit}</td>
+                <td data-label="Gefahr"><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #334155;">${item.gefaehrdung}</span></td>
+                <td data-label="Risiko"><div><span class="badge ${riskVor.class}">${riskVor.level}</span><span class="risk-arrow">➔</span><span class="badge ${riskNach.class}">${riskNach.level}</span></div></td>
+                <td data-label="Maßnahmen (STOP)">${stopHtml}</td>
+                <td data-label="PSA / Schutzausrüstung">${psaColHtml}</td>
+                <td data-label="Verantw.">${item.verantwortlich}</td>
+                <td data-label="Frist"><div class="frist-container"><div class="status-dot ${getFristColor(item.frist)}"></div>${formatFrist(item.frist)}</div></td>
+                <td class="no-print action-td">
                     <div class="action-cell">
                         <button type="button" class="btn-icon edit" title="Bearbeiten"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
                         <button type="button" class="btn-icon delete" title="Löschen"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
