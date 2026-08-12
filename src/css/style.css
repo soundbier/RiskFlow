@@ -225,17 +225,6 @@ body {
   }
 }
 
-/* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #0f172a;
-    --color-surface: #1e293b;
-    --color-border: #334155;
-    --color-text: #f1f5f9;
-    --color-text-light: #cbd5e1;
-  }
-}
-
 /* Print */
 @media print {
   .app-header,
