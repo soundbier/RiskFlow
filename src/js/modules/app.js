@@ -25,8 +25,8 @@ function renderLayout() {
     <div class="app-container">
       <div class="header">
         <div class="logo-area" id="brand-title" tabindex="0" role="button" style="cursor: pointer;">
-          <h1>GB Tool & PSA Assist</h1>
-          <span>Gefährdungsbeurteilung & Integrierter PSA-Assistent</span>
+          <h1>RiskFlow</h1>
+          <span>RiskFlow – Arbeitsschutz einfach gemacht</span>
         </div>
         <div class="header-actions no-print">
           <button id="btn-settings" class="btn btn-secondary">⚙️ Einstellungen</button>
