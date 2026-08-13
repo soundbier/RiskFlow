@@ -1,0 +1,162 @@
+/* ==========================================================================
+   Einstellungen (Settings Modal)
+   ========================================================================== */
+
+/* Basis-Layout des Modals */
+.settings-container {
+  width: 100%;
+  max-width: 900px;
+  height: 80vh;
+  max-height: 800px;
+  display: flex;
+  flex-direction: column;
+  padding: 0; /* Padding wird in den Kind-Elementen gesetzt */
+  overflow: hidden; /* Scrollen wird in den Unterbereichen gesteuert */
+  background-color: var(--bg-color, #ffffff);
+}
+
+/* Header */
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  background-color: var(--bg-color-alt, #f8fafc);
+}
+
+.settings-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Body (Split-Layout) */
+.settings-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden; /* Verhindert das Herausragen von Inhalten */
+}
+
+/* Sidebar Navigation */
+.settings-sidebar {
+  width: 250px;
+  background-color: var(--bg-color-alt, #f8fafc);
+  border-right: 1px solid var(--border-color, #e2e8f0);
+  overflow-y: auto;
+}
+
+.settings-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.settings-tab {
+  width: 100%;
+  text-align: left;
+  padding: 1rem 1.5rem;
+  background: none;
+  border: none;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--text-color, #334155);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.settings-tab:hover {
+  background-color: var(--hover-color, #e2e8f0);
+}
+
+.settings-tab.active {
+  background-color: var(--bg-color, #ffffff);
+  border-left-color: var(--primary-color, #2563eb);
+  font-weight: 600;
+  color: var(--primary-color, #2563eb);
+}
+
+/* Main Content Area */
+.settings-content {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  background-color: var(--bg-color, #ffffff);
+}
+
+/* Panels (Tabs) */
+.settings-panel {
+  display: block;
+}
+
+/* Logik zum Ausblenden inaktiver Tabs */
+.settings-panel.hidden {
+  display: none;
+}
+
+.settings-panel h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+  color: var(--text-color-dark, #1e293b);
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  padding-bottom: 0.5rem;
+}
+
+.settings-description {
+  color: var(--text-color-muted, #64748b);
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Footer / Actions */
+.settings-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+  background-color: var(--bg-color-alt, #f8fafc);
+}
+
+/* ==========================================================================
+   Responsive Design für mobile Begehungen (Smartphones/Tablets)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .settings-container {
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0; /* Vollbild auf Mobile */
+  }
+
+  .settings-body {
+    flex-direction: column;
+  }
+
+  .settings-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+  }
+
+  /* Horizontale Scroll-Navigation für Tabs auf Mobile */
+  .settings-menu {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .settings-tab {
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    padding: 0.875rem 1.25rem;
+    text-align: center;
+  }
+
+  .settings-tab.active {
+    border-left-color: transparent;
+    border-bottom-color: var(--primary-color, #2563eb);
+  }
+}
