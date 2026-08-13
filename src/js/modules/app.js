@@ -376,9 +376,6 @@ function renderSettingsModal() {
           <nav class="settings-sidebar">
             <ul class="settings-menu">
               <li><button class="settings-tab active" data-target="settings-general">Allgemein</button></li>
-              <li><button class="settings-tab" data-target="settings-structure">Betrieb & Abteilungen</button></li>
-              <li><button class="settings-tab" data-target="settings-compliance">Arbeitsschutz & Compliance</button></li>
-              <li><button class="settings-tab" data-target="settings-data">Daten & PWA-Sync</button></li>
             </ul>
           </nav>
 
@@ -396,53 +393,6 @@ function renderSettingsModal() {
                   <option value="dark">Dunkel</option>
                 </select>
               </div>
-            </section>
-
-            <!-- Tab: Betriebsstruktur -->
-            <section id="settings-structure" class="settings-panel hidden">
-              <h3>Mandanten- und Abteilungsstruktur</h3>
-              <p class="settings-description">Verwalte hier die übergeordneten Unternehmensdaten für RiskFlow.</p>
-              <div class="form-group">
-                <label for="active-company">Aktive Betriebsstruktur</label>
-                <select id="active-company" class="form-control">
-                  <option value="1">Hauptwerk</option>
-                  <option value="2">Niederlassung Nord</option>
-                </select>
-              </div>
-              <button class="btn btn-secondary" style="margin-top: 10px;">${Icons.plus} Neue Abteilung anlegen</button>
-            </section>
-
-            <!-- Tab: Arbeitsschutz & Compliance -->
-            <section id="settings-compliance" class="settings-panel hidden">
-              <h3>Gesetzliche Vorgaben</h3>
-              <div class="form-group checkbox-group" style="margin-bottom: 12px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                  <input type="checkbox" id="require-arbSchG" class="form-checkbox" checked>
-                  Strikte Prüfung nach ArbSchG erzwingen
-                </label>
-              </div>
-              <div class="form-group checkbox-group">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                  <input type="checkbox" id="require-arbStattV" class="form-checkbox" checked>
-                  ArbStättV-Katalog bei Begehungen standardmäßig laden
-                </label>
-              </div>
-            </section>
-
-            <!-- Tab: Daten & PWA-Sync -->
-            <section id="settings-data" class="settings-panel hidden">
-              <h3>Offline-Synchronisation</h3>
-              <div class="form-group">
-                <label>Letzter Sync: <span id="last-sync-time">-</span></label>
-                <br>
-                <button class="btn btn-primary" id="force-sync-btn" style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
-                  ${Icons.upload} Jetzt synchronisieren
-                </button>
-              </div>
-              <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border-color, #e2e8f0);">
-              <button class="btn btn-danger-outline" id="clear-data-btn" style="color: red; border: 1px solid red; padding: 8px 16px; background: transparent; cursor: pointer;">
-                Lokalen Cache leeren
-              </button>
             </section>
 
           </main>
