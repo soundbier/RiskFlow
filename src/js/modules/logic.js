@@ -1,6 +1,6 @@
 /**
  * RiskFlow & GB-Tool – Kernlogik
- * Steuert Formular-Workflows, Risikomatrix, STOP-Prinzip und IndexedDB-Anbindung
+ * Steuert Formular-Workflows, Risikomatrix, STOP-Prinzip, Multi-Betriebs-Logik
  */
 
 import * as storage from './storage.js';
@@ -28,9 +28,14 @@ const validIntervals = ['Täglich', 'Wöchentlich', 'Monatlich', 'Quartalsweise'
 
 // State
 let assessmentList = [];
-let companyData = null;
 let psaHazardData = [];
 let branchTemplates = {};
+
+// Multi-Betrieb-State
+let companiesList = [];
+let activeCompanyId = null;
+let activeCompany = null;
+let editingCompanyId = null;
 
 let currentSelectedPsa = [];
 let editingRecordId = null;
@@ -38,30 +43,20 @@ let highlightRecordId = null;
 let currentSort = { key: 'gefaehrdung', dir: 'asc' };
 let currentStep = 1;
 
-let companiesList = [];
-let editingCompanyId = null;
 
 // ==========================================
 // INITIALISIERUNG
 // ==========================================
 
 export async function initializeLogic() {
-    // Daten aus IndexedDB laden
-    assessmentList = await storage.getAllAssessments();
-    companyData = await storage.getCompanyData();
     psaHazardData = await storage.getPsaCatalog();
     branchTemplates = await storage.getBranchTemplates();
 
     setupEventDelegation();
     setOnNavigateCallback(updateUIBasedOnState);
-    updateUIBasedOnState();
+    await updateUIBasedOnState();
 }
 
-/**
- * Schaltet zwischen den Tab-Panels (Erstellung / Übersicht) um.
- * Auf Desktop ohne visuellen Effekt (beide Panels bleiben sichtbar),
- * auf Mobile (< 768px) steuert dies, welches Panel angezeigt wird.
- */
 function switchMobileTab(tab) {
     document.querySelectorAll('.tab-panel').forEach(p => {
         p.classList.toggle('active', p.dataset.panel === tab);
@@ -71,20 +66,38 @@ function switchMobileTab(tab) {
     });
 }
 
-function updateUIBasedOnState() {
-    // Prüfen, ob wir uns im Setup, Workspace oder in der Betriebe-Übersicht befinden
-    if (document.getElementById('company-info-bar')) {
-        renderCompanyState();
+async function updateUIBasedOnState() {
+    const params = new URLSearchParams(window.location.search);
+    
+    // Immer die aktuellsten Betriebe laden
+    companiesList = await storage.getAllCompanies();
+
+    if (document.getElementById('betriebe-grid')) {
+        document.getElementById('company-info-bar').style.display = 'none';
+        await loadAndRenderCompanies();
     }
+
     if (document.getElementById('gb-workspace')) {
+        const companyIdParam = params.get('companyId');
+        activeCompanyId = companyIdParam ? parseInt(companyIdParam) : null;
+        activeCompany = companiesList.find(c => c.id === activeCompanyId);
+
+        if (!activeCompany) {
+            // Falls keine ID oder Betrieb nicht gefunden -> zurück ins Dashboard
+            navigateTo('betriebe');
+            return;
+        }
+
+        renderCompanyState();
+        
+        // NUR die Gefährdungen für den aktuell aktiven Betrieb laden
+        assessmentList = await storage.getGbsByCompany(activeCompanyId);
+
         resetStopFields();
         updateDualMatrix();
         applyCurrentSort();
         renderTable();
         showStep(currentStep);
-    }
-    if (document.getElementById('betriebe-grid')) {
-        loadAndRenderCompanies();
     }
 }
 
@@ -97,10 +110,29 @@ function setupEventDelegation() {
         // --- Globale Aktionen ---
         if (e.target.closest('#btn-settings')) openSettingsModal();
         if (e.target.closest('#btn-close-settings-top') || e.target.closest('#btn-close-settings-bottom')) closeSettingsModal();
-        if (e.target.closest('#btn-clear')) await clearAllData();
+        if (e.target.closest('#btn-goto-betriebe') || e.target.closest('#btn-close-workspace')) navigateTo('betriebe');
 
-        // --- Company Setup ---
-        if (e.target.closest('#btn-edit-company')) editCompanySetup();
+        // --- Company Setup & Dashboard ---
+        if (e.target.closest('#btn-edit-company')) {
+            if(activeCompanyId) openCompanyModal(activeCompanyId);
+        }
+        if (e.target.closest('#btn-new-betrieb')) openCompanyModal();
+        
+        if (e.target.closest('.betrieb-card-main')) {
+            // Betrieb auswählen -> in Workspace wechseln
+            const card = e.target.closest('.betrieb-card');
+            window.location.search = `?action=workspace&companyId=${card.dataset.id}`;
+        }
+        
+        if (e.target.closest('.edit-betrieb')) {
+            openCompanyModal(Number(e.target.closest('.edit-betrieb').dataset.id));
+        }
+        if (e.target.closest('.delete-betrieb')) {
+            await deleteCompanyHandler(Number(e.target.closest('.delete-betrieb').dataset.id));
+        }
+        if (e.target.closest('#btn-close-betrieb-top') || e.target.closest('#btn-close-betrieb-bottom')) {
+            closeCompanyModal();
+        }
 
         // --- Wizard Navigation ---
         if (e.target.closest('#btn-next')) {
@@ -145,24 +177,6 @@ function setupEventDelegation() {
             switchSettingsTab(e.target.closest('.module-tab').id);
         }
 
-        // --- Einstellungen: Backup Export ---
-        if (e.target.closest('#btn-export-all')) {
-            await exportAllDataToFile();
-        }
-
-        // --- Betriebe-Übersicht ---
-        if (e.target.closest('#btn-goto-betriebe')) navigateTo('betriebe');
-        if (e.target.closest('#btn-new-betrieb')) openCompanyModal();
-        if (e.target.closest('.edit-betrieb')) {
-            openCompanyModal(Number(e.target.closest('.edit-betrieb').dataset.id));
-        }
-        if (e.target.closest('.delete-betrieb')) {
-            await deleteCompanyHandler(Number(e.target.closest('.delete-betrieb').dataset.id));
-        }
-        if (e.target.closest('#btn-close-betrieb-top') || e.target.closest('#btn-close-betrieb-bottom')) {
-            closeCompanyModal();
-        }
-
         // --- Mobile-Tableiste ---
         if (e.target.closest('.mobile-tab')) {
             const tabBtn = e.target.closest('.mobile-tab');
@@ -172,15 +186,12 @@ function setupEventDelegation() {
         }
     });
 
-    // Form Submits abfangen
     document.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (e.target.id === 'company-form') await saveCompanySetup();
         if (e.target.id === 'gb-form') await saveAssessmentRecord();
         if (e.target.id === 'betrieb-form') await saveCompanyForm();
     });
 
-    // Change-Events abfangen (Matrix-Updates & Fristen)
     document.addEventListener('change', (e) => {
         if (['s-vor', 'w-vor', 's-nach', 'w-nach'].includes(e.target.id)) updateDualMatrix();
         if (e.target.id === 'frist-typ') {
@@ -188,62 +199,22 @@ function setupEventDelegation() {
             if (e.target.value === 'datum') { di.style.display = 'block'; di.required = true; } 
             else { di.style.display = 'none'; di.required = false; di.value = ''; }
         }
-        if (e.target.id === 'input-import-all') importAllDataFromFile(e.target.files[0]);
     });
 }
 
 // ==========================================
-// COMPANY SETUP
+// COMPANY SETUP & HEADER
 // ==========================================
 
-async function saveCompanySetup() {
-    companyData = {
-        name: document.getElementById('c-name').value,
-        location: document.getElementById('c-location').value,
-        auditor: document.getElementById('c-auditor').value,
-        date: document.getElementById('c-date').value || new Date().toISOString().split('T')[0],
-        nextReview: document.getElementById('c-next-review').value || ''
-    };
-    await storage.saveCompanyData(companyData);
-    
-    // Router URL anpassen (App lädt Workspace)
-    window.location.search = '?action=workspace';
-}
-
 function renderCompanyState() {
-    const setupCard = document.getElementById('company-setup-card');
     const infoBar = document.getElementById('company-info-bar');
+    if (!infoBar || !activeCompany) return;
     
-    if (companyData && companyData.name) {
-        if(setupCard) setupCard.style.display = 'none';
-        if(infoBar) {
-            infoBar.style.display = 'flex';
-            document.getElementById('display-c-name').innerText = companyData.name;
-            document.getElementById('display-c-location').innerText = companyData.location;
-            document.getElementById('display-c-auditor').innerText = companyData.auditor || '—';
-            document.getElementById('display-c-date').innerText = formatDate(companyData.date);
-            document.getElementById('display-c-next-review').innerText = formatDate(companyData.nextReview);
-        }
-    } else {
-        if(setupCard) setupCard.style.display = 'block';
-        if(infoBar) infoBar.style.display = 'none';
-        if(document.getElementById('c-date')) {
-            document.getElementById('c-date').value = new Date().toISOString().split('T')[0];
-        }
-    }
-}
-
-function editCompanySetup() {
-    window.location.search = '?action=setup';
-    setTimeout(() => {
-        if(companyData) {
-            document.getElementById('c-name').value = companyData.name;
-            document.getElementById('c-location').value = companyData.location;
-            document.getElementById('c-auditor').value = companyData.auditor;
-            document.getElementById('c-date').value = companyData.date;
-            document.getElementById('c-next-review').value = companyData.nextReview;
-        }
-    }, 100);
+    infoBar.style.display = 'flex';
+    document.getElementById('display-c-name').innerText = activeCompany.name;
+    document.getElementById('display-c-location').innerText = activeCompany.anschrift || '—';
+    document.getElementById('display-c-auditor').innerText = activeCompany.auditor || '—';
+    document.getElementById('display-c-date').innerText = formatDate(activeCompany.createdAt);
 }
 
 // ==========================================
@@ -285,7 +256,7 @@ function updateDualMatrix() {
     const sNach = document.getElementById('s-nach')?.value;
     const wNach = document.getElementById('w-nach')?.value;
     
-    if(!sVor) return; // Guard clause, falls DOM noch nicht ready
+    if(!sVor) return;
 
     document.querySelectorAll('.matrix-cell').forEach(c => c.classList.remove('active'));
     if(document.getElementById(`vor-${sVor}-${wVor}`)) document.getElementById(`vor-${sVor}-${wVor}`).classList.add('active');
@@ -348,9 +319,12 @@ async function saveAssessmentRecord() {
     const fristTyp = document.getElementById('frist-typ').value;
     const finalFrist = fristTyp === 'datum' ? document.getElementById('frist-datum').value : fristTyp;
     const currentTaetigkeit = document.getElementById('taetigkeit').value;
+    const currentBereich = document.getElementById('bereich-input').value;
 
     const record = {
         id: editingRecordId !== null ? editingRecordId : Date.now(),
+        companyId: activeCompanyId, // Verknüpfung zum aktuellen Betrieb!
+        bereich: currentBereich,
         taetigkeit: currentTaetigkeit, 
         gefaehrdung: document.getElementById('gefaehrdung').value,
         sVor: document.getElementById('s-vor').value, wVor: document.getElementById('w-vor').value, 
@@ -363,11 +337,11 @@ async function saveAssessmentRecord() {
     };
 
     await storage.saveAssessment(record);
-    assessmentList = await storage.getAllAssessments();
+    assessmentList = await storage.getGbsByCompany(activeCompanyId);
     highlightRecordId = record.id;
     
     if (editingRecordId !== null) cancelEditMode();
-    else resetFormAfterSave(currentTaetigkeit);
+    else resetFormAfterSave(currentTaetigkeit, currentBereich);
     
     applyCurrentSort(); 
     renderTable(); 
@@ -375,8 +349,9 @@ async function saveAssessmentRecord() {
     document.getElementById('table-anchor').scrollIntoView({ behavior: 'smooth' });
 }
 
-function resetFormAfterSave(keepTaetigkeit) {
+function resetFormAfterSave(keepTaetigkeit, keepBereich) {
     document.getElementById('gb-form').reset();
+    document.getElementById('bereich-input').value = keepBereich || '';
     document.getElementById('taetigkeit').value = keepTaetigkeit; 
     currentSelectedPsa = []; 
     document.getElementById('psa-still-required').checked = true; 
@@ -407,27 +382,31 @@ function renderTable() {
         }
     }
 
+    // Gruppierung nach Bereich > Tätigkeit
     const groupMap = {};
     assessmentList.forEach(item => {
+        const bName = item.bereich ? `${item.bereich} ➔ ` : '';
         const tName = item.taetigkeit || 'Ohne Zuordnung';
-        if (!groupMap[tName]) groupMap[tName] = [];
-        groupMap[tName].push(item);
+        const groupKey = bName + tName;
+        if (!groupMap[groupKey]) groupMap[groupKey] = [];
+        groupMap[groupKey].push(item);
     });
 
     const groups = Object.keys(groupMap);
-    if (currentSort.key === 'taetigkeit') groups.sort((a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1) * (currentSort.dir === 'asc' ? 1 : -1));
+    if (currentSort.key === 'taetigkeit') {
+        groups.sort((a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1) * (currentSort.dir === 'asc' ? 1 : -1));
+    }
 
     groups.forEach(groupName => {
         const trGroup = document.createElement('tr');
         trGroup.className = 'group-header-row';
-        trGroup.innerHTML = `<td colspan="9"><div style="display:flex; justify-content: space-between; align-items: center;"><span class="group-title">📂 Arbeitsplatz / Tätigkeit: <span style="color: var(--primary);">${groupName}</span></span><span style="font-size: 11px; font-weight: normal; color: #64748b;">${groupMap[groupName].length} Gefährdung(en)</span></div></td>`;
+        trGroup.innerHTML = `<td colspan="9"><div style="display:flex; justify-content: space-between; align-items: center;"><span class="group-title">📂 <span style="color: var(--primary);">${groupName}</span></span><span style="font-size: 11px; font-weight: normal; color: #64748b;">${groupMap[groupName].length} Gefährdung(en)</span></div></td>`;
         tbody.appendChild(trGroup);
 
         groupMap[groupName].forEach(item => {
             const riskVor = riskMatrix[`${item.sVor}-${item.wVor}`];
             const riskNach = riskMatrix[`${item.sNach}-${item.wNach}`];
             
-            // Render STOP Logic
             let stopHtml = `<div class="table-stop-display">`;
             ['S','T','O','P'].forEach(l => { 
                 if(item[`stop${l}`]) stopHtml += `<div class="table-stop-row"><div class="table-stop-indicator ${l.toLowerCase()}">${l}</div> <div class="table-stop-text">${renderStopList(item[`stop${l}`])}</div></div>`; 
@@ -435,7 +414,6 @@ function renderTable() {
             stopHtml += `</div>`;
             if(!item.stopS && !item.stopT && !item.stopO && !item.stopP) stopHtml = `<span style="color:#94a3b8; font-style:italic;">Keine Maßnahmen</span>`;
 
-            // Render PSA Logic
             let psaColHtml = `<span style="color:#94a3b8; font-style:italic;">Keine PSA</span>`;
             if (item.psaList && item.psaList.length > 0) {
                 psaColHtml = item.psaList.map(p => `<span class="psa-cell-badge">🛡️ ${p}</span>`).join('');
@@ -504,10 +482,16 @@ function getFristColor(val) {
 }
 
 function updateDatalist() {
-    const datalist = document.getElementById('taetigkeit-list');
-    if(!datalist) return;
-    const unique = [...new Set(assessmentList.map(i => i.taetigkeit).filter(Boolean))];
-    datalist.innerHTML = unique.map(t => `<option value="${t}">`).join('');
+    const tList = document.getElementById('taetigkeit-list');
+    const bList = document.getElementById('bereich-list');
+    if(tList) {
+        const uniqueT = [...new Set(assessmentList.map(i => i.taetigkeit).filter(Boolean))];
+        tList.innerHTML = uniqueT.map(t => `<option value="${t}">`).join('');
+    }
+    if(bList) {
+        const uniqueB = [...new Set(assessmentList.map(i => i.bereich).filter(Boolean))];
+        bList.innerHTML = uniqueB.map(b => `<option value="${b}">`).join('');
+    }
 }
 
 // ==========================================
@@ -517,21 +501,10 @@ function updateDatalist() {
 async function deleteRecord(id) { 
     if(confirm("Diesen Eintrag wirklich löschen?")) {
         await storage.deleteAssessment(id);
-        assessmentList = await storage.getAllAssessments();
+        assessmentList = await storage.getGbsByCompany(activeCompanyId);
         if(editingRecordId === id) cancelEditMode();
         renderTable(); 
     }
-}
-
-async function clearAllData() { 
-    if(confirm("Alle Gefährdungen UND die Betriebsdaten komplett löschen?")) { 
-        await storage.clearAllAssessments();
-        await storage.clearCompanyData();
-        assessmentList = []; 
-        companyData = null; 
-        cancelEditMode(); 
-        window.location.search = '?action=setup';
-    } 
 }
 
 function editRecord(id) {
@@ -539,6 +512,7 @@ function editRecord(id) {
     if (!record) return;
     editingRecordId = record.id;
     document.getElementById('edit-mode-banner').style.display = 'flex';
+    document.getElementById('bereich-input').value = record.bereich || '';
     document.getElementById('taetigkeit').value = record.taetigkeit || '';
     document.getElementById('gefaehrdung').value = record.gefaehrdung || gefaehrdungOrder[0];
     document.getElementById('s-vor').value = record.sVor || '3'; document.getElementById('w-vor').value = record.wVor || '2';
@@ -570,8 +544,7 @@ function editRecord(id) {
 function cancelEditMode() {
     editingRecordId = null;
     document.getElementById('edit-mode-banner').style.display = 'none';
-    const currentTaetigkeit = document.getElementById('taetigkeit').value;
-    resetFormAfterSave(currentTaetigkeit);
+    resetFormAfterSave(document.getElementById('taetigkeit').value, document.getElementById('bereich-input').value);
 }
 
 function sortTable(key) {
@@ -594,20 +567,15 @@ function applyCurrentSort() {
     });
 }
 
-function updateSortIcons() {
-    document.querySelectorAll('th.sortable').forEach(th => {
-        const icon = th.querySelector('.sort-icon');
-        if(!icon) return;
-        if (currentSort.key === th.getAttribute('data-sort')) { icon.innerHTML = currentSort.dir === 'asc' ? '↑' : '↓'; icon.style.color = 'var(--primary)'; } 
-        else { icon.innerHTML = '↕'; icon.style.color = '#cbd5e1'; }
-    });
-}
-
 async function loadTemplate(type) {
     const combinedTemplates = [...defaultStandardTemplates, ...(branchTemplates[type] || [])];
-    const newRecords = combinedTemplates.map(t => ({ ...t, id: Date.now() + Math.floor(Math.random() * 1000) }));
+    const newRecords = combinedTemplates.map(t => ({ 
+        ...t, 
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        companyId: activeCompanyId 
+    }));
     await storage.saveMultipleAssessments(newRecords);
-    assessmentList = await storage.getAllAssessments();
+    assessmentList = await storage.getGbsByCompany(activeCompanyId);
     applyCurrentSort(); renderTable(); alert("Vorlagen erfolgreich geladen!");
 }
 
@@ -645,7 +613,6 @@ function renderModalPsaList() {
         container.innerHTML += html;
     });
     
-    // Counter live update
     container.querySelectorAll('.psa-checkbox').forEach(cb => {
         cb.addEventListener('change', () => {
             document.getElementById('modal-selected-counter').innerText = `${document.querySelectorAll('#modal-psa-list input[type="checkbox"]:checked').length} ausgewählt`;
@@ -676,7 +643,6 @@ async function loadAndRenderCompanies() {
     companiesList = await storage.getAllCompanies();
     companiesList.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de'));
 
-    // Für jeden Betrieb die Anzahl zugehöriger Gefährdungsbeurteilungen ermitteln
     const gbCounts = await Promise.all(
         companiesList.map(c => storage.getGbsByCompany(c.id).then(gbs => gbs.length))
     );
@@ -700,7 +666,7 @@ function renderCompaniesGrid() {
     }
 
     grid.innerHTML = companiesList.map(c => `
-        <div class="betrieb-card" data-id="${c.id}">
+        <div class="betrieb-card" data-id="${c.id}" style="cursor: pointer;">
             <div class="betrieb-card-main">
                 <div class="betrieb-card-icon">🏢</div>
                 <div class="betrieb-card-info">
@@ -709,7 +675,7 @@ function renderCompaniesGrid() {
                     <div class="betrieb-card-meta">${c._gbCount} Gefährdungsbeurteilung${c._gbCount === 1 ? '' : 'en'}</div>
                 </div>
             </div>
-            <div class="betrieb-card-actions">
+            <div class="betrieb-card-actions" style="cursor: default;" onclick="event.stopPropagation();">
                 <button type="button" class="btn-icon edit-betrieb" title="Bearbeiten" data-id="${c.id}">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                 </button>
@@ -726,16 +692,19 @@ function openCompanyModal(id = null) {
     const title = document.getElementById('betrieb-modal-title');
     const nameInput = document.getElementById('betrieb-name');
     const anschriftInput = document.getElementById('betrieb-anschrift');
+    const auditorInput = document.getElementById('betrieb-auditor');
 
     if (id !== null) {
         const c = companiesList.find(x => x.id === id);
         title.textContent = 'Betrieb bearbeiten';
         nameInput.value = c?.name || '';
         anschriftInput.value = c?.anschrift || '';
+        if(auditorInput) auditorInput.value = c?.auditor || '';
     } else {
         title.textContent = 'Neuer Betrieb';
         nameInput.value = '';
         anschriftInput.value = '';
+        if(auditorInput) auditorInput.value = '';
     }
 
     document.getElementById('betrieb-modal').style.display = 'flex';
@@ -750,6 +719,9 @@ function closeCompanyModal() {
 async function saveCompanyForm() {
     const name = document.getElementById('betrieb-name').value.trim();
     const anschrift = document.getElementById('betrieb-anschrift').value.trim();
+    const auditorInput = document.getElementById('betrieb-auditor');
+    const auditor = auditorInput ? auditorInput.value.trim() : '';
+    
     if (!name) return;
 
     const existing = editingCompanyId !== null ? companiesList.find(c => c.id === editingCompanyId) : null;
@@ -758,12 +730,15 @@ async function saveCompanyForm() {
         id: editingCompanyId !== null ? editingCompanyId : Date.now(),
         name,
         anschrift,
+        auditor,
         createdAt: existing?.createdAt || new Date().toISOString()
     };
 
     await storage.saveCompany(company);
     closeCompanyModal();
-    await loadAndRenderCompanies();
+    
+    // Nach Speichern die Oberfläche direkt refreshen
+    await updateUIBasedOnState();
 }
 
 async function deleteCompanyHandler(id) {
@@ -771,13 +746,13 @@ async function deleteCompanyHandler(id) {
     const gbCount = company?._gbCount || 0;
 
     const warning = gbCount > 0
-        ? `Der Betrieb "${company?.name}" enthält ${gbCount} Gefährdungsbeurteilung(en). Beim Löschen werden ALLE zugehörigen Beurteilungen und dokumentierten Risiken unwiderruflich mitgelöscht.\n\nFortfahren?`
+        ? `Der Betrieb "${company?.name}" enthält ${gbCount} Gefährdungsbeurteilung(en). Beim Löschen werden ALLE zugehörigen Beurteilungen unwiderruflich mitgelöscht.\n\nFortfahren?`
         : `Betrieb "${company?.name}" wirklich löschen?`;
 
     if (!window.confirm(warning)) return;
 
     await storage.deleteCompany(id);
-    await loadAndRenderCompanies();
+    await updateUIBasedOnState();
 }
 
 // ==========================================
@@ -795,70 +770,6 @@ function switchSettingsTab(tabId) {
         const el = document.getElementById(contentId);
         if (el) el.style.display = (btnId === tabId) ? 'block' : 'none';
     });
-}
-
-async function exportAllDataToFile() {
-    const statusEl = document.getElementById('backup-status-msg');
-    try {
-        const backup = await storage.exportAllData();
-        const json = JSON.stringify(backup, null, 2);
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const datestamp = new Date().toISOString().slice(0, 10);
-        a.href = url;
-        a.download = `riskflow-backup-${datestamp}.json`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-        if (statusEl) {
-            statusEl.style.color = '#10b981';
-            statusEl.textContent = `✓ Export erfolgreich (${backup.companies.length} Betrieb(e), ${backup.gbs.length} Beurteilung(en), ${backup.assessments.length} Risiko-Einträge).`;
-        }
-    } catch (err) {
-        console.error('Export fehlgeschlagen:', err);
-        if (statusEl) {
-            statusEl.style.color = '#ef4444';
-            statusEl.textContent = '✗ Export fehlgeschlagen. Bitte erneut versuchen.';
-        }
-    }
-}
-
-async function importAllDataFromFile(file) {
-    const statusEl = document.getElementById('backup-status-msg');
-    if (!file) return;
-
-    const confirmed = window.confirm(
-        'Achtung: Beim Import wird ALLES, was aktuell auf diesem Gerät gespeichert ist ' +
-        '(alle Betriebe, Beurteilungen und Risiken), unwiderruflich überschrieben. Fortfahren?'
-    );
-    if (!confirmed) {
-        document.getElementById('input-import-all').value = '';
-        return;
-    }
-
-    try {
-        const text = await file.text();
-        const backup = JSON.parse(text);
-        await storage.importAllData(backup);
-
-        assessmentList = await storage.getAllAssessments();
-        renderTable();
-
-        if (statusEl) {
-            statusEl.style.color = '#10b981';
-            statusEl.textContent = `✓ Backup importiert (${backup.companies.length} Betrieb(e), ${backup.gbs.length} Beurteilung(en), ${backup.assessments.length} Risiko-Einträge). Bitte Seite neu laden.`;
-        }
-    } catch (err) {
-        console.error('Import fehlgeschlagen:', err);
-        if (statusEl) {
-            statusEl.style.color = '#ef4444';
-            statusEl.textContent = '✗ Import fehlgeschlagen – Datei ungültig oder beschädigt.';
-        }
-    } finally {
-        document.getElementById('input-import-all').value = '';
-    }
 }
 
 function openSettingsModal() { 
