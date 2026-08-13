@@ -6,7 +6,7 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'riskflow-db';
-const DB_VERSION = 2; // Version 2, da wir das Schema an deine Praxis-Struktur angepasst haben
+const DB_VERSION = 3; // Upgrade auf Version 3 für Multi-Betrieb-Struktur
 
 let db;
 
@@ -41,44 +41,116 @@ const defaultTemplates = {
 
 export async function initializeStorage() {
   db = await openDB(DB_NAME, DB_VERSION, {
-    upgrade(db, oldVersion) {
-      // Lösche alte Stores falls ein Versions-Upgrade ansteht (Reset)
+    upgrade(db, oldVersion, newVersion, tx) {
       if (oldVersion < 2) {
         if (db.objectStoreNames.contains('assessments')) db.deleteObjectStore('assessments');
         if (db.objectStoreNames.contains('settings')) db.deleteObjectStore('settings');
       }
 
-      // 1. Store für die eigentlichen Gefährdungsbeurteilungen (Zeilen der Tabelle)
       if (!db.objectStoreNames.contains('assessments')) {
         const assessmentStore = db.createObjectStore('assessments', { keyPath: 'id' });
-        // Indizes zum schnelleren Sortieren
         assessmentStore.createIndex('taetigkeit', 'taetigkeit');
         assessmentStore.createIndex('gefaehrdung', 'gefaehrdung');
       }
       
-      // 2. Store für globale App-Daten (Firma, PSA-Katalog, Templates)
       if (!db.objectStoreNames.contains('settings')) {
         db.createObjectStore('settings', { keyPath: 'key' });
+      }
+
+      // Version 3 Upgrade: Multi-Betrieb-Struktur
+      if (oldVersion < 3) {
+        if (!db.objectStoreNames.contains('companies')) {
+          db.createObjectStore('companies', { keyPath: 'id' });
+        }
+        
+        // Füge den companyId-Index zu den bestehenden Gefährdungen hinzu
+        const assessmentStore = tx.objectStore('assessments');
+        if (!assessmentStore.indexNames.contains('companyId')) {
+          assessmentStore.createIndex('companyId', 'companyId');
+        }
       }
     }
   });
   
-  // Seed initial data if not present
   await seedInitialSettings();
+  await migrateV2ToV3(); // Automatische Daten-Migration
   
   return db;
 }
 
 async function seedInitialSettings() {
   const psaCatalog = await getSetting('psaCatalog');
-  if (!psaCatalog) {
-    await saveSetting('psaCatalog', defaultPsaHazardData);
-  }
+  if (!psaCatalog) await saveSetting('psaCatalog', defaultPsaHazardData);
   
   const templates = await getSetting('branchTemplates');
-  if (!templates) {
-    await saveSetting('branchTemplates', defaultTemplates);
+  if (!templates) await saveSetting('branchTemplates', defaultTemplates);
+}
+
+async function migrateV2ToV3() {
+  const oldCompanyData = await getCompanyData();
+  
+  // Wenn noch alte, globale Betriebsdaten existieren, wandeln wir sie in einen echten "Betrieb" um
+  if (oldCompanyData) {
+    console.log('🔄 Starte Migration auf Multi-Betrieb-Struktur...');
+    
+    const defaultCompany = {
+      id: Date.now(),
+      name: oldCompanyData.name || 'Standard Betrieb',
+      anschrift: oldCompanyData.location || '',
+      auditor: oldCompanyData.auditor || '',
+      createdAt: oldCompanyData.date || new Date().toISOString()
+    };
+    
+    await saveCompany(defaultCompany);
+
+    // Alle bisherigen Gefährdungen abrufen und dem neuen Betrieb zuordnen
+    const allAssessments = await db.getAll('assessments');
+    const tx = db.transaction('assessments', 'readwrite');
+    for (const g of allAssessments) {
+      if (!g.companyId) {
+        g.companyId = defaultCompany.id;
+        tx.store.put(g);
+      }
+    }
+    await tx.done;
+    
+    // Altes Setup löschen, damit die Migration nicht beim nächsten Start erneut läuft
+    await clearCompanyData();
+    console.log('✅ Migration abgeschlossen.');
   }
+}
+
+// --- Betriebe (Companies) Funktionen ---
+
+export async function getAllCompanies() {
+  return await db.getAll('companies');
+}
+
+export async function saveCompany(company) {
+  return await db.put('companies', company);
+}
+
+export async function deleteCompany(id) {
+  // Löscht den Betrieb UND kaskadierend alle zugehörigen Gefährdungsbeurteilungen
+  const tx = db.transaction(['companies', 'assessments'], 'readwrite');
+  
+  // Betrieb löschen
+  tx.objectStore('companies').delete(id);
+  
+  // Verknüpfte Gefährdungen löschen
+  const index = tx.objectStore('assessments').index('companyId');
+  let cursor = await index.openCursor(id);
+  while (cursor) {
+    cursor.delete();
+    cursor = await cursor.continue();
+  }
+  
+  await tx.done;
+}
+
+export async function getGbsByCompany(companyId) {
+  // Holt alle Gefährdungen, die zu einer bestimmten Betriebs-ID gehören
+  return await db.getAllFromIndex('assessments', 'companyId', companyId);
 }
 
 // --- Assessment (Gefährdungsbeurteilungen) Funktionen ---
@@ -88,7 +160,6 @@ export async function getAllAssessments() {
 }
 
 export async function saveAssessment(assessment) {
-  // put() funktioniert als Insert oder Update (da 'id' der KeyPath ist)
   return await db.put('assessments', assessment);
 }
 
@@ -101,7 +172,6 @@ export async function clearAllAssessments() {
 }
 
 export async function saveMultipleAssessments(assessments) {
-  // Für das Laden von Templates: Schreibt mehrere Einträge effizient in einer Transaktion
   const tx = db.transaction('assessments', 'readwrite');
   for (const item of assessments) {
     tx.store.put(item);
@@ -109,7 +179,7 @@ export async function saveMultipleAssessments(assessments) {
   await tx.done;
 }
 
-// --- Settings & Company Funktionen ---
+// --- Settings Funktionen (Für PSA-Katalog & Templates) ---
 
 export async function getSetting(key) {
   return await db.get('settings', key);
@@ -119,6 +189,7 @@ export async function saveSetting(key, value) {
   return await db.put('settings', { key, value });
 }
 
+// Veraltete Funktionen (werden noch für die Migration oder Backups gebraucht)
 export async function getCompanyData() {
   const data = await getSetting('companyData');
   return data ? data.value : null;
