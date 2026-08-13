@@ -5,7 +5,7 @@
 
 import * as storage from './storage.js';
 import { defaultStandardTemplates } from './storage.js';
-import { navigateTo, setOnNavigateCallback } from './app.js';
+import { navigateTo, setOnNavigateCallback, Icons } from './app.js';
 
 // ==========================================
 // SYSTEM KONFIGURATION & STATE
@@ -42,7 +42,6 @@ let editingRecordId = null;
 let highlightRecordId = null;
 let currentSort = { key: 'gefaehrdung', dir: 'asc' };
 let currentStep = 1;
-
 
 // ==========================================
 // INITIALISIERUNG
@@ -100,7 +99,6 @@ async function updateUIBasedOnState() {
         if (exportBtn) exportBtn.style.display = 'inline-flex';
         if (printBtn) printBtn.style.display = 'inline-flex';
 
-        // NUR die Gefährdungen für den aktuell aktiven Betrieb laden
         assessmentList = await storage.getGbsByCompany(activeCompanyId);
 
         resetStopFields();
@@ -115,8 +113,9 @@ function renderQuickCompanySelect() {
     const select = document.getElementById('company-quick-select');
     if (!select) return;
 
+    // In <option> Tags ist kein HTML (wie SVGs) erlaubt, daher clean als reiner Text
     select.innerHTML = companiesList.map(c => `
-        <option value="${c.id}" ${c.id === activeCompanyId ? 'selected' : ''}>🏢 ${c.name}</option>
+        <option value="${c.id}" ${c.id === activeCompanyId ? 'selected' : ''}>${c.name}</option>
     `).join('');
     select.style.display = 'inline-flex';
 }
@@ -127,16 +126,13 @@ function renderQuickCompanySelect() {
 
 function setupEventDelegation() {
     document.addEventListener('click', async (e) => {
-        // --- Globale Aktionen ---
         if (e.target.closest('#btn-settings')) openSettingsModal();
         if (e.target.closest('#btn-close-settings-top') || e.target.closest('#btn-close-settings-bottom')) closeSettingsModal();
         if (e.target.closest('#btn-goto-betriebe') || e.target.closest('#btn-close-workspace')) navigateTo('betriebe');
 
-        // --- Export & Drucken ---
         if (e.target.closest('#btn-export')) exportCompanyToCSV();
         if (e.target.closest('#btn-print')) window.print();
 
-        // --- Company Setup & Dashboard ---
         if (e.target.closest('#btn-edit-company')) {
             if(activeCompanyId) openCompanyModal(activeCompanyId);
         }
@@ -157,7 +153,6 @@ function setupEventDelegation() {
             closeCompanyModal();
         }
 
-        // --- Wizard Navigation ---
         if (e.target.closest('#btn-next')) {
             if (validateCurrentStep()) { currentStep++; showStep(currentStep); }
         }
@@ -166,7 +161,6 @@ function setupEventDelegation() {
         }
         if (e.target.closest('#btn-cancel-edit')) cancelEditMode();
 
-        // --- STOP Prinzip ---
         if (e.target.closest('.btn-add-small')) {
             const btn = e.target.closest('.btn-add-small');
             addStopRow(btn.dataset.stop, btn.dataset.placeholder);
@@ -175,12 +169,10 @@ function setupEventDelegation() {
             removeStopRow(e.target.closest('.btn-remove'));
         }
 
-        // --- PSA Modal ---
         if (e.target.closest('#btn-open-psa')) openPsaModal();
         if (e.target.closest('#btn-close-psa-top') || e.target.closest('#btn-close-psa-bottom')) closePsaModal();
         if (e.target.closest('#btn-apply-psa')) applyPsaModalSelection();
 
-        // --- Tabelle & Templates ---
         if (e.target.closest('.tpl-btn')) {
             const tpl = e.target.closest('.tpl-btn').dataset.tpl;
             await loadTemplate(tpl);
@@ -195,12 +187,10 @@ function setupEventDelegation() {
             await deleteRecord(Number(e.target.closest('tr').dataset.id));
         }
 
-        // --- Einstellungen: Tab-Umschaltung ---
         if (e.target.closest('.module-tab')) {
             switchSettingsTab(e.target.closest('.module-tab').id);
         }
 
-        // --- Mobile-Tableiste ---
         if (e.target.closest('.mobile-tab')) {
             const tabBtn = e.target.closest('.mobile-tab');
             const tab = tabBtn.dataset.tab;
@@ -236,17 +226,14 @@ function exportCompanyToCSV() {
     if (!activeCompany) return;
 
     const sanitize = (text) => `"${(text || '').toString().replace(/"/g, '""')}"`;
+    let csvContent = '\uFEFF'; 
 
-    let csvContent = '\uFEFF'; // UTF-8 Byte Order Mark für Excel
-
-    // 1. Kopfdaten des Betriebs
     csvContent += `GEFÄHRDUNGSBEURTEILUNG - ${activeCompany.name.toUpperCase()}\n`;
     csvContent += `Standort / Anschrift:;${sanitize(activeCompany.anschrift)}\n`;
     csvContent += `Geprüft durch:;${sanitize(activeCompany.auditor)}\n`;
     csvContent += `Angelegt am:;${formatDate(activeCompany.createdAt)}\n`;
     csvContent += `Export-Datum:;${new Date().toLocaleDateString('de-DE')}\n\n`;
 
-    // 2. Tabellen-Header
     const headers = [
         'Bereich', 'Tätigkeit', 'Gefährdungsfaktor', 
         'S (vor)', 'W (vor)', 'Risiko (vor)', 
@@ -256,7 +243,6 @@ function exportCompanyToCSV() {
     ];
     csvContent += headers.map(h => sanitize(h)).join(';') + '\n';
 
-    // 3. Tabellen-Daten
     assessmentList.forEach(item => {
         const riskVor = riskMatrix[`${item.sVor}-${item.wVor}`]?.level || '-';
         const riskNach = riskMatrix[`${item.sNach}-${item.wNach}`]?.level || '-';
@@ -279,7 +265,6 @@ function exportCompanyToCSV() {
         csvContent += row.map(cell => sanitize(cell)).join(';') + '\n';
     });
 
-    // Download auslösen
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -366,7 +351,7 @@ function addStopRow(letter, placeholder, value = '') {
     row.innerHTML = `
         <span class="row-num">${container.children.length + 1}.</span>
         <input type="text" class="stop-val" placeholder="${placeholder}" value="${value}">
-        <button type="button" class="btn-remove" data-letter="${letter}">×</button>
+        <button type="button" class="btn-remove" data-letter="${letter}">${Icons.x}</button>
     `;
     container.appendChild(row);
     updateStopNumbers(letter);
@@ -490,7 +475,7 @@ function renderTable() {
     groups.forEach(groupName => {
         const trGroup = document.createElement('tr');
         trGroup.className = 'group-header-row';
-        trGroup.innerHTML = `<td colspan="9"><div style="display:flex; justify-content: space-between; align-items: center;"><span class="group-title">📂 <span style="color: var(--primary);">${groupName}</span></span><span style="font-size: 11px; font-weight: normal; color: #64748b;">${groupMap[groupName].length} Gefährdung(en)</span></div></td>`;
+        trGroup.innerHTML = `<td colspan="9"><div style="display:flex; justify-content: space-between; align-items: center;"><span class="group-title">${Icons.folder} <span style="color: var(--primary);">${groupName}</span></span><span style="font-size: 11px; font-weight: normal; color: #64748b;">${groupMap[groupName].length} Gefährdung(en)</span></div></td>`;
         tbody.appendChild(trGroup);
 
         groupMap[groupName].forEach(item => {
@@ -506,7 +491,7 @@ function renderTable() {
 
             let psaColHtml = `<span style="color:#94a3b8; font-style:italic;">Keine PSA</span>`;
             if (item.psaList && item.psaList.length > 0) {
-                psaColHtml = item.psaList.map(p => `<span class="psa-cell-badge">🛡️ ${p}</span>`).join('');
+                psaColHtml = item.psaList.map(p => `<span class="psa-cell-badge">${Icons.shield} ${p}</span>`).join('');
                 const isReq = item.psaStillRequired !== false;
                 psaColHtml += `<div style="font-size: 11px; margin-top: 4px; color: ${isReq ? '#db2777' : '#64748b'};">Nach Maßnahmen: ${isReq ? '<strong>Erforderlich</strong>' : '<span style="color:#64748b;">Entbehrlich</span>'}</div>`;
             }
@@ -526,8 +511,8 @@ function renderTable() {
                 <td data-label="Frist"><div class="frist-container"><div class="status-dot ${getFristColor(item.frist)}"></div>${formatFrist(item.frist)}</div></td>
                 <td class="no-print action-td">
                     <div class="action-cell">
-                        <button type="button" class="btn-icon edit" title="Bearbeiten"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                        <button type="button" class="btn-icon delete" title="Löschen"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                        <button type="button" class="btn-icon edit" title="Bearbeiten">${Icons.edit}</button>
+                        <button type="button" class="btn-icon delete" title="Löschen"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
                     </div>
                 </td>
             `;
@@ -695,7 +680,7 @@ function renderModalPsaList() {
                     <input type="checkbox" value="${badgeText}" ${isChecked ? 'checked' : ''} class="psa-checkbox">
                     <div>
                         <div style="font-weight: 600; font-size: 13px; color: var(--text-main);">${item.label}</div>
-                        <div style="font-size: 11.5px; color: var(--text-muted);">🛡️ ${item.psa} — Ref: ${item.ref}</div>
+                        <div style="font-size: 11.5px; color: var(--text-muted); display:flex; align-items:center; gap:4px;">${Icons.shield} ${item.psa} — Ref: ${item.ref}</div>
                     </div>
                 </div>
             `;
@@ -722,7 +707,7 @@ function renderStep3PsaPreview() {
     if(!container) return;
     document.getElementById('psa-badge-count').innerText = `${currentSelectedPsa.length} gewählt`;
     if (currentSelectedPsa.length === 0) { container.innerHTML = `<span style="font-size: 12px; color: var(--text-muted); font-style: italic;">Keine PSA ausgewählt</span>`; return; }
-    container.innerHTML = currentSelectedPsa.map(p => `<span class="selected-psa-tag">🛡️ ${p}</span>`).join('');
+    container.innerHTML = currentSelectedPsa.map(p => `<span class="selected-psa-tag">${Icons.shield} ${p}</span>`).join('');
 }
 
 // ==========================================
@@ -748,9 +733,11 @@ function renderCompaniesGrid() {
     if (companiesList.length === 0) {
         grid.innerHTML = `
             <div class="betriebe-empty">
-                <div style="font-size: 32px; margin-bottom: 10px;">🏢</div>
+                <div style="display:flex; justify-content:center; margin-bottom: 16px;">
+                    <div class="icon-lg">${Icons.building}</div>
+                </div>
                 Noch keine Betriebe angelegt.<br>
-                Lege deinen ersten Betrieb an, um ihm Gefährdungsbeurteilungen zuzuordnen.
+                Legen Sie Ihren ersten Betrieb an, um Gefährdungsbeurteilungen zuzuordnen.
             </div>`;
         return;
     }
@@ -758,7 +745,7 @@ function renderCompaniesGrid() {
     grid.innerHTML = companiesList.map(c => `
         <div class="betrieb-card" data-id="${c.id}" style="cursor: pointer;">
             <div class="betrieb-card-main">
-                <div class="betrieb-card-icon">🏢</div>
+                <div class="betrieb-card-icon">${Icons.building}</div>
                 <div class="betrieb-card-info">
                     <div class="betrieb-card-name">${c.name}</div>
                     <div class="betrieb-card-address">${c.anschrift || 'Keine Anschrift hinterlegt'}</div>
@@ -767,10 +754,10 @@ function renderCompaniesGrid() {
             </div>
             <div class="betrieb-card-actions" style="cursor: default;" onclick="event.stopPropagation();">
                 <button type="button" class="btn-icon edit-betrieb" title="Bearbeiten" data-id="${c.id}">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    ${Icons.edit}
                 </button>
                 <button type="button" class="btn-icon delete-betrieb" title="Löschen" data-id="${c.id}">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 </button>
             </div>
         </div>
