@@ -7,6 +7,7 @@ import { initializeApp } from './modules/app.js';
 import { initializeStorage } from './modules/storage.js';
 import { initializeLogic } from './modules/logic.js';
 import { registerServiceWorker } from './modules/service-worker.js';
+import { initSettings } from './modules/settings.js';
 
 async function bootstrapApp() {
   try {
@@ -28,9 +29,15 @@ async function bootstrapApp() {
     await initializeLogic();
     console.log('✅ RiskFlow erfolgreich gestartet');
     
+    // 5. Einstellungsmenü initialisieren
+    initSettings();
+    console.log('✅ Settings-Modul geladen');
+    
   } catch (error) {
     console.error('❌ Fehler beim Starten von RiskFlow:', error);
-    document.getElementById('app').innerHTML = `
+    // Hier ist es sicherer, document.body zu nutzen, falls 'app' nicht existiert
+    const appContainer = document.getElementById('app') || document.body;
+    appContainer.innerHTML = `
       <div class="error-container">
         <h1>Fehler beim Laden</h1>
         <p>${error.message}</p>
