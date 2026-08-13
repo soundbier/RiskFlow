@@ -35,10 +35,12 @@ async function bootstrapApp() {
     
   } catch (error) {
     console.error('❌ Fehler beim Starten von RiskFlow:', error);
-    // Hier ist es sicherer, document.body zu nutzen, falls 'app' nicht existiert
-    const appContainer = document.getElementById('app') || document.body;
-    appContainer.innerHTML = `
-      <div class="error-container">
+    
+    // Greife auf den body zu, falls kein spezifischer Container gefunden wird
+    const errorContainer = document.querySelector('.app-container') || document.body;
+    
+    errorContainer.innerHTML = `
+      <div class="error-container" style="padding: 2rem; color: red;">
         <h1>Fehler beim Laden</h1>
         <p>${error.message}</p>
       </div>
