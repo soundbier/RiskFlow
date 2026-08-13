@@ -54,7 +54,7 @@ function renderLayout() {
           <button id="btn-goto-betriebe" class="btn btn-primary">${Icons.building} Meine Betriebe</button>
           <button id="btn-export" class="btn btn-secondary" style="display:none;">${Icons.download} Excel Export</button>
           <button id="btn-print" class="btn btn-secondary" style="display:none;">${Icons.printer} PDF Drucken</button>
-          <button id="btn-settings" class="btn btn-secondary">${Icons.settings} Einstellungen</button>
+          <button id="open-settings-btn" class="btn btn-secondary">${Icons.settings} Einstellungen</button>
         </div>
       </div>
       
@@ -358,68 +358,106 @@ function renderPsaModal() {
 
 function renderSettingsModal() {
   return `
-    <div id="settings-modal" class="modal-overlay">
-      <div class="modal-container" style="width: 950px;">
-          <div class="modal-header">
-              <h3 style="font-size: 16px; font-weight: 700; color: #1e293b; display:flex; align-items:center; gap:8px;">${Icons.settings} Einstellungsmenü</h3>
-              <button type="button" id="btn-close-settings-top" class="btn-icon" style="background: transparent; font-size: 18px; cursor: pointer;">${Icons.x}</button>
-          </div>
-          <div class="modal-body">
-              <div class="module-switcher">
-                  <button type="button" class="module-tab active" id="st-tab-psa" style="display:flex; align-items:center; gap:6px;">${Icons.shield} PSA-Katalog verwalten</button>
-                  <button type="button" class="module-tab" id="st-tab-tpl" style="display:flex; align-items:center; gap:6px;">${Icons.clipboard} Branchen-Templates</button>
-                  <button type="button" class="module-tab" id="st-tab-backup" style="display:flex; align-items:center; gap:6px;">${Icons.save} Daten-Backup</button>
-              </div>
-              
-              <div id="st-content-psa">
-                  <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Hier können Sie den PSA-Katalog anpassen, der im Assistenten verwendet wird.</p>
-                  <div id="settings-psa-list"></div>
-                  <button type="button" class="btn btn-outline" id="btn-add-psa-item" style="margin-top: 10px;">${Icons.plus} Neues PSA-Element hinzufügen</button>
-              </div>
+    <dialog id="settings-modal" class="modal">
+      <div class="modal-content settings-container">
+        
+        <!-- Header -->
+        <header class="settings-header">
+          <h2 style="display: flex; align-items: center; gap: 8px;">${Icons.settings} Einstellungen</h2>
+          <button id="close-settings-btn" class="btn-icon" aria-label="Schließen" style="background: transparent; border: none; cursor: pointer;">
+            ${Icons.x}
+          </button>
+        </header>
 
-              <div id="st-content-tpl" style="display:none;">
-                  <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Wählen Sie eine Branche aus, um die Standard-Vorlagen zu bearbeiten:</p>
-                  <div class="form-group">
-                      <select id="settings-tpl-select" style="max-width: 300px; margin-bottom: 15px;">
-                          <option value="spielhalle">Spielhalle</option>
-                          <option value="fitnessstudio">Fitnessstudio</option>
-                          <option value="schwimmbad">Schwimmbad</option>
-                          <option value="buero">Büro</option>
-                          <option value="gebaeudereinigung">Gebäudereinigung</option>
-                          <option value="itunternehmen">IT-Unternehmen</option>
-                          <option value="einzelhandel">Einzelhandel</option>
-                      </select>
-                  </div>
-                  <div id="settings-tpl-list"></div>
-                  <button type="button" class="btn btn-outline" id="btn-add-tpl-item" style="margin-top: 10px;">${Icons.plus} Neue Vorlagen-Zeile hinzufügen</button>
-              </div>
+        <!-- Body -->
+        <div class="settings-body">
+          
+          <!-- Sidebar Navigation -->
+          <nav class="settings-sidebar">
+            <ul class="settings-menu">
+              <li><button class="settings-tab active" data-target="settings-general">Allgemein</button></li>
+              <li><button class="settings-tab" data-target="settings-structure">Betrieb & Abteilungen</button></li>
+              <li><button class="settings-tab" data-target="settings-compliance">Arbeitsschutz & Compliance</button></li>
+              <li><button class="settings-tab" data-target="settings-data">Daten & PWA-Sync</button></li>
+            </ul>
+          </nav>
 
-              <div id="st-content-backup" style="display:none;">
-                  <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">
-                      Exportiert alle Betriebe, Gefährdungsbeurteilungen und dokumentierten Risiken als eine Datei –
-                      geeignet als Sicherung oder zum Übertragen auf ein anderes Gerät.
-                  </p>
-                  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                      <button type="button" class="btn btn-primary" id="btn-export-all">${Icons.download} Alle Daten exportieren (.json)</button>
-                      <label class="btn btn-outline" for="input-import-all" style="cursor:pointer; margin: 0; display:inline-flex; align-items:center; gap:8px;">${Icons.upload} Backup importieren
-                          <input type="file" id="input-import-all" accept="application/json" style="display:none;">
-                      </label>
-                  </div>
-                  <p id="backup-status-msg" style="font-size: 12px; margin-top: 12px; font-weight: 600;"></p>
-                  <p style="font-size: 11px; color: var(--text-muted); margin-top: 16px;">
-                      ⚠️ Ein Import überschreibt <strong>alle</strong> aktuell gespeicherten Betriebe, Beurteilungen und Risiken auf diesem Gerät.
-                  </p>
+          <!-- Main Content -->
+          <main class="settings-content">
+            
+            <!-- Tab: Allgemein -->
+            <section id="settings-general" class="settings-panel active">
+              <h3>Allgemeine Darstellung</h3>
+              <div class="form-group">
+                <label for="theme-select">Erscheinungsbild</label>
+                <select id="theme-select" class="form-control">
+                  <option value="system">Systemstandard</option>
+                  <option value="light">Hell</option>
+                  <option value="dark">Dunkel</option>
+                </select>
               </div>
-          </div>
-          <div class="modal-footer">
-              <button type="button" class="btn btn-danger-outline" id="btn-reset-factory">Werkseinstellungen wiederherstellen</button>
-              <div style="display: flex; gap: 10px;">
-                  <button type="button" class="btn btn-secondary" id="btn-close-settings-bottom">Abbrechen</button>
-                  <button type="button" class="btn btn-primary" id="btn-save-settings">Änderungen speichern</button>
+            </section>
+
+            <!-- Tab: Betriebsstruktur -->
+            <section id="settings-structure" class="settings-panel hidden">
+              <h3>Mandanten- und Abteilungsstruktur</h3>
+              <p class="settings-description">Verwalte hier die übergeordneten Unternehmensdaten für RiskFlow.</p>
+              <div class="form-group">
+                <label for="active-company">Aktive Betriebsstruktur</label>
+                <select id="active-company" class="form-control">
+                  <option value="1">Hauptwerk</option>
+                  <option value="2">Niederlassung Nord</option>
+                </select>
               </div>
-          </div>
+              <button class="btn btn-secondary" style="margin-top: 10px;">${Icons.plus} Neue Abteilung anlegen</button>
+            </section>
+
+            <!-- Tab: Arbeitsschutz & Compliance -->
+            <section id="settings-compliance" class="settings-panel hidden">
+              <h3>Gesetzliche Vorgaben</h3>
+              <div class="form-group checkbox-group" style="margin-bottom: 12px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                  <input type="checkbox" id="require-arbSchG" class="form-checkbox" checked>
+                  Strikte Prüfung nach ArbSchG erzwingen
+                </label>
+              </div>
+              <div class="form-group checkbox-group">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                  <input type="checkbox" id="require-arbStattV" class="form-checkbox" checked>
+                  ArbStättV-Katalog bei Begehungen standardmäßig laden
+                </label>
+              </div>
+            </section>
+
+            <!-- Tab: Daten & PWA-Sync -->
+            <section id="settings-data" class="settings-panel hidden">
+              <h3>Offline-Synchronisation</h3>
+              <div class="form-group">
+                <label>Letzter Sync: <span id="last-sync-time">-</span></label>
+                <br>
+                <button class="btn btn-primary" id="force-sync-btn" style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+                  ${Icons.upload} Jetzt synchronisieren
+                </button>
+              </div>
+              <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border-color, #e2e8f0);">
+              <button class="btn btn-danger-outline" id="clear-data-btn" style="color: red; border: 1px solid red; padding: 8px 16px; background: transparent; cursor: pointer;">
+                Lokalen Cache leeren
+              </button>
+            </section>
+
+          </main>
+        </div>
+
+        <!-- Footer -->
+        <footer class="settings-footer">
+          <button id="cancel-settings-btn" class="btn btn-secondary">Abbrechen</button>
+          <button id="save-settings-btn" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">
+            ${Icons.save} Speichern
+          </button>
+        </footer>
+
       </div>
-    </div>
+    </dialog>
   `;
 }
 
