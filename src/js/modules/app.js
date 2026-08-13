@@ -3,6 +3,25 @@
  * Initialisiert die Benutzeroberfläche und das Routing
  */
 
+// Zentrales SVG-Dictionary für sauberen HTML-Code
+export const Icons = {
+  building: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line><line x1="12" y1="14" x2="12.01" y2="14"></line><line x1="12" y1="10" x2="12.01" y2="10"></line><line x1="8" y1="18" x2="8.01" y2="18"></line><line x1="8" y1="14" x2="8.01" y2="14"></line><line x1="8" y1="10" x2="8.01" y2="10"></line><line x1="16" y1="18" x2="16.01" y2="18"></line><line x1="16" y1="14" x2="16.01" y2="14"></line><line x1="16" y1="10" x2="16.01" y2="10"></line></svg>`,
+  settings: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`,
+  download: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`,
+  upload: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>`,
+  printer: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>`,
+  x: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
+  edit: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
+  alert: `<svg class="icon text-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
+  check: `<svg class="icon text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
+  shield: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`,
+  folder: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`,
+  clipboard: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>`,
+  save: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>`,
+  plus: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`,
+  file: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`
+};
+
 let currentView = 'betriebe';
 let onNavigateCallback = null;
 
@@ -31,16 +50,14 @@ function renderLayout() {
           <span>RiskFlow – Arbeitsschutz einfach gemacht</span>
         </div>
         <div class="header-actions no-print">
-          <!-- Schnell-Umschalter für Betriebe im Header -->
           <select id="company-quick-select" class="btn btn-secondary" style="display:none; font-size: 12px; max-width: 220px; text-overflow: ellipsis;" title="Betrieb wechseln"></select>
-          <button id="btn-goto-betriebe" class="btn btn-primary">🏢 Meine Betriebe</button>
-          <button id="btn-export" class="btn btn-secondary" style="display:none;">📊 Excel Export</button>
-          <button id="btn-print" class="btn btn-secondary" style="display:none;">🖨️ PDF Drucken</button>
-          <button id="btn-settings" class="btn btn-secondary">⚙️ Einstellungen</button>
+          <button id="btn-goto-betriebe" class="btn btn-primary">${Icons.building} Meine Betriebe</button>
+          <button id="btn-export" class="btn btn-secondary" style="display:none;">${Icons.download} Excel Export</button>
+          <button id="btn-print" class="btn btn-secondary" style="display:none;">${Icons.printer} PDF Drucken</button>
+          <button id="btn-settings" class="btn btn-secondary">${Icons.settings} Einstellungen</button>
         </div>
       </div>
       
-      <!-- Aktive Betriebsdaten-Leiste -->
       <div id="company-info-bar" class="company-info-bar" style="display: none;">
         <div class="company-details-grid" style="flex-grow: 1;">
             <div class="info-block"><span class="info-label">Betrieb / Firma</span><span class="info-value" id="display-c-name">-</span></div>
@@ -50,14 +67,13 @@ function renderLayout() {
         </div>
         <div style="display: flex; gap: 8px; margin-left: 20px;">
             <button id="btn-edit-company" class="btn btn-outline no-print" style="font-size: 11px; padding: 6px 12px;">Stammdaten bearbeiten</button>
-            <button id="btn-close-workspace" class="btn btn-secondary no-print" style="font-size: 11px; padding: 6px 12px;">✕ Schließen</button>
+            <button id="btn-close-workspace" class="btn btn-secondary no-print" style="font-size: 11px; padding: 6px 12px;">${Icons.x} Schließen</button>
         </div>
       </div>
 
       <main id="main-content"></main>
     </div>
 
-    <!-- GLOBALE MODALS -->
     ${renderPsaModal()}
     ${renderSettingsModal()}
     ${renderBetriebFormModal()}
@@ -100,10 +116,6 @@ export function navigateTo(view, pushState = true) {
   if (onNavigateCallback) onNavigateCallback();
 }
 
-// ==========================================
-// VIEWS (HTML Templates)
-// ==========================================
-
 function renderWorkspace() {
   return `
     <div id="gb-workspace">
@@ -116,9 +128,9 @@ function renderWorkspace() {
         </div>
 
         <div class="wizard-body">
-            <div id="edit-mode-banner" class="edit-banner">
-                <span>✏️ Sie bearbeiten einen bestehenden Eintrag.</span>
-                <button type="button" class="btn btn-secondary" id="btn-cancel-edit" style="padding: 4px 10px; font-size: 11px;">Bearbeitung abbrechen</button>
+            <div id="edit-mode-banner" class="edit-banner" style="display: none; align-items: center; justify-content: space-between;">
+                <span style="display:flex; align-items:center; gap:8px;">${Icons.edit} Sie bearbeiten einen bestehenden Eintrag.</span>
+                <button type="button" class="btn btn-secondary" id="btn-cancel-edit" style="padding: 4px 10px; font-size: 11px;">Abbrechen</button>
             </div>
 
             <!-- SCHRITT 1: Identifikation -->
@@ -172,14 +184,14 @@ function renderWorkspace() {
                 <div class="risk-assessment-layout">
                     <div class="risk-split">
                         <div class="risk-split-box">
-                            <h4>🚨 Risiko VOR Maßnahmen</h4>
+                            <h4 style="display:flex; align-items:center; gap:8px; margin-bottom: 12px;">${Icons.alert} Risiko vor Maßnahmen</h4>
                             <div class="form-grid" style="gap: 10px;">
                                 <div><label for="s-vor">Schwere (S)</label><select id="s-vor"><option value="1">1 (Leicht)</option><option value="2">2 (Schwer)</option><option value="3" selected>3 (Tod)</option></select></div>
                                 <div><label for="w-vor">Wahrscheinlichkeit (W)</label><select id="w-vor"><option value="1">1 (Unwahr.)</option><option value="2" selected>2 (Möglich)</option><option value="3">3 (Wahr.)</option></select></div>
                             </div>
                         </div>
                         <div class="risk-split-box success">
-                            <h4>✅ Restrisiko NACH Maßnahmen</h4>
+                            <h4 style="display:flex; align-items:center; gap:8px; margin-bottom: 12px;">${Icons.check} Restrisiko nach Maßnahmen</h4>
                             <div class="form-grid" style="gap: 10px;">
                                 <div><label for="s-nach">Schwere (S)</label><select id="s-nach"><option value="1">1 (Leicht)</option><option value="2">2 (Schwer)</option><option value="3">3 (Tod)</option></select></div>
                                 <div><label for="w-nach">Wahrscheinlichkeit (W)</label><select id="w-nach"><option value="1" selected>1 (Unwahr.)</option><option value="2">2 (Möglich)</option><option value="3">3 (Wahr.)</option></select></div>
@@ -211,13 +223,13 @@ function renderWorkspace() {
             <!-- SCHRITT 3: Maßnahmen & Fristen -->
             <div class="wizard-step" id="step-3">
                 <div id="step3-context-banner" class="context-banner">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    ${Icons.info}
                     <span>Aktueller Gefährdungsfaktor: <span id="step3-current-gefaehrdung" style="font-weight: 800;">-</span></span>
                 </div>
                 <div class="form-group">
                     <label>Persönliche Schutzausrüstung (PSA-Auswahl)</label>
                     <button type="button" class="btn btn-secondary" id="btn-open-psa" style="width: 100%; justify-content: space-between; background: #fff; border: 1px solid #cbd5e1; font-weight: 600;">
-                        <span>🛡️ PSA-Assistent öffnen</span>
+                        <span style="display:flex; align-items:center; gap:8px;">${Icons.shield} PSA-Assistent öffnen</span>
                         <span id="psa-badge-count" style="background: var(--primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">0 gewählt</span>
                     </button>
                     <div id="step3-psa-preview" class="selected-psa-preview-box"></div>
@@ -229,10 +241,10 @@ function renderWorkspace() {
                 <div class="form-group" style="margin-top: 20px;">
                     <span style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Schutzmaßnahmen nach STOP-Prinzip</span>
                     <div class="stop-input-container">
-                        <div class="stop-row"><div class="stop-indicator s">S</div><div class="stop-field-wrapper"><div id="multi-s"></div><button type="button" class="btn-add-small" data-stop="s" data-placeholder="Substitution (Gefahr beseitigen)">+ Maßnahme ergänzen</button></div></div>
-                        <div class="stop-row"><div class="stop-indicator t">T</div><div class="stop-field-wrapper"><div id="multi-t"></div><button type="button" class="btn-add-small" data-stop="t" data-placeholder="Technische Maßnahmen">+ Maßnahme ergänzen</button></div></div>
-                        <div class="stop-row"><div class="stop-indicator o">O</div><div class="stop-field-wrapper"><div id="multi-o"></div><button type="button" class="btn-add-small" data-stop="o" data-placeholder="Organisatorische Maßnahmen">+ Maßnahme ergänzen</button></div></div>
-                        <div class="stop-row" style="border: none; padding: 0;"><div class="stop-indicator p">P</div><div class="stop-field-wrapper"><div id="multi-p"></div><button type="button" class="btn-add-small" data-stop="p" data-placeholder="Persönliche Schutzmaßnahmen">+ Maßnahme ergänzen</button></div></div>
+                        <div class="stop-row"><div class="stop-indicator s">S</div><div class="stop-field-wrapper"><div id="multi-s"></div><button type="button" class="btn-add-small" data-stop="s" data-placeholder="Substitution (Gefahr beseitigen)">${Icons.plus} Maßnahme ergänzen</button></div></div>
+                        <div class="stop-row"><div class="stop-indicator t">T</div><div class="stop-field-wrapper"><div id="multi-t"></div><button type="button" class="btn-add-small" data-stop="t" data-placeholder="Technische Maßnahmen">${Icons.plus} Maßnahme ergänzen</button></div></div>
+                        <div class="stop-row"><div class="stop-indicator o">O</div><div class="stop-field-wrapper"><div id="multi-o"></div><button type="button" class="btn-add-small" data-stop="o" data-placeholder="Organisatorische Maßnahmen">${Icons.plus} Maßnahme ergänzen</button></div></div>
+                        <div class="stop-row" style="border: none; padding: 0;"><div class="stop-indicator p">P</div><div class="stop-field-wrapper"><div id="multi-p"></div><button type="button" class="btn-add-small" data-stop="p" data-placeholder="Persönliche Schutzmaßnahmen">${Icons.plus} Maßnahme ergänzen</button></div></div>
                     </div>
                 </div>
                 <div class="form-grid">
@@ -258,10 +270,10 @@ function renderWorkspace() {
         </div>
 
         <div class="wizard-footer">
-            <button type="button" id="btn-prev" class="btn btn-secondary" style="display: none;">← Zurück</button>
+            <button type="button" id="btn-prev" class="btn btn-secondary" style="display: none;">Zurück</button>
             <div style="flex-grow: 1;"></div>
-            <button type="button" id="btn-next" class="btn btn-primary">Weiter →</button>
-            <button type="submit" id="btn-submit" class="btn btn-primary" style="display: none; background-color: #10b981;">Gefährdung speichern ✓</button>
+            <button type="button" id="btn-next" class="btn btn-primary">Weiter</button>
+            <button type="submit" id="btn-submit" class="btn btn-primary" style="display: none; background-color: #10b981;">Speichern</button>
         </div>
       </form>
       </div>
@@ -272,13 +284,13 @@ function renderWorkspace() {
           <div style="display:flex; flex-direction: column; align-items: flex-end; gap: 6px;">
               <span style="font-size: 12px; color: #64748b;">Basis-GB inkl. Standard-Risiken laden:</span>
               <div class="template-buttons" id="template-btn-container">
-                  <button class="btn btn-outline tpl-btn" data-tpl="spielhalle">🎰 Spielhalle</button>
-                  <button class="btn btn-outline tpl-btn" data-tpl="fitnessstudio">🏋️ Fitness</button>
-                  <button class="btn btn-outline tpl-btn" data-tpl="schwimmbad">🏊 Schwimmbad</button>
-                  <button class="btn btn-outline tpl-btn" data-tpl="buero">🏢 Büro</button>
-                  <button class="btn btn-outline tpl-btn" data-tpl="gebaeudereinigung">🧹 Reinigung</button>
-                  <button class="btn btn-outline tpl-btn" data-tpl="itunternehmen">💻 IT</button>
-                  <button class="btn btn-outline tpl-btn" data-tpl="einzelhandel">🛒 Handel</button>
+                  <button class="btn btn-outline tpl-btn" data-tpl="spielhalle">${Icons.file} Spielhalle</button>
+                  <button class="btn btn-outline tpl-btn" data-tpl="fitnessstudio">${Icons.file} Fitness</button>
+                  <button class="btn btn-outline tpl-btn" data-tpl="schwimmbad">${Icons.file} Schwimmbad</button>
+                  <button class="btn btn-outline tpl-btn" data-tpl="buero">${Icons.file} Büro</button>
+                  <button class="btn btn-outline tpl-btn" data-tpl="gebaeudereinigung">${Icons.file} Reinigung</button>
+                  <button class="btn btn-outline tpl-btn" data-tpl="itunternehmen">${Icons.file} IT</button>
+                  <button class="btn btn-outline tpl-btn" data-tpl="einzelhandel">${Icons.file} Handel</button>
               </div>
           </div>
       </div>
@@ -306,16 +318,16 @@ function renderWorkspace() {
       <!-- MOBILE-TABLEISTE -->
       <nav class="mobile-tabbar no-print" id="mobile-tabbar">
           <button type="button" class="mobile-tab active" data-tab="create">
-              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+              ${Icons.plus}
               <span>Erstellen</span>
           </button>
           <button type="button" class="mobile-tab" data-tab="table">
-              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
+              ${Icons.file}
               <span>Übersicht</span>
               <span class="mobile-tab-count" id="mobile-tab-count" style="display:none;"></span>
           </button>
           <button type="button" class="mobile-tab" data-tab="settings" id="mobile-tab-settings">
-              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              ${Icons.settings}
               <span>Einstellungen</span>
           </button>
       </nav>
@@ -328,15 +340,15 @@ function renderPsaModal() {
     <div id="psa-modal" class="modal-overlay">
       <div class="modal-container">
           <div class="modal-header">
-              <h3 style="font-size: 16px; font-weight: 700; color: #1e293b;">🛡️ PSA-Auswahl-Assistent</h3>
-              <button type="button" id="btn-close-psa-top" class="btn-icon" style="background: transparent; font-size: 18px; cursor: pointer;">✕</button>
+              <h3 style="font-size: 16px; font-weight: 700; color: #1e293b; display:flex; align-items:center; gap:8px;">${Icons.shield} PSA-Auswahl-Assistent</h3>
+              <button type="button" id="btn-close-psa-top" class="btn-icon" style="background: transparent; font-size: 18px; cursor: pointer;">${Icons.x}</button>
           </div>
           <div class="modal-body" id="modal-psa-list"></div>
           <div class="modal-footer">
               <span style="font-size: 12px; font-weight: 600; color: var(--text-muted);" id="modal-selected-counter">0 ausgewählt</span>
               <div style="display: flex; gap: 10px;">
                   <button type="button" class="btn btn-secondary" id="btn-close-psa-bottom">Abbrechen</button>
-                  <button type="button" class="btn btn-primary" id="btn-apply-psa">Auswahl übernehmen ✓</button>
+                  <button type="button" class="btn btn-primary" id="btn-apply-psa">Übernehmen</button>
               </div>
           </div>
       </div>
@@ -349,20 +361,20 @@ function renderSettingsModal() {
     <div id="settings-modal" class="modal-overlay">
       <div class="modal-container" style="width: 950px;">
           <div class="modal-header">
-              <h3 style="font-size: 16px; font-weight: 700; color: #1e293b;">⚙️ Einstellungsmenü</h3>
-              <button type="button" id="btn-close-settings-top" class="btn-icon" style="background: transparent; font-size: 18px; cursor: pointer;">✕</button>
+              <h3 style="font-size: 16px; font-weight: 700; color: #1e293b; display:flex; align-items:center; gap:8px;">${Icons.settings} Einstellungsmenü</h3>
+              <button type="button" id="btn-close-settings-top" class="btn-icon" style="background: transparent; font-size: 18px; cursor: pointer;">${Icons.x}</button>
           </div>
           <div class="modal-body">
               <div class="module-switcher">
-                  <button type="button" class="module-tab active" id="st-tab-psa">🛡️ PSA-Katalog verwalten</button>
-                  <button type="button" class="module-tab" id="st-tab-tpl">📋 Branchen-Templates verwalten</button>
-                  <button type="button" class="module-tab" id="st-tab-backup">💾 Daten-Backup</button>
+                  <button type="button" class="module-tab active" id="st-tab-psa" style="display:flex; align-items:center; gap:6px;">${Icons.shield} PSA-Katalog verwalten</button>
+                  <button type="button" class="module-tab" id="st-tab-tpl" style="display:flex; align-items:center; gap:6px;">${Icons.clipboard} Branchen-Templates</button>
+                  <button type="button" class="module-tab" id="st-tab-backup" style="display:flex; align-items:center; gap:6px;">${Icons.save} Daten-Backup</button>
               </div>
               
               <div id="st-content-psa">
                   <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Hier können Sie den PSA-Katalog anpassen, der im Assistenten verwendet wird.</p>
                   <div id="settings-psa-list"></div>
-                  <button type="button" class="btn btn-outline" id="btn-add-psa-item" style="margin-top: 10px;">+ Neues PSA-Element hinzufügen</button>
+                  <button type="button" class="btn btn-outline" id="btn-add-psa-item" style="margin-top: 10px;">${Icons.plus} Neues PSA-Element hinzufügen</button>
               </div>
 
               <div id="st-content-tpl" style="display:none;">
@@ -379,7 +391,7 @@ function renderSettingsModal() {
                       </select>
                   </div>
                   <div id="settings-tpl-list"></div>
-                  <button type="button" class="btn btn-outline" id="btn-add-tpl-item" style="margin-top: 10px;">+ Neue Vorlagen-Zeile hinzufügen</button>
+                  <button type="button" class="btn btn-outline" id="btn-add-tpl-item" style="margin-top: 10px;">${Icons.plus} Neue Vorlagen-Zeile hinzufügen</button>
               </div>
 
               <div id="st-content-backup" style="display:none;">
@@ -388,8 +400,8 @@ function renderSettingsModal() {
                       geeignet als Sicherung oder zum Übertragen auf ein anderes Gerät.
                   </p>
                   <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                      <button type="button" class="btn btn-primary" id="btn-export-all">⬇️ Alle Daten exportieren (.json)</button>
-                      <label class="btn btn-outline" for="input-import-all" style="cursor:pointer; margin: 0;">⬆️ Backup importieren
+                      <button type="button" class="btn btn-primary" id="btn-export-all">${Icons.download} Alle Daten exportieren (.json)</button>
+                      <label class="btn btn-outline" for="input-import-all" style="cursor:pointer; margin: 0; display:inline-flex; align-items:center; gap:8px;">${Icons.upload} Backup importieren
                           <input type="file" id="input-import-all" accept="application/json" style="display:none;">
                       </label>
                   </div>
@@ -403,7 +415,7 @@ function renderSettingsModal() {
               <button type="button" class="btn btn-danger-outline" id="btn-reset-factory">Werkseinstellungen wiederherstellen</button>
               <div style="display: flex; gap: 10px;">
                   <button type="button" class="btn btn-secondary" id="btn-close-settings-bottom">Abbrechen</button>
-                  <button type="button" class="btn btn-primary" id="btn-save-settings">Änderungen speichern ✓</button>
+                  <button type="button" class="btn btn-primary" id="btn-save-settings">Änderungen speichern</button>
               </div>
           </div>
       </div>
@@ -419,7 +431,7 @@ function renderBetriebeUebersicht() {
           <h2>Meine Betriebe</h2>
           <p class="betriebe-subtitle">Wählen Sie einen Betrieb aus, um dessen Gefährdungsbeurteilungen zu bearbeiten.</p>
         </div>
-        <button type="button" class="btn btn-primary" id="btn-new-betrieb">+ Neuer Betrieb</button>
+        <button type="button" class="btn btn-primary" id="btn-new-betrieb">${Icons.plus} Neuer Betrieb</button>
       </div>
       <div class="betriebe-grid" id="betriebe-grid">
         <!-- wird per JS befüllt -->
@@ -435,7 +447,7 @@ function renderBetriebFormModal() {
         <form id="betrieb-form">
           <div class="modal-header">
               <h3 id="betrieb-modal-title" style="font-size: 16px; font-weight: 700; color: #1e293b;">Neuer Betrieb</h3>
-              <button type="button" id="btn-close-betrieb-top" class="btn-icon" style="background: transparent; font-size: 18px; cursor: pointer;">✕</button>
+              <button type="button" id="btn-close-betrieb-top" class="btn-icon" style="background: transparent; font-size: 18px; cursor: pointer;">${Icons.x}</button>
           </div>
           <div class="modal-body">
               <div class="form-group">
@@ -455,7 +467,7 @@ function renderBetriebFormModal() {
               <div></div>
               <div style="display: flex; gap: 10px;">
                   <button type="button" class="btn btn-secondary" id="btn-close-betrieb-bottom">Abbrechen</button>
-                  <button type="submit" class="btn btn-primary">Speichern ✓</button>
+                  <button type="submit" class="btn btn-primary">Speichern</button>
               </div>
           </div>
         </form>
