@@ -223,10 +223,7 @@ export async function resetFactorySettings() {
 const UI_SETTINGS_KEY = 'riskflow_ui_settings';
 
 const defaultUiSettings = {
-  theme: 'system',
-  activeCompany: '1',
-  requireArbSchG: true,
-  requireArbStattV: true
+  theme: 'system'
 };
 
 /**
