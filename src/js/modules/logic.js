@@ -113,7 +113,6 @@ function renderQuickCompanySelect() {
     const select = document.getElementById('company-quick-select');
     if (!select) return;
 
-    // In <option> Tags ist kein HTML (wie SVGs) erlaubt, daher clean als reiner Text
     select.innerHTML = companiesList.map(c => `
         <option value="${c.id}" ${c.id === activeCompanyId ? 'selected' : ''}>${c.name}</option>
     `).join('');
@@ -140,13 +139,13 @@ function updateSortIcons() {
 
 function setupEventDelegation() {
     document.addEventListener('click', async (e) => {
-        if (e.target.closest('#btn-settings')) openSettingsModal();
-        if (e.target.closest('#btn-close-settings-top') || e.target.closest('#btn-close-settings-bottom')) closeSettingsModal();
+        
+        // Navigation & Globale Aktionen
         if (e.target.closest('#btn-goto-betriebe') || e.target.closest('#btn-close-workspace')) navigateTo('betriebe');
-
         if (e.target.closest('#btn-export')) exportCompanyToCSV();
         if (e.target.closest('#btn-print')) window.print();
 
+        // Betriebe Verwaltung
         if (e.target.closest('#btn-edit-company')) {
             if(activeCompanyId) openCompanyModal(activeCompanyId);
         }
@@ -167,6 +166,7 @@ function setupEventDelegation() {
             closeCompanyModal();
         }
 
+        // Wizard & Formular Steuerung
         if (e.target.closest('#btn-next')) {
             if (validateCurrentStep()) { currentStep++; showStep(currentStep); }
         }
@@ -175,6 +175,7 @@ function setupEventDelegation() {
         }
         if (e.target.closest('#btn-cancel-edit')) cancelEditMode();
 
+        // STOP-Prinzip
         if (e.target.closest('.btn-add-small')) {
             const btn = e.target.closest('.btn-add-small');
             addStopRow(btn.dataset.stop, btn.dataset.placeholder);
@@ -183,10 +184,12 @@ function setupEventDelegation() {
             removeStopRow(e.target.closest('.btn-remove'));
         }
 
+        // PSA Modal
         if (e.target.closest('#btn-open-psa')) openPsaModal();
         if (e.target.closest('#btn-close-psa-top') || e.target.closest('#btn-close-psa-bottom')) closePsaModal();
         if (e.target.closest('#btn-apply-psa')) applyPsaModalSelection();
 
+        // Tabelle & Datensätze
         if (e.target.closest('.tpl-btn')) {
             const tpl = e.target.closest('.tpl-btn').dataset.tpl;
             await loadTemplate(tpl);
@@ -201,15 +204,19 @@ function setupEventDelegation() {
             await deleteRecord(Number(e.target.closest('tr').dataset.id));
         }
 
-        if (e.target.closest('.module-tab')) {
-            switchSettingsTab(e.target.closest('.module-tab').id);
-        }
-
+        // Mobile Tab Navigation
         if (e.target.closest('.mobile-tab')) {
             const tabBtn = e.target.closest('.mobile-tab');
             const tab = tabBtn.dataset.tab;
-            if (tab === 'settings') openSettingsModal();
-            else switchMobileTab(tab);
+            
+            // Wenn der User unten auf dem Handy "Einstellungen" tippt,
+            // simulieren wir einen Klick auf den Button oben rechts im Header
+            if (tab === 'settings') {
+                const settingsBtn = document.getElementById('open-settings-btn');
+                if(settingsBtn) settingsBtn.click();
+            } else {
+                switchMobileTab(tab);
+            }
         }
     });
 
@@ -843,29 +850,4 @@ async function deleteCompanyHandler(id) {
 
     await storage.deleteCompany(id);
     await updateUIBasedOnState();
-}
-
-// ==========================================
-// EINSTELLUNGEN MODAL
-// ==========================================
-
-function switchSettingsTab(tabId) {
-    const tabMap = {
-        'st-tab-psa': 'st-content-psa',
-        'st-tab-tpl': 'st-content-tpl',
-        'st-tab-backup': 'st-content-backup'
-    };
-    document.querySelectorAll('.module-tab').forEach(b => b.classList.toggle('active', b.id === tabId));
-    Object.entries(tabMap).forEach(([btnId, contentId]) => {
-        const el = document.getElementById(contentId);
-        if (el) el.style.display = (btnId === tabId) ? 'block' : 'none';
-    });
-}
-
-function openSettingsModal() { 
-    document.getElementById('settings-modal').style.display = 'flex'; 
-}
-
-function closeSettingsModal() { 
-    document.getElementById('settings-modal').style.display = 'none'; 
 }
