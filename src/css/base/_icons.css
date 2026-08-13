@@ -1,0 +1,15 @@
+.icon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+.icon-lg {
+  width: 32px;
+  height: 32px;
+}
+
+.text-danger { color: #ef4444; }
+.text-success { color: #10b981; }
