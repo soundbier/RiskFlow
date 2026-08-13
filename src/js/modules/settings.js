@@ -18,9 +18,6 @@ export function initSettings() {
 
   // Input-Elemente für die Einstellungen referenzieren
   const themeSelect = document.getElementById('theme-select');
-  const companySelect = document.getElementById('active-company');
-  const arbSchGCheckbox = document.getElementById('require-arbSchG');
-  const arbStattVCheckbox = document.getElementById('require-arbStattV');
 
   // Sicherheitscheck: Abbrechen, falls das Modal im DOM fehlt
   if (!modal) {
@@ -37,9 +34,6 @@ export function initSettings() {
     const currentSettings = loadUISettings();
     
     if (themeSelect) themeSelect.value = currentSettings.theme;
-    if (companySelect) companySelect.value = currentSettings.activeCompany;
-    if (arbSchGCheckbox) arbSchGCheckbox.checked = currentSettings.requireArbSchG;
-    if (arbStattVCheckbox) arbStattVCheckbox.checked = currentSettings.requireArbStattV;
   };
 
   // --- Modal öffnen ---
@@ -75,10 +69,7 @@ export function initSettings() {
     saveBtn.addEventListener('click', () => {
       // 1. Werte aus den Inputs auslesen
       const newSettings = {
-        theme: themeSelect ? themeSelect.value : 'system',
-        activeCompany: companySelect ? companySelect.value : '1',
-        requireArbSchG: arbSchGCheckbox ? arbSchGCheckbox.checked : true,
-        requireArbStattV: arbStattVCheckbox ? arbStattVCheckbox.checked : true
+        theme: themeSelect ? themeSelect.value : 'system'
       };
 
       // 2. Werte über storage.js speichern
