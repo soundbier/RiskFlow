@@ -1,6 +1,7 @@
 /**
  * RiskFlow & GB-Tool Storage Module
  * Asynchrone IndexedDB-Verwaltung für Gefährdungsbeurteilungen und Einstellungen
+ * Inklusive LocalStorage-Verwaltung für synchrone UI-Präferenzen
  */
 
 import { openDB } from 'idb';
@@ -10,7 +11,9 @@ const DB_VERSION = 3; // Upgrade auf Version 3 für Multi-Betrieb-Struktur
 
 let db;
 
-// --- Standard-Daten (Werden beim ersten Start in die DB geschrieben) ---
+// ============================================================================
+// 1. STANDARD-DATEN (IndexedDB)
+// ============================================================================
 
 const defaultPsaHazardData = [
     { letter: 'A', group: 'Mechanische Gefährdungen', items: [{ id: 'mech_kopf', label: 'Stoß, Schlag, herabfallende Gegenstände', psa: 'Kopfschutz', ref: 'DGUV Regel 112-193' }, { id: 'mech_schnitt', label: 'Schnittverletzungen', psa: 'Schnittschutzhandschuhe', ref: 'DGUV Regel 112-195' }, { id: 'mech_quetsch', label: 'Quetsch-/Einzugstellen', psa: 'Schutzhandschuhe', ref: 'DGUV Regel 112-195' }, { id: 'mech_stich', label: 'Stichverletzungen', psa: 'Stechschutzkleidung', ref: 'DGUV Regel 112-196' }, { id: 'mech_fuss_tritt', label: 'Fallende/rollende Gegenstände', psa: 'Sicherheitsschuhe', ref: 'DGUV Regel 112-191' }, { id: 'mech_fuss_rutsch', label: 'Rutschgefahr', psa: 'Sicherheitsschuhe SRC', ref: 'DGUV Regel 112-191' }, { id: 'mech_auge', label: 'Splitter, Späne', psa: 'Augenschutz', ref: 'DGUV Regel 112-192' }, { id: 'mech_absturz', label: 'Absturz aus Höhe', psa: 'PSA gegen Absturz', ref: 'DGUV Regel 112-198' }] },
@@ -37,7 +40,9 @@ const defaultTemplates = {
     einzelhandel: [{ taetigkeit: "Warenverräumung", gefaehrdung: "Physische Belastung/Arbeitsschwere", sVor: "2", wVor: "3", sNach: "1", wNach: "1", stopS: "Rollcontainer", stopT: "Hubwagen", stopO: "Hebetechnik", stopP: "", psaList: ["Sicherheitsschuhe (DGUV Regel 112-191)"], psaStillRequired: true, verantwortlich: "Lagerleitung", frist: "Laufend" }]
 };
 
-// --- Initialisierung ---
+// ============================================================================
+// 2. INITIALISIERUNG (IndexedDB)
+// ============================================================================
 
 export async function initializeStorage() {
   db = await openDB(DB_NAME, DB_VERSION, {
@@ -89,9 +94,8 @@ async function seedInitialSettings() {
 async function migrateV2ToV3() {
   const oldCompanyData = await getCompanyData();
   
-  // Wenn noch alte, globale Betriebsdaten existieren, wandeln wir sie in einen echten "Betrieb" um
   if (oldCompanyData) {
-    console.log('🔄 Starte Migration auf Multi-Betrieb-Struktur...');
+    console.log('Starte Migration auf Multi-Betrieb-Struktur...');
     
     const defaultCompany = {
       id: Date.now(),
@@ -103,7 +107,6 @@ async function migrateV2ToV3() {
     
     await saveCompany(defaultCompany);
 
-    // Alle bisherigen Gefährdungen abrufen und dem neuen Betrieb zuordnen
     const allAssessments = await db.getAll('assessments');
     const tx = db.transaction('assessments', 'readwrite');
     for (const g of allAssessments) {
@@ -114,13 +117,14 @@ async function migrateV2ToV3() {
     }
     await tx.done;
     
-    // Altes Setup löschen, damit die Migration nicht beim nächsten Start erneut läuft
     await clearCompanyData();
-    console.log('✅ Migration abgeschlossen.');
+    console.log('Migration abgeschlossen.');
   }
 }
 
-// --- Betriebe (Companies) Funktionen ---
+// ============================================================================
+// 3. DATENBANK-OPERATIONEN (IndexedDB)
+// ============================================================================
 
 export async function getAllCompanies() {
   return await db.getAll('companies');
@@ -131,13 +135,10 @@ export async function saveCompany(company) {
 }
 
 export async function deleteCompany(id) {
-  // Löscht den Betrieb UND kaskadierend alle zugehörigen Gefährdungsbeurteilungen
   const tx = db.transaction(['companies', 'assessments'], 'readwrite');
   
-  // Betrieb löschen
   tx.objectStore('companies').delete(id);
   
-  // Verknüpfte Gefährdungen löschen
   const index = tx.objectStore('assessments').index('companyId');
   let cursor = await index.openCursor(id);
   while (cursor) {
@@ -149,11 +150,8 @@ export async function deleteCompany(id) {
 }
 
 export async function getGbsByCompany(companyId) {
-  // Holt alle Gefährdungen, die zu einer bestimmten Betriebs-ID gehören
   return await db.getAllFromIndex('assessments', 'companyId', companyId);
 }
-
-// --- Assessment (Gefährdungsbeurteilungen) Funktionen ---
 
 export async function getAllAssessments() {
   return await db.getAll('assessments');
@@ -179,8 +177,6 @@ export async function saveMultipleAssessments(assessments) {
   await tx.done;
 }
 
-// --- Settings Funktionen (Für PSA-Katalog & Templates) ---
-
 export async function getSetting(key) {
   return await db.get('settings', key);
 }
@@ -189,7 +185,6 @@ export async function saveSetting(key, value) {
   return await db.put('settings', { key, value });
 }
 
-// Veraltete Funktionen (werden noch für die Migration oder Backups gebraucht)
 export async function getCompanyData() {
   const data = await getSetting('companyData');
   return data ? data.value : null;
@@ -216,4 +211,67 @@ export async function getBranchTemplates() {
 export async function resetFactorySettings() {
   await saveSetting('psaCatalog', defaultPsaHazardData);
   await saveSetting('branchTemplates', defaultTemplates);
+}
+
+
+// ============================================================================
+// 4. LOKALE APP-EINSTELLUNGEN (LocalStorage)
+// ============================================================================
+// Diese Funktionen arbeiten synchron, damit das UI (z.B. Darkmode) direkt
+// beim Seitenaufbau ohne Datenbank-Verzögerung angewendet werden kann.
+
+const UI_SETTINGS_KEY = 'riskflow_ui_settings';
+
+const defaultUiSettings = {
+  theme: 'system',
+  activeCompany: '1',
+  requireArbSchG: true,
+  requireArbStattV: true
+};
+
+/**
+ * Lädt die Menü-Einstellungen synchron aus dem LocalStorage
+ */
+export function loadUISettings() {
+  try {
+    const stored = localStorage.getItem(UI_SETTINGS_KEY);
+    if (stored) {
+      return { ...defaultUiSettings, ...JSON.parse(stored) };
+    }
+  } catch (error) {
+    console.warn('Konfigurationsfehler beim Laden der UI-Einstellungen', error);
+  }
+  return defaultUiSettings;
+}
+
+/**
+ * Speichert die Menü-Einstellungen synchron im LocalStorage
+ */
+export function saveUISettings(settingsObject) {
+  try {
+    localStorage.setItem(UI_SETTINGS_KEY, JSON.stringify(settingsObject));
+    return true;
+  } catch (error) {
+    console.error('Fehler beim Speichern der UI-Einstellungen', error);
+    return false;
+  }
+}
+
+/**
+ * Wendet das gewählte Theme (Hell/Dunkel) sofort auf das DOM an
+ */
+export function applyTheme(themeValue) {
+  const root = document.documentElement;
+  
+  if (themeValue === 'dark') {
+    root.classList.add('theme-dark');
+  } else if (themeValue === 'light') {
+    root.classList.remove('theme-dark');
+  } else {
+    // Systemstandard abfragen
+    root.classList.remove('theme-dark');
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      root.classList.add('theme-dark');
+    }
+  }
 }
