@@ -120,6 +120,20 @@ function renderQuickCompanySelect() {
     select.style.display = 'inline-flex';
 }
 
+function updateSortIcons() {
+    document.querySelectorAll('th.sortable').forEach(th => {
+        const icon = th.querySelector('.sort-icon');
+        if(!icon) return;
+        if (currentSort.key === th.getAttribute('data-sort')) { 
+            icon.innerHTML = currentSort.dir === 'asc' ? '↑' : '↓'; 
+            icon.style.color = 'var(--primary)'; 
+        } else { 
+            icon.innerHTML = '↕'; 
+            icon.style.color = '#cbd5e1'; 
+        }
+    });
+}
+
 // ==========================================
 // EVENT DELEGATION HUB
 // ==========================================
