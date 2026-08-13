@@ -1,0 +1,85 @@
+@media print { 
+  @page { 
+    size: A4 landscape; 
+    margin: 10mm 15mm; 
+  }
+  
+  .no-print, 
+  .wizard-card, 
+  .table-toolbar, 
+  #company-setup-card { 
+    display: none !important; 
+  } 
+  
+  body { 
+    padding: 0; 
+    margin: 0; 
+    background: #fff; 
+    color: #000; 
+    font-size: 8pt; 
+    -webkit-print-color-adjust: exact !important; 
+    print-color-adjust: exact !important; 
+  } 
+  
+  .app-container { 
+    max-width: 100%; 
+    margin: 0; 
+    padding: 0; 
+  }
+  
+  .header { 
+    border-bottom: 2px solid #000; 
+    margin-bottom: 15px; 
+    padding-bottom: 10px; 
+  }
+  
+  .company-info-bar { 
+    display: flex !important; 
+    flex-direction: row !important; 
+    border: 1px solid #cbd5e1; 
+    border-left: 6px solid var(--primary); 
+    box-shadow: none; 
+    padding: 10px 15px; 
+    margin-bottom: 20px; 
+    page-break-after: avoid; 
+  }
+  
+  .table-container { 
+    box-shadow: none; 
+    border: none; 
+    overflow: visible !important; 
+  } 
+  
+  table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    table-layout: fixed; 
+  }
+  
+  thead { 
+    display: table-header-group; 
+  }
+  
+  tr { 
+    page-break-inside: avoid; 
+  }
+  
+  .group-header-row td { 
+    background-color: #f1f5f9 !important; 
+    border-bottom: 1px solid #000 !important; 
+  }
+  
+  th, td { 
+    border: 1px solid #94a3b8; 
+    padding: 5px 6px; 
+    font-size: 8pt; 
+    vertical-align: top; 
+    word-wrap: break-word; 
+  }
+  
+  th { 
+    background-color: #f1f5f9 !important; 
+    color: #000; 
+    font-weight: bold; 
+  }
+}
