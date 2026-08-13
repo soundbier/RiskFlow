@@ -1,11 +1,11 @@
 /**
  * RiskFlow & GB-Tool – Kernlogik
- * Steuert Formular-Workflows, Risikomatrix, STOP-Prinzip, Multi-Betriebs-Logik, Export & Drucken
+ * Steuert Formular-Workflows, Risikomatrix, STOP-Prinzip und IndexedDB-Anbindung
  */
 
 import * as storage from './storage.js';
 import { defaultStandardTemplates } from './storage.js';
-import { navigateTo, setOnNavigateCallback, Icons } from './app.js';
+import { navigateTo, setOnNavigateCallback, getCurrentParams } from './app.js';
 
 // ==========================================
 // SYSTEM KONFIGURATION & STATE
@@ -28,14 +28,9 @@ const validIntervals = ['Täglich', 'Wöchentlich', 'Monatlich', 'Quartalsweise'
 
 // State
 let assessmentList = [];
+let companyData = null;
 let psaHazardData = [];
 let branchTemplates = {};
-
-// Multi-Betrieb-State
-let companiesList = [];
-let activeCompanyId = null;
-let activeCompany = null;
-let editingCompanyId = null;
 
 let currentSelectedPsa = [];
 let editingRecordId = null;
@@ -43,19 +38,33 @@ let highlightRecordId = null;
 let currentSort = { key: 'gefaehrdung', dir: 'asc' };
 let currentStep = 1;
 
+let companiesList = [];
+let editingCompanyId = null;
+let gbList = [];
+let currentCompanyId = null;
+let editingGbId = null;
+
 // ==========================================
 // INITIALISIERUNG
 // ==========================================
 
 export async function initializeLogic() {
+    // Daten aus IndexedDB laden
+    assessmentList = await storage.getAllAssessments();
+    companyData = await storage.getCompanyData();
     psaHazardData = await storage.getPsaCatalog();
     branchTemplates = await storage.getBranchTemplates();
 
     setupEventDelegation();
     setOnNavigateCallback(updateUIBasedOnState);
-    await updateUIBasedOnState();
+    updateUIBasedOnState();
 }
 
+/**
+ * Schaltet zwischen den Tab-Panels (Erstellung / Übersicht) um.
+ * Auf Desktop ohne visuellen Effekt (beide Panels bleiben sichtbar),
+ * auf Mobile (< 768px) steuert dies, welches Panel angezeigt wird.
+ */
 function switchMobileTab(tab) {
     document.querySelectorAll('.tab-panel').forEach(p => {
         p.classList.toggle('active', p.dataset.panel === tab);
@@ -65,73 +74,24 @@ function switchMobileTab(tab) {
     });
 }
 
-async function updateUIBasedOnState() {
-    const params = new URLSearchParams(window.location.search);
-    
-    companiesList = await storage.getAllCompanies();
-
-    const exportBtn = document.getElementById('btn-export');
-    const printBtn = document.getElementById('btn-print');
-    const quickSelect = document.getElementById('company-quick-select');
-
-    if (document.getElementById('betriebe-grid')) {
-        document.getElementById('company-info-bar').style.display = 'none';
-        if (exportBtn) exportBtn.style.display = 'none';
-        if (printBtn) printBtn.style.display = 'none';
-        if (quickSelect) quickSelect.style.display = 'none';
-
-        await loadAndRenderCompanies();
-    }
-
-    if (document.getElementById('gb-workspace')) {
-        const companyIdParam = params.get('companyId');
-        activeCompanyId = companyIdParam ? parseInt(companyIdParam) : null;
-        activeCompany = companiesList.find(c => c.id === activeCompanyId);
-
-        if (!activeCompany) {
-            navigateTo('betriebe');
-            return;
-        }
-
+function updateUIBasedOnState() {
+    // Prüfen, ob wir uns im Setup, Workspace, Betriebe oder GBs befinden
+    if (document.getElementById('company-info-bar')) {
         renderCompanyState();
-        renderQuickCompanySelect();
-
-        if (exportBtn) exportBtn.style.display = 'inline-flex';
-        if (printBtn) printBtn.style.display = 'inline-flex';
-
-        assessmentList = await storage.getGbsByCompany(activeCompanyId);
-
+    }
+    if (document.getElementById('gb-workspace')) {
         resetStopFields();
         updateDualMatrix();
         applyCurrentSort();
         renderTable();
         showStep(currentStep);
     }
-}
-
-function renderQuickCompanySelect() {
-    const select = document.getElementById('company-quick-select');
-    if (!select) return;
-
-    // In <option> Tags ist kein HTML (wie SVGs) erlaubt, daher clean als reiner Text
-    select.innerHTML = companiesList.map(c => `
-        <option value="${c.id}" ${c.id === activeCompanyId ? 'selected' : ''}>${c.name}</option>
-    `).join('');
-    select.style.display = 'inline-flex';
-}
-
-function updateSortIcons() {
-    document.querySelectorAll('th.sortable').forEach(th => {
-        const icon = th.querySelector('.sort-icon');
-        if(!icon) return;
-        if (currentSort.key === th.getAttribute('data-sort')) { 
-            icon.innerHTML = currentSort.dir === 'asc' ? '↑' : '↓'; 
-            icon.style.color = 'var(--primary)'; 
-        } else { 
-            icon.innerHTML = '↕'; 
-            icon.style.color = '#cbd5e1'; 
-        }
-    });
+    if (document.getElementById('betriebe-grid')) {
+        loadAndRenderCompanies();
+    }
+    if (document.getElementById('gbs-grid')) {
+        loadAndRenderGbs();
+    }
 }
 
 // ==========================================
@@ -140,33 +100,15 @@ function updateSortIcons() {
 
 function setupEventDelegation() {
     document.addEventListener('click', async (e) => {
+        // --- Globale Aktionen ---
         if (e.target.closest('#btn-settings')) openSettingsModal();
         if (e.target.closest('#btn-close-settings-top') || e.target.closest('#btn-close-settings-bottom')) closeSettingsModal();
-        if (e.target.closest('#btn-goto-betriebe') || e.target.closest('#btn-close-workspace')) navigateTo('betriebe');
+        if (e.target.closest('#btn-clear')) await clearAllData();
 
-        if (e.target.closest('#btn-export')) exportCompanyToCSV();
-        if (e.target.closest('#btn-print')) window.print();
+        // --- Company Setup ---
+        if (e.target.closest('#btn-edit-company')) editCompanySetup();
 
-        if (e.target.closest('#btn-edit-company')) {
-            if(activeCompanyId) openCompanyModal(activeCompanyId);
-        }
-        if (e.target.closest('#btn-new-betrieb')) openCompanyModal();
-        
-        if (e.target.closest('.betrieb-card-main')) {
-            const card = e.target.closest('.betrieb-card');
-            window.location.search = `?action=workspace&companyId=${card.dataset.id}`;
-        }
-        
-        if (e.target.closest('.edit-betrieb')) {
-            openCompanyModal(Number(e.target.closest('.edit-betrieb').dataset.id));
-        }
-        if (e.target.closest('.delete-betrieb')) {
-            await deleteCompanyHandler(Number(e.target.closest('.delete-betrieb').dataset.id));
-        }
-        if (e.target.closest('#btn-close-betrieb-top') || e.target.closest('#btn-close-betrieb-bottom')) {
-            closeCompanyModal();
-        }
-
+        // --- Wizard Navigation ---
         if (e.target.closest('#btn-next')) {
             if (validateCurrentStep()) { currentStep++; showStep(currentStep); }
         }
@@ -175,6 +117,7 @@ function setupEventDelegation() {
         }
         if (e.target.closest('#btn-cancel-edit')) cancelEditMode();
 
+        // --- STOP Prinzip ---
         if (e.target.closest('.btn-add-small')) {
             const btn = e.target.closest('.btn-add-small');
             addStopRow(btn.dataset.stop, btn.dataset.placeholder);
@@ -183,10 +126,12 @@ function setupEventDelegation() {
             removeStopRow(e.target.closest('.btn-remove'));
         }
 
+        // --- PSA Modal ---
         if (e.target.closest('#btn-open-psa')) openPsaModal();
         if (e.target.closest('#btn-close-psa-top') || e.target.closest('#btn-close-psa-bottom')) closePsaModal();
         if (e.target.closest('#btn-apply-psa')) applyPsaModalSelection();
 
+        // --- Tabelle & Templates ---
         if (e.target.closest('.tpl-btn')) {
             const tpl = e.target.closest('.tpl-btn').dataset.tpl;
             await loadTemplate(tpl);
@@ -201,10 +146,49 @@ function setupEventDelegation() {
             await deleteRecord(Number(e.target.closest('tr').dataset.id));
         }
 
+        // --- Einstellungen: Tab-Umschaltung ---
         if (e.target.closest('.module-tab')) {
             switchSettingsTab(e.target.closest('.module-tab').id);
         }
 
+        // --- Einstellungen: Backup Export ---
+        if (e.target.closest('#btn-export-all')) {
+            await exportAllDataToFile();
+        }
+
+        // --- Betriebe-Übersicht ---
+        if (e.target.closest('#btn-goto-betriebe')) navigateTo('betriebe');
+        if (e.target.closest('#btn-new-betrieb')) openCompanyModal();
+        if (e.target.closest('.edit-betrieb')) {
+            openCompanyModal(Number(e.target.closest('.edit-betrieb').dataset.id));
+        }
+        if (e.target.closest('.delete-betrieb')) {
+            await deleteCompanyHandler(Number(e.target.closest('.delete-betrieb').dataset.id));
+        }
+        if (e.target.closest('#btn-close-betrieb-top') || e.target.closest('#btn-close-betrieb-bottom')) {
+            closeCompanyModal();
+        }
+
+        // --- GB-Übersicht ---
+        if (e.target.closest('#breadcrumb-back')) navigateTo('betriebe');
+        if (e.target.closest('#btn-new-gb')) openGbModal();
+        if (e.target.closest('.edit-gb')) {
+            openGbModal(Number(e.target.closest('.edit-gb').dataset.id));
+        }
+        if (e.target.closest('.delete-gb')) {
+            await deleteGbHandler(Number(e.target.closest('.delete-gb').dataset.id));
+        }
+        if (e.target.closest('#btn-close-gb-top') || e.target.closest('#btn-close-gb-bottom')) {
+            closeGbModal();
+        }
+        
+        // --- Klick auf Betriebskarte: öffne dessen GBs ---
+        if (e.target.closest('.betrieb-card-main')) {
+            const id = Number(e.target.closest('.betrieb-card').dataset.id);
+            navigateTo('gbs', true, { companyId: id });
+        }
+
+        // --- Mobile-Tableiste ---
         if (e.target.closest('.mobile-tab')) {
             const tabBtn = e.target.closest('.mobile-tab');
             const tab = tabBtn.dataset.tab;
@@ -213,98 +197,79 @@ function setupEventDelegation() {
         }
     });
 
+    // Form Submits abfangen
     document.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (e.target.id === 'company-form') await saveCompanySetup();
         if (e.target.id === 'gb-form') await saveAssessmentRecord();
         if (e.target.id === 'betrieb-form') await saveCompanyForm();
+        if (e.target.id === 'gb-form-edit') await saveGbForm();
     });
 
+    // Change-Events abfangen (Matrix-Updates & Fristen)
     document.addEventListener('change', (e) => {
-        if (e.target.id === 'company-quick-select') {
-            window.location.search = `?action=workspace&companyId=${e.target.value}`;
-        }
         if (['s-vor', 'w-vor', 's-nach', 'w-nach'].includes(e.target.id)) updateDualMatrix();
         if (e.target.id === 'frist-typ') {
             const di = document.getElementById('frist-datum');
             if (e.target.value === 'datum') { di.style.display = 'block'; di.required = true; } 
             else { di.style.display = 'none'; di.required = false; di.value = ''; }
         }
+        if (e.target.id === 'input-import-all') importAllDataFromFile(e.target.files[0]);
     });
 }
 
 // ==========================================
-// EXPORT PRO BETRIEB (EXCEL / CSV)
+// COMPANY SETUP
 // ==========================================
 
-function exportCompanyToCSV() {
-    if (!activeCompany) return;
-
-    const sanitize = (text) => `"${(text || '').toString().replace(/"/g, '""')}"`;
-    let csvContent = '\uFEFF'; 
-
-    csvContent += `GEFÄHRDUNGSBEURTEILUNG - ${activeCompany.name.toUpperCase()}\n`;
-    csvContent += `Standort / Anschrift:;${sanitize(activeCompany.anschrift)}\n`;
-    csvContent += `Geprüft durch:;${sanitize(activeCompany.auditor)}\n`;
-    csvContent += `Angelegt am:;${formatDate(activeCompany.createdAt)}\n`;
-    csvContent += `Export-Datum:;${new Date().toLocaleDateString('de-DE')}\n\n`;
-
-    const headers = [
-        'Bereich', 'Tätigkeit', 'Gefährdungsfaktor', 
-        'S (vor)', 'W (vor)', 'Risiko (vor)', 
-        'STOP-S', 'STOP-T', 'STOP-O', 'STOP-P', 'PSA', 'PSA weiterhin erforderlich',
-        'S (nach)', 'W (nach)', 'Restrisiko (nach)', 
-        'Verantwortlich', 'Frist'
-    ];
-    csvContent += headers.map(h => sanitize(h)).join(';') + '\n';
-
-    assessmentList.forEach(item => {
-        const riskVor = riskMatrix[`${item.sVor}-${item.wVor}`]?.level || '-';
-        const riskNach = riskMatrix[`${item.sNach}-${item.wNach}`]?.level || '-';
-
-        const row = [
-            item.bereich || 'Allgemein',
-            item.taetigkeit,
-            item.gefaehrdung,
-            item.sVor, item.wVor, riskVor,
-            (item.stopS || '').replace(/\|/g, ' / '),
-            (item.stopT || '').replace(/\|/g, ' / '),
-            (item.stopO || '').replace(/\|/g, ' / '),
-            (item.stopP || '').replace(/\|/g, ' / '),
-            (item.psaList || []).join(' / '),
-            item.psaStillRequired !== false ? 'Ja' : 'Nein',
-            item.sNach, item.wNach, riskNach,
-            item.verantwortlich,
-            formatFrist(item.frist)
-        ];
-        csvContent += row.map(cell => sanitize(cell)).join(';') + '\n';
-    });
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    const filename = `Gefaehrdungsbeurteilung_${activeCompany.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.csv`;
+async function saveCompanySetup() {
+    companyData = {
+        name: document.getElementById('c-name').value,
+        location: document.getElementById('c-location').value,
+        auditor: document.getElementById('c-auditor').value,
+        date: document.getElementById('c-date').value || new Date().toISOString().split('T')[0],
+        nextReview: document.getElementById('c-next-review').value || ''
+    };
+    await storage.saveCompanyData(companyData);
     
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Router URL anpassen (App lädt Workspace)
+    window.location.search = '?action=workspace';
 }
-
-// ==========================================
-// COMPANY SETUP & HEADER
-// ==========================================
 
 function renderCompanyState() {
+    const setupCard = document.getElementById('company-setup-card');
     const infoBar = document.getElementById('company-info-bar');
-    if (!infoBar || !activeCompany) return;
     
-    infoBar.style.display = 'flex';
-    document.getElementById('display-c-name').innerText = activeCompany.name;
-    document.getElementById('display-c-location').innerText = activeCompany.anschrift || '—';
-    document.getElementById('display-c-auditor').innerText = activeCompany.auditor || '—';
-    document.getElementById('display-c-date').innerText = formatDate(activeCompany.createdAt);
+    if (companyData && companyData.name) {
+        if(setupCard) setupCard.style.display = 'none';
+        if(infoBar) {
+            infoBar.style.display = 'flex';
+            document.getElementById('display-c-name').innerText = companyData.name;
+            document.getElementById('display-c-location').innerText = companyData.location;
+            document.getElementById('display-c-auditor').innerText = companyData.auditor || '—';
+            document.getElementById('display-c-date').innerText = formatDate(companyData.date);
+            document.getElementById('display-c-next-review').innerText = formatDate(companyData.nextReview);
+        }
+    } else {
+        if(setupCard) setupCard.style.display = 'block';
+        if(infoBar) infoBar.style.display = 'none';
+        if(document.getElementById('c-date')) {
+            document.getElementById('c-date').value = new Date().toISOString().split('T')[0];
+        }
+    }
+}
+
+function editCompanySetup() {
+    window.location.search = '?action=setup';
+    setTimeout(() => {
+        if(companyData) {
+            document.getElementById('c-name').value = companyData.name;
+            document.getElementById('c-location').value = companyData.location;
+            document.getElementById('c-auditor').value = companyData.auditor;
+            document.getElementById('c-date').value = companyData.date;
+            document.getElementById('c-next-review').value = companyData.nextReview;
+        }
+    }, 100);
 }
 
 // ==========================================
@@ -346,7 +311,7 @@ function updateDualMatrix() {
     const sNach = document.getElementById('s-nach')?.value;
     const wNach = document.getElementById('w-nach')?.value;
     
-    if(!sVor) return;
+    if(!sVor) return; // Guard clause, falls DOM noch nicht ready
 
     document.querySelectorAll('.matrix-cell').forEach(c => c.classList.remove('active'));
     if(document.getElementById(`vor-${sVor}-${wVor}`)) document.getElementById(`vor-${sVor}-${wVor}`).classList.add('active');
@@ -365,7 +330,7 @@ function addStopRow(letter, placeholder, value = '') {
     row.innerHTML = `
         <span class="row-num">${container.children.length + 1}.</span>
         <input type="text" class="stop-val" placeholder="${placeholder}" value="${value}">
-        <button type="button" class="btn-remove" data-letter="${letter}">${Icons.x}</button>
+        <button type="button" class="btn-remove" data-letter="${letter}">×</button>
     `;
     container.appendChild(row);
     updateStopNumbers(letter);
@@ -409,12 +374,9 @@ async function saveAssessmentRecord() {
     const fristTyp = document.getElementById('frist-typ').value;
     const finalFrist = fristTyp === 'datum' ? document.getElementById('frist-datum').value : fristTyp;
     const currentTaetigkeit = document.getElementById('taetigkeit').value;
-    const currentBereich = document.getElementById('bereich-input').value;
 
     const record = {
         id: editingRecordId !== null ? editingRecordId : Date.now(),
-        companyId: activeCompanyId,
-        bereich: currentBereich,
         taetigkeit: currentTaetigkeit, 
         gefaehrdung: document.getElementById('gefaehrdung').value,
         sVor: document.getElementById('s-vor').value, wVor: document.getElementById('w-vor').value, 
@@ -427,11 +389,11 @@ async function saveAssessmentRecord() {
     };
 
     await storage.saveAssessment(record);
-    assessmentList = await storage.getGbsByCompany(activeCompanyId);
+    assessmentList = await storage.getAllAssessments();
     highlightRecordId = record.id;
     
     if (editingRecordId !== null) cancelEditMode();
-    else resetFormAfterSave(currentTaetigkeit, currentBereich);
+    else resetFormAfterSave(currentTaetigkeit);
     
     applyCurrentSort(); 
     renderTable(); 
@@ -439,9 +401,8 @@ async function saveAssessmentRecord() {
     document.getElementById('table-anchor').scrollIntoView({ behavior: 'smooth' });
 }
 
-function resetFormAfterSave(keepTaetigkeit, keepBereich) {
+function resetFormAfterSave(keepTaetigkeit) {
     document.getElementById('gb-form').reset();
-    document.getElementById('bereich-input').value = keepBereich || '';
     document.getElementById('taetigkeit').value = keepTaetigkeit; 
     currentSelectedPsa = []; 
     document.getElementById('psa-still-required').checked = true; 
@@ -474,28 +435,25 @@ function renderTable() {
 
     const groupMap = {};
     assessmentList.forEach(item => {
-        const bName = item.bereich ? `${item.bereich} ➔ ` : '';
         const tName = item.taetigkeit || 'Ohne Zuordnung';
-        const groupKey = bName + tName;
-        if (!groupMap[groupKey]) groupMap[groupKey] = [];
-        groupMap[groupKey].push(item);
+        if (!groupMap[tName]) groupMap[tName] = [];
+        groupMap[tName].push(item);
     });
 
     const groups = Object.keys(groupMap);
-    if (currentSort.key === 'taetigkeit') {
-        groups.sort((a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1) * (currentSort.dir === 'asc' ? 1 : -1));
-    }
+    if (currentSort.key === 'taetigkeit') groups.sort((a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1) * (currentSort.dir === 'asc' ? 1 : -1));
 
     groups.forEach(groupName => {
         const trGroup = document.createElement('tr');
         trGroup.className = 'group-header-row';
-        trGroup.innerHTML = `<td colspan="9"><div style="display:flex; justify-content: space-between; align-items: center;"><span class="group-title">${Icons.folder} <span style="color: var(--primary);">${groupName}</span></span><span style="font-size: 11px; font-weight: normal; color: #64748b;">${groupMap[groupName].length} Gefährdung(en)</span></div></td>`;
+        trGroup.innerHTML = `<td colspan="9"><div style="display:flex; justify-content: space-between; align-items: center;"><span class="group-title">📂 Arbeitsplatz / Tätigkeit: <span style="color: var(--primary);">${groupName}</span></span><span style="font-size: 11px; font-weight: normal; color: #64748b;">${groupMap[groupName].length} Gefährdung(en)</span></div></td>`;
         tbody.appendChild(trGroup);
 
         groupMap[groupName].forEach(item => {
             const riskVor = riskMatrix[`${item.sVor}-${item.wVor}`];
             const riskNach = riskMatrix[`${item.sNach}-${item.wNach}`];
             
+            // Render STOP Logic
             let stopHtml = `<div class="table-stop-display">`;
             ['S','T','O','P'].forEach(l => { 
                 if(item[`stop${l}`]) stopHtml += `<div class="table-stop-row"><div class="table-stop-indicator ${l.toLowerCase()}">${l}</div> <div class="table-stop-text">${renderStopList(item[`stop${l}`])}</div></div>`; 
@@ -503,9 +461,10 @@ function renderTable() {
             stopHtml += `</div>`;
             if(!item.stopS && !item.stopT && !item.stopO && !item.stopP) stopHtml = `<span style="color:#94a3b8; font-style:italic;">Keine Maßnahmen</span>`;
 
+            // Render PSA Logic
             let psaColHtml = `<span style="color:#94a3b8; font-style:italic;">Keine PSA</span>`;
             if (item.psaList && item.psaList.length > 0) {
-                psaColHtml = item.psaList.map(p => `<span class="psa-cell-badge">${Icons.shield} ${p}</span>`).join('');
+                psaColHtml = item.psaList.map(p => `<span class="psa-cell-badge">🛡️ ${p}</span>`).join('');
                 const isReq = item.psaStillRequired !== false;
                 psaColHtml += `<div style="font-size: 11px; margin-top: 4px; color: ${isReq ? '#db2777' : '#64748b'};">Nach Maßnahmen: ${isReq ? '<strong>Erforderlich</strong>' : '<span style="color:#64748b;">Entbehrlich</span>'}</div>`;
             }
@@ -525,8 +484,8 @@ function renderTable() {
                 <td data-label="Frist"><div class="frist-container"><div class="status-dot ${getFristColor(item.frist)}"></div>${formatFrist(item.frist)}</div></td>
                 <td class="no-print action-td">
                     <div class="action-cell">
-                        <button type="button" class="btn-icon edit" title="Bearbeiten">${Icons.edit}</button>
-                        <button type="button" class="btn-icon delete" title="Löschen"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                        <button type="button" class="btn-icon edit" title="Bearbeiten"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                        <button type="button" class="btn-icon delete" title="Löschen"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                     </div>
                 </td>
             `;
@@ -565,22 +524,16 @@ function formatFrist(val) {
 
 function getFristColor(val) {
     if(!val) return 'dot-none';
-    if (validIntervals.includes(val)) return val; 
+    if (validIntervals.includes(val)) return 'dot-blue'; 
     const diffDays = Math.ceil((new Date(val).setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / (1000 * 60 * 60 * 24));
     return diffDays < 0 ? 'dot-red' : (diffDays <= 7 ? 'dot-yellow' : 'dot-green');                    
 }
 
 function updateDatalist() {
-    const tList = document.getElementById('taetigkeit-list');
-    const bList = document.getElementById('bereich-list');
-    if(tList) {
-        const uniqueT = [...new Set(assessmentList.map(i => i.taetigkeit).filter(Boolean))];
-        tList.innerHTML = uniqueT.map(t => `<option value="${t}">`).join('');
-    }
-    if(bList) {
-        const uniqueB = [...new Set(assessmentList.map(i => i.bereich).filter(Boolean))];
-        bList.innerHTML = uniqueB.map(b => `<option value="${b}">`).join('');
-    }
+    const datalist = document.getElementById('taetigkeit-list');
+    if(!datalist) return;
+    const unique = [...new Set(assessmentList.map(i => i.taetigkeit).filter(Boolean))];
+    datalist.innerHTML = unique.map(t => `<option value="${t}">`).join('');
 }
 
 // ==========================================
@@ -590,10 +543,21 @@ function updateDatalist() {
 async function deleteRecord(id) { 
     if(confirm("Diesen Eintrag wirklich löschen?")) {
         await storage.deleteAssessment(id);
-        assessmentList = await storage.getGbsByCompany(activeCompanyId);
+        assessmentList = await storage.getAllAssessments();
         if(editingRecordId === id) cancelEditMode();
         renderTable(); 
     }
+}
+
+async function clearAllData() { 
+    if(confirm("Alle Gefährdungen UND die Betriebsdaten komplett löschen?")) { 
+        await storage.clearAllAssessments();
+        await storage.clearCompanyData();
+        assessmentList = []; 
+        companyData = null; 
+        cancelEditMode(); 
+        window.location.search = '?action=setup';
+    } 
 }
 
 function editRecord(id) {
@@ -601,7 +565,6 @@ function editRecord(id) {
     if (!record) return;
     editingRecordId = record.id;
     document.getElementById('edit-mode-banner').style.display = 'flex';
-    document.getElementById('bereich-input').value = record.bereich || '';
     document.getElementById('taetigkeit').value = record.taetigkeit || '';
     document.getElementById('gefaehrdung').value = record.gefaehrdung || gefaehrdungOrder[0];
     document.getElementById('s-vor').value = record.sVor || '3'; document.getElementById('w-vor').value = record.wVor || '2';
@@ -633,7 +596,8 @@ function editRecord(id) {
 function cancelEditMode() {
     editingRecordId = null;
     document.getElementById('edit-mode-banner').style.display = 'none';
-    resetFormAfterSave(document.getElementById('taetigkeit').value, document.getElementById('bereich-input').value);
+    const currentTaetigkeit = document.getElementById('taetigkeit').value;
+    resetFormAfterSave(currentTaetigkeit);
 }
 
 function sortTable(key) {
@@ -656,15 +620,20 @@ function applyCurrentSort() {
     });
 }
 
+function updateSortIcons() {
+    document.querySelectorAll('th.sortable').forEach(th => {
+        const icon = th.querySelector('.sort-icon');
+        if(!icon) return;
+        if (currentSort.key === th.getAttribute('data-sort')) { icon.innerHTML = currentSort.dir === 'asc' ? '↑' : '↓'; icon.style.color = 'var(--primary)'; } 
+        else { icon.innerHTML = '↕'; icon.style.color = '#cbd5e1'; }
+    });
+}
+
 async function loadTemplate(type) {
     const combinedTemplates = [...defaultStandardTemplates, ...(branchTemplates[type] || [])];
-    const newRecords = combinedTemplates.map(t => ({ 
-        ...t, 
-        id: Date.now() + Math.floor(Math.random() * 1000),
-        companyId: activeCompanyId 
-    }));
+    const newRecords = combinedTemplates.map(t => ({ ...t, id: Date.now() + Math.floor(Math.random() * 1000) }));
     await storage.saveMultipleAssessments(newRecords);
-    assessmentList = await storage.getGbsByCompany(activeCompanyId);
+    assessmentList = await storage.getAllAssessments();
     applyCurrentSort(); renderTable(); alert("Vorlagen erfolgreich geladen!");
 }
 
@@ -694,7 +663,7 @@ function renderModalPsaList() {
                     <input type="checkbox" value="${badgeText}" ${isChecked ? 'checked' : ''} class="psa-checkbox">
                     <div>
                         <div style="font-weight: 600; font-size: 13px; color: var(--text-main);">${item.label}</div>
-                        <div style="font-size: 11.5px; color: var(--text-muted); display:flex; align-items:center; gap:4px;">${Icons.shield} ${item.psa} — Ref: ${item.ref}</div>
+                        <div style="font-size: 11.5px; color: var(--text-muted);">🛡️ ${item.psa} — Ref: ${item.ref}</div>
                     </div>
                 </div>
             `;
@@ -702,6 +671,7 @@ function renderModalPsaList() {
         container.innerHTML += html;
     });
     
+    // Counter live update
     container.querySelectorAll('.psa-checkbox').forEach(cb => {
         cb.addEventListener('change', () => {
             document.getElementById('modal-selected-counter').innerText = `${document.querySelectorAll('#modal-psa-list input[type="checkbox"]:checked').length} ausgewählt`;
@@ -721,7 +691,7 @@ function renderStep3PsaPreview() {
     if(!container) return;
     document.getElementById('psa-badge-count').innerText = `${currentSelectedPsa.length} gewählt`;
     if (currentSelectedPsa.length === 0) { container.innerHTML = `<span style="font-size: 12px; color: var(--text-muted); font-style: italic;">Keine PSA ausgewählt</span>`; return; }
-    container.innerHTML = currentSelectedPsa.map(p => `<span class="selected-psa-tag">${Icons.shield} ${p}</span>`).join('');
+    container.innerHTML = currentSelectedPsa.map(p => `<span class="selected-psa-tag">🛡️ ${p}</span>`).join('');
 }
 
 // ==========================================
@@ -732,6 +702,7 @@ async function loadAndRenderCompanies() {
     companiesList = await storage.getAllCompanies();
     companiesList.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'de'));
 
+    // Für jeden Betrieb die Anzahl zugehöriger Gefährdungsbeurteilungen ermitteln
     const gbCounts = await Promise.all(
         companiesList.map(c => storage.getGbsByCompany(c.id).then(gbs => gbs.length))
     );
@@ -747,31 +718,29 @@ function renderCompaniesGrid() {
     if (companiesList.length === 0) {
         grid.innerHTML = `
             <div class="betriebe-empty">
-                <div style="display:flex; justify-content:center; margin-bottom: 16px;">
-                    <div class="icon-lg">${Icons.building}</div>
-                </div>
+                <div style="font-size: 32px; margin-bottom: 10px;">🏢</div>
                 Noch keine Betriebe angelegt.<br>
-                Legen Sie Ihren ersten Betrieb an, um Gefährdungsbeurteilungen zuzuordnen.
+                Lege deinen ersten Betrieb an, um ihm Gefährdungsbeurteilungen zuzuordnen.
             </div>`;
         return;
     }
 
     grid.innerHTML = companiesList.map(c => `
-        <div class="betrieb-card" data-id="${c.id}" style="cursor: pointer;">
+        <div class="betrieb-card" data-id="${c.id}">
             <div class="betrieb-card-main">
-                <div class="betrieb-card-icon">${Icons.building}</div>
+                <div class="betrieb-card-icon">🏢</div>
                 <div class="betrieb-card-info">
                     <div class="betrieb-card-name">${c.name}</div>
                     <div class="betrieb-card-address">${c.anschrift || 'Keine Anschrift hinterlegt'}</div>
                     <div class="betrieb-card-meta">${c._gbCount} Gefährdungsbeurteilung${c._gbCount === 1 ? '' : 'en'}</div>
                 </div>
             </div>
-            <div class="betrieb-card-actions" style="cursor: default;" onclick="event.stopPropagation();">
+            <div class="betrieb-card-actions">
                 <button type="button" class="btn-icon edit-betrieb" title="Bearbeiten" data-id="${c.id}">
-                    ${Icons.edit}
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                 </button>
                 <button type="button" class="btn-icon delete-betrieb" title="Löschen" data-id="${c.id}">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
             </div>
         </div>
@@ -783,19 +752,16 @@ function openCompanyModal(id = null) {
     const title = document.getElementById('betrieb-modal-title');
     const nameInput = document.getElementById('betrieb-name');
     const anschriftInput = document.getElementById('betrieb-anschrift');
-    const auditorInput = document.getElementById('betrieb-auditor');
 
     if (id !== null) {
         const c = companiesList.find(x => x.id === id);
         title.textContent = 'Betrieb bearbeiten';
         nameInput.value = c?.name || '';
         anschriftInput.value = c?.anschrift || '';
-        if(auditorInput) auditorInput.value = c?.auditor || '';
     } else {
         title.textContent = 'Neuer Betrieb';
         nameInput.value = '';
         anschriftInput.value = '';
-        if(auditorInput) auditorInput.value = '';
     }
 
     document.getElementById('betrieb-modal').style.display = 'flex';
@@ -810,9 +776,6 @@ function closeCompanyModal() {
 async function saveCompanyForm() {
     const name = document.getElementById('betrieb-name').value.trim();
     const anschrift = document.getElementById('betrieb-anschrift').value.trim();
-    const auditorInput = document.getElementById('betrieb-auditor');
-    const auditor = auditorInput ? auditorInput.value.trim() : '';
-    
     if (!name) return;
 
     const existing = editingCompanyId !== null ? companiesList.find(c => c.id === editingCompanyId) : null;
@@ -821,14 +784,12 @@ async function saveCompanyForm() {
         id: editingCompanyId !== null ? editingCompanyId : Date.now(),
         name,
         anschrift,
-        auditor,
         createdAt: existing?.createdAt || new Date().toISOString()
     };
 
     await storage.saveCompany(company);
     closeCompanyModal();
-    
-    await updateUIBasedOnState();
+    await loadAndRenderCompanies();
 }
 
 async function deleteCompanyHandler(id) {
@@ -836,13 +797,179 @@ async function deleteCompanyHandler(id) {
     const gbCount = company?._gbCount || 0;
 
     const warning = gbCount > 0
-        ? `Der Betrieb "${company?.name}" enthält ${gbCount} Gefährdungsbeurteilung(en). Beim Löschen werden ALLE zugehörigen Beurteilungen unwiderruflich mitgelöscht.\n\nFortfahren?`
+        ? `Der Betrieb "${company?.name}" enthält ${gbCount} Gefährdungsbeurteilung(en). Beim Löschen werden ALLE zugehörigen Beurteilungen und dokumentierten Risiken unwiderruflich mitgelöscht.\n\nFortfahren?`
         : `Betrieb "${company?.name}" wirklich löschen?`;
 
     if (!window.confirm(warning)) return;
 
     await storage.deleteCompany(id);
-    await updateUIBasedOnState();
+    await loadAndRenderCompanies();
+}
+
+// ==========================================
+// GEFÄHRDUNGSBEURTEILUNGEN-VERWALTUNG (GB)
+// ==========================================
+
+async function loadAndRenderGbs() {
+    const params = getCurrentParams();
+    currentCompanyId = params.companyId || null;
+
+    if (!currentCompanyId) {
+        navigateTo('betriebe');
+        return;
+    }
+
+    const company = await storage.getCompany(currentCompanyId);
+    if (!company) {
+        navigateTo('betriebe');
+        return;
+    }
+
+    // Breadcrumb aktualisieren
+    document.getElementById('breadcrumb-company-name').textContent = company.name;
+
+    // GBs für diesen Betrieb laden
+    gbList = await storage.getGbsByCompany(currentCompanyId);
+    gbList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Für jede GB die Anzahl Risiken ermitteln
+    const assessmentCounts = await Promise.all(
+        gbList.map(gb => storage.getAssessmentsByGb(gb.id).then(a => a.length))
+    );
+    gbList.forEach((gb, i) => { gb._assessmentCount = assessmentCounts[i]; });
+
+    renderGbsGrid();
+}
+
+function renderGbsGrid() {
+    const grid = document.getElementById('gbs-grid');
+    if (!grid) return;
+
+    if (gbList.length === 0) {
+        grid.innerHTML = `
+            <div class="gbs-empty">
+                <div style="font-size: 32px; margin-bottom: 10px;">📋</div>
+                Noch keine Gefährdungsbeurteilungen für diesen Betrieb.<br>
+                Lege eine neue Beurteilung an, um Risiken zu dokumentieren.
+            </div>`;
+        return;
+    }
+
+    grid.innerHTML = gbList.map(gb => {
+        const nextReviewDate = gb.nextReview ? new Date(gb.nextReview) : null;
+        const today = new Date();
+        let statusColor = 'neutral'; // grau
+        let statusLabel = '●';
+
+        if (nextReviewDate) {
+            const daysUntilReview = Math.floor((nextReviewDate - today) / (1000 * 60 * 60 * 24));
+            if (daysUntilReview < 0) {
+                statusColor = 'overdue'; // rot
+                statusLabel = '● Überfällig';
+            } else if (daysUntilReview < 90) {
+                statusColor = 'warning'; // orange
+                statusLabel = '● Fällig in ' + daysUntilReview + 'd';
+            } else {
+                statusColor = 'ok'; // grün
+                statusLabel = '● OK';
+            }
+        }
+
+        return `
+            <div class="gb-card" data-id="${gb.id}">
+                <div class="gb-card-main">
+                    <div class="gb-card-icon">📋</div>
+                    <div class="gb-card-info">
+                        <div class="gb-card-name">${gb.bezeichnung}</div>
+                        ${gb.date ? `<div class="gb-card-date">Erstellt: ${new Date(gb.date).toLocaleDateString('de-DE')}</div>` : ''}
+                        <div class="gb-card-meta">${gb._assessmentCount} dokumentierte Risiko${gb._assessmentCount === 1 ? '' : 'e'}</div>
+                    </div>
+                </div>
+                <div class="gb-card-status">
+                    <span class="gb-status-badge ${statusColor}">${statusLabel}</span>
+                </div>
+                <div class="gb-card-actions">
+                    <button type="button" class="btn-icon edit-gb" title="Bearbeiten" data-id="${gb.id}">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    </button>
+                    <button type="button" class="btn-icon delete-gb" title="Löschen" data-id="${gb.id}">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function openGbModal(id = null) {
+    editingGbId = id;
+    const title = document.getElementById('gb-modal-title');
+    const bezeichnungInput = document.getElementById('gb-bezeichnung');
+    const auditorInput = document.getElementById('gb-auditor');
+    const dateInput = document.getElementById('gb-date');
+    const nextReviewInput = document.getElementById('gb-next-review');
+
+    if (id !== null) {
+        const gb = gbList.find(x => x.id === id);
+        title.textContent = 'Gefährdungsbeurteilung bearbeiten';
+        bezeichnungInput.value = gb?.bezeichnung || '';
+        auditorInput.value = gb?.auditor || '';
+        dateInput.value = gb?.date || '';
+        nextReviewInput.value = gb?.nextReview || '';
+    } else {
+        title.textContent = 'Neue Gefährdungsbeurteilung';
+        bezeichnungInput.value = '';
+        auditorInput.value = '';
+        dateInput.value = new Date().toISOString().split('T')[0]; // heute
+        nextReviewInput.value = '';
+    }
+
+    document.getElementById('gb-modal').style.display = 'flex';
+    bezeichnungInput.focus();
+}
+
+function closeGbModal() {
+    document.getElementById('gb-modal').style.display = 'none';
+    editingGbId = null;
+}
+
+async function saveGbForm() {
+    const bezeichnung = document.getElementById('gb-bezeichnung').value.trim();
+    const auditor = document.getElementById('gb-auditor').value.trim();
+    const date = document.getElementById('gb-date').value;
+    const nextReview = document.getElementById('gb-next-review').value;
+
+    if (!bezeichnung || !currentCompanyId) return;
+
+    const existing = editingGbId !== null ? gbList.find(gb => gb.id === editingGbId) : null;
+
+    const gb = {
+        id: editingGbId !== null ? editingGbId : Date.now(),
+        companyId: currentCompanyId,
+        bezeichnung,
+        auditor,
+        date,
+        nextReview,
+        createdAt: existing?.createdAt || new Date().toISOString()
+    };
+
+    await storage.saveGb(gb);
+    closeGbModal();
+    await loadAndRenderGbs();
+}
+
+async function deleteGbHandler(id) {
+    const gb = gbList.find(g => g.id === id);
+    const assessmentCount = gb?._assessmentCount || 0;
+
+    const warning = assessmentCount > 0
+        ? `Die Beurteilung "${gb?.bezeichnung}" enthält ${assessmentCount} dokumentierte Risiko${assessmentCount === 1 ? '' : 'e'}. Beim Löschen werden ALLE zugehörigen Einträge unwiderruflich mitgelöscht.\n\nFortfahren?`
+        : `Beurteilung "${gb?.bezeichnung}" wirklich löschen?`;
+
+    if (!window.confirm(warning)) return;
+
+    await storage.deleteGb(id);
+    await loadAndRenderGbs();
 }
 
 // ==========================================
@@ -860,6 +987,70 @@ function switchSettingsTab(tabId) {
         const el = document.getElementById(contentId);
         if (el) el.style.display = (btnId === tabId) ? 'block' : 'none';
     });
+}
+
+async function exportAllDataToFile() {
+    const statusEl = document.getElementById('backup-status-msg');
+    try {
+        const backup = await storage.exportAllData();
+        const json = JSON.stringify(backup, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const datestamp = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `riskflow-backup-${datestamp}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        if (statusEl) {
+            statusEl.style.color = '#10b981';
+            statusEl.textContent = `✓ Export erfolgreich (${backup.companies.length} Betrieb(e), ${backup.gbs.length} Beurteilung(en), ${backup.assessments.length} Risiko-Einträge).`;
+        }
+    } catch (err) {
+        console.error('Export fehlgeschlagen:', err);
+        if (statusEl) {
+            statusEl.style.color = '#ef4444';
+            statusEl.textContent = '✗ Export fehlgeschlagen. Bitte erneut versuchen.';
+        }
+    }
+}
+
+async function importAllDataFromFile(file) {
+    const statusEl = document.getElementById('backup-status-msg');
+    if (!file) return;
+
+    const confirmed = window.confirm(
+        'Achtung: Beim Import wird ALLES, was aktuell auf diesem Gerät gespeichert ist ' +
+        '(alle Betriebe, Beurteilungen und Risiken), unwiderruflich überschrieben. Fortfahren?'
+    );
+    if (!confirmed) {
+        document.getElementById('input-import-all').value = '';
+        return;
+    }
+
+    try {
+        const text = await file.text();
+        const backup = JSON.parse(text);
+        await storage.importAllData(backup);
+
+        assessmentList = await storage.getAllAssessments();
+        renderTable();
+
+        if (statusEl) {
+            statusEl.style.color = '#10b981';
+            statusEl.textContent = `✓ Backup importiert (${backup.companies.length} Betrieb(e), ${backup.gbs.length} Beurteilung(en), ${backup.assessments.length} Risiko-Einträge). Bitte Seite neu laden.`;
+        }
+    } catch (err) {
+        console.error('Import fehlgeschlagen:', err);
+        if (statusEl) {
+            statusEl.style.color = '#ef4444';
+            statusEl.textContent = '✗ Import fehlgeschlagen – Datei ungültig oder beschädigt.';
+        }
+    } finally {
+        document.getElementById('input-import-all').value = '';
+    }
 }
 
 function openSettingsModal() { 
