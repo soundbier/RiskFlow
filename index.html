@@ -1,31 +1,146 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#4f46e5">
-  <meta name="description" content="RiskWerk – Gefährdungsbeurteilungen">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="description" content="RiskFlow - Mobile Arbeitsplatzinspektion" />
+  
+  <title>RiskFlow</title>
+  
+  <!-- Favicon & Icons -->
+  <link rel="icon" type="image/x-icon" href="/icons/favicon.ico" />
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
-  <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="RiskWerk">
-  
-  <!-- PWA Manifest (wird durch vite-plugin-pwa zur Laufzeit bereitgestellt) -->
-  <link rel="manifest" href="/manifest.json">
-  
-  <!-- Favicon -->
-  <link rel="icon" href="/icons/favicon.ico" sizes="any">
-  
-  <!-- Hauptstylesheet -->
-  <link rel="stylesheet" href="/src/css/style.css">
-  
-  <title>RiskWerk –  Gefährdungsbeurteilungen</title>
+
+  <!-- Zentrales Stylesheet (wird von Vite geparst) -->
+  <link rel="stylesheet" href="/src/css/style.css" />
 </head>
 <body>
-  <div id="app"></div>
+  
+  <!-- Hauptcontainer der App -->
+  <div class="app-container">
+    
+    <!-- App Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <h1>RiskFlow</h1>
+      </div>
+      <div class="header-actions">
+        <!-- Der Button, der das neue Einstellungsmenü öffnet -->
+        <button id="open-settings-btn" class="btn-icon" aria-label="Einstellungen öffnen">
+          <i class="icon-settings" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
 
+    <!-- Main Workspace (Hier lebt die eigentliche Anwendung) -->
+    <main class="workspace">
+      <!-- Platzhalter: Hier befindet sich dein bestehender Code für Betriebe und Inspektionen -->
+      <div class="dashboard-placeholder">
+        <h2>Dashboard</h2>
+        <p>Wählen Sie einen Betrieb oder eine Abteilung für die nächste Prüfung aus.</p>
+      </div>
+    </main>
+
+    <!-- ============================================== -->
+    <!-- NEUES EINSTELLUNGS-MODAL                       -->
+    <!-- ============================================== -->
+    <dialog id="settings-modal" class="modal">
+      <div class="modal-content settings-container">
+        
+        <!-- Modal Header -->
+        <header class="settings-header">
+          <h2>Einstellungen</h2>
+          <button id="close-settings-btn" class="btn-icon" aria-label="Schließen">
+            <i class="icon-close" aria-hidden="true"></i>
+          </button>
+        </header>
+
+        <!-- Modal Body (Split-Layout) -->
+        <div class="settings-body">
+          
+          <!-- Sidebar / Navigation -->
+          <nav class="settings-sidebar">
+            <ul class="settings-menu">
+              <li><button class="settings-tab active" data-target="settings-general">Allgemein</button></li>
+              <li><button class="settings-tab" data-target="settings-structure">Betrieb & Abteilungen</button></li>
+              <li><button class="settings-tab" data-target="settings-compliance">Arbeitsschutz & Compliance</button></li>
+              <li><button class="settings-tab" data-target="settings-data">Daten & PWA-Sync</button></li>
+            </ul>
+          </nav>
+
+          <!-- Main Content Area -->
+          <main class="settings-content">
+            
+            <!-- Tab: Allgemein -->
+            <section id="settings-general" class="settings-panel active">
+              <h3>Allgemeine Darstellung</h3>
+              <div class="form-group">
+                <label for="theme-select">Erscheinungsbild</label>
+                <select id="theme-select" class="form-control">
+                  <option value="system">Systemstandard</option>
+                  <option value="light">Hell</option>
+                  <option value="dark">Dunkel</option>
+                </select>
+              </div>
+            </section>
+
+            <!-- Tab: Betriebsstruktur -->
+            <section id="settings-structure" class="settings-panel hidden">
+              <h3>Mandanten- und Abteilungsstruktur</h3>
+              <p class="settings-description">Verwalte hier die übergeordneten Unternehmensdaten für RiskFlow.</p>
+              <div class="form-group">
+                <label for="active-company">Aktive Betriebsstruktur</label>
+                <select id="active-company" class="form-control">
+                  <option value="1">Hauptwerk</option>
+                  <option value="2">Niederlassung Nord</option>
+                </select>
+              </div>
+              <button class="btn btn-secondary">Neue Abteilung anlegen</button>
+            </section>
+
+            <!-- Tab: Arbeitsschutz & Compliance -->
+            <section id="settings-compliance" class="settings-panel hidden">
+              <h3>Gesetzliche Vorgaben</h3>
+              <div class="form-group checkbox-group">
+                <input type="checkbox" id="require-arbSchG" class="form-checkbox" checked>
+                <label for="require-arbSchG">Strikte Prüfung nach ArbSchG erzwingen</label>
+              </div>
+              <div class="form-group checkbox-group">
+                <input type="checkbox" id="require-arbStattV" class="form-checkbox" checked>
+                <label for="require-arbStattV">ArbStättV-Katalog bei Begehungen standardmäßig laden</label>
+              </div>
+            </section>
+
+            <!-- Tab: Daten & PWA-Sync -->
+            <section id="settings-data" class="settings-panel hidden">
+              <h3>Offline-Synchronisation</h3>
+              <div class="form-group">
+                <label>Letzter Sync: <span id="last-sync-time">-</span></label>
+                <button class="btn btn-primary" id="force-sync-btn">Jetzt synchronisieren</button>
+              </div>
+              <hr>
+              <button class="btn btn-danger" id="clear-data-btn">Lokalen Cache leeren</button>
+            </section>
+
+          </main>
+        </div>
+
+        <!-- Modal Footer / Actions -->
+        <footer class="settings-footer">
+          <button id="cancel-settings-btn" class="btn btn-secondary">Abbrechen</button>
+          <button id="save-settings-btn" class="btn btn-primary">Speichern</button>
+        </footer>
+
+      </div>
+    </dialog>
+    <!-- ============================================== -->
+    
+  </div>
+
+  <!-- Vite Entry-Point (Vanilla JS) -->
   <script type="module" src="/src/js/main.js"></script>
 </body>
 </html>
