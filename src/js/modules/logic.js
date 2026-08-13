@@ -1,6 +1,6 @@
 /**
  * RiskFlow & GB-Tool – Kernlogik
- * Steuert Formular-Workflows, Risikomatrix, STOP-Prinzip, Multi-Betriebs-Logik
+ * Steuert Formular-Workflows, Risikomatrix, STOP-Prinzip, Multi-Betriebs-Logik, Export & Drucken
  */
 
 import * as storage from './storage.js';
@@ -69,11 +69,18 @@ function switchMobileTab(tab) {
 async function updateUIBasedOnState() {
     const params = new URLSearchParams(window.location.search);
     
-    // Immer die aktuellsten Betriebe laden
     companiesList = await storage.getAllCompanies();
+
+    const exportBtn = document.getElementById('btn-export');
+    const printBtn = document.getElementById('btn-print');
+    const quickSelect = document.getElementById('company-quick-select');
 
     if (document.getElementById('betriebe-grid')) {
         document.getElementById('company-info-bar').style.display = 'none';
+        if (exportBtn) exportBtn.style.display = 'none';
+        if (printBtn) printBtn.style.display = 'none';
+        if (quickSelect) quickSelect.style.display = 'none';
+
         await loadAndRenderCompanies();
     }
 
@@ -83,13 +90,16 @@ async function updateUIBasedOnState() {
         activeCompany = companiesList.find(c => c.id === activeCompanyId);
 
         if (!activeCompany) {
-            // Falls keine ID oder Betrieb nicht gefunden -> zurück ins Dashboard
             navigateTo('betriebe');
             return;
         }
 
         renderCompanyState();
-        
+        renderQuickCompanySelect();
+
+        if (exportBtn) exportBtn.style.display = 'inline-flex';
+        if (printBtn) printBtn.style.display = 'inline-flex';
+
         // NUR die Gefährdungen für den aktuell aktiven Betrieb laden
         assessmentList = await storage.getGbsByCompany(activeCompanyId);
 
@@ -99,6 +109,16 @@ async function updateUIBasedOnState() {
         renderTable();
         showStep(currentStep);
     }
+}
+
+function renderQuickCompanySelect() {
+    const select = document.getElementById('company-quick-select');
+    if (!select) return;
+
+    select.innerHTML = companiesList.map(c => `
+        <option value="${c.id}" ${c.id === activeCompanyId ? 'selected' : ''}>🏢 ${c.name}</option>
+    `).join('');
+    select.style.display = 'inline-flex';
 }
 
 // ==========================================
@@ -112,6 +132,10 @@ function setupEventDelegation() {
         if (e.target.closest('#btn-close-settings-top') || e.target.closest('#btn-close-settings-bottom')) closeSettingsModal();
         if (e.target.closest('#btn-goto-betriebe') || e.target.closest('#btn-close-workspace')) navigateTo('betriebe');
 
+        // --- Export & Drucken ---
+        if (e.target.closest('#btn-export')) exportCompanyToCSV();
+        if (e.target.closest('#btn-print')) window.print();
+
         // --- Company Setup & Dashboard ---
         if (e.target.closest('#btn-edit-company')) {
             if(activeCompanyId) openCompanyModal(activeCompanyId);
@@ -119,7 +143,6 @@ function setupEventDelegation() {
         if (e.target.closest('#btn-new-betrieb')) openCompanyModal();
         
         if (e.target.closest('.betrieb-card-main')) {
-            // Betrieb auswählen -> in Workspace wechseln
             const card = e.target.closest('.betrieb-card');
             window.location.search = `?action=workspace&companyId=${card.dataset.id}`;
         }
@@ -193,6 +216,9 @@ function setupEventDelegation() {
     });
 
     document.addEventListener('change', (e) => {
+        if (e.target.id === 'company-quick-select') {
+            window.location.search = `?action=workspace&companyId=${e.target.value}`;
+        }
         if (['s-vor', 'w-vor', 's-nach', 'w-nach'].includes(e.target.id)) updateDualMatrix();
         if (e.target.id === 'frist-typ') {
             const di = document.getElementById('frist-datum');
@@ -200,6 +226,71 @@ function setupEventDelegation() {
             else { di.style.display = 'none'; di.required = false; di.value = ''; }
         }
     });
+}
+
+// ==========================================
+// EXPORT PRO BETRIEB (EXCEL / CSV)
+// ==========================================
+
+function exportCompanyToCSV() {
+    if (!activeCompany) return;
+
+    const sanitize = (text) => `"${(text || '').toString().replace(/"/g, '""')}"`;
+
+    let csvContent = '\uFEFF'; // UTF-8 Byte Order Mark für Excel
+
+    // 1. Kopfdaten des Betriebs
+    csvContent += `GEFÄHRDUNGSBEURTEILUNG - ${activeCompany.name.toUpperCase()}\n`;
+    csvContent += `Standort / Anschrift:;${sanitize(activeCompany.anschrift)}\n`;
+    csvContent += `Geprüft durch:;${sanitize(activeCompany.auditor)}\n`;
+    csvContent += `Angelegt am:;${formatDate(activeCompany.createdAt)}\n`;
+    csvContent += `Export-Datum:;${new Date().toLocaleDateString('de-DE')}\n\n`;
+
+    // 2. Tabellen-Header
+    const headers = [
+        'Bereich', 'Tätigkeit', 'Gefährdungsfaktor', 
+        'S (vor)', 'W (vor)', 'Risiko (vor)', 
+        'STOP-S', 'STOP-T', 'STOP-O', 'STOP-P', 'PSA', 'PSA weiterhin erforderlich',
+        'S (nach)', 'W (nach)', 'Restrisiko (nach)', 
+        'Verantwortlich', 'Frist'
+    ];
+    csvContent += headers.map(h => sanitize(h)).join(';') + '\n';
+
+    // 3. Tabellen-Daten
+    assessmentList.forEach(item => {
+        const riskVor = riskMatrix[`${item.sVor}-${item.wVor}`]?.level || '-';
+        const riskNach = riskMatrix[`${item.sNach}-${item.wNach}`]?.level || '-';
+
+        const row = [
+            item.bereich || 'Allgemein',
+            item.taetigkeit,
+            item.gefaehrdung,
+            item.sVor, item.wVor, riskVor,
+            (item.stopS || '').replace(/\|/g, ' / '),
+            (item.stopT || '').replace(/\|/g, ' / '),
+            (item.stopO || '').replace(/\|/g, ' / '),
+            (item.stopP || '').replace(/\|/g, ' / '),
+            (item.psaList || []).join(' / '),
+            item.psaStillRequired !== false ? 'Ja' : 'Nein',
+            item.sNach, item.wNach, riskNach,
+            item.verantwortlich,
+            formatFrist(item.frist)
+        ];
+        csvContent += row.map(cell => sanitize(cell)).join(';') + '\n';
+    });
+
+    // Download auslösen
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const filename = `Gefaehrdungsbeurteilung_${activeCompany.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.csv`;
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }
 
 // ==========================================
@@ -323,7 +414,7 @@ async function saveAssessmentRecord() {
 
     const record = {
         id: editingRecordId !== null ? editingRecordId : Date.now(),
-        companyId: activeCompanyId, // Verknüpfung zum aktuellen Betrieb!
+        companyId: activeCompanyId,
         bereich: currentBereich,
         taetigkeit: currentTaetigkeit, 
         gefaehrdung: document.getElementById('gefaehrdung').value,
@@ -382,7 +473,6 @@ function renderTable() {
         }
     }
 
-    // Gruppierung nach Bereich > Tätigkeit
     const groupMap = {};
     assessmentList.forEach(item => {
         const bName = item.bereich ? `${item.bereich} ➔ ` : '';
@@ -476,7 +566,7 @@ function formatFrist(val) {
 
 function getFristColor(val) {
     if(!val) return 'dot-none';
-    if (validIntervals.includes(val)) return 'dot-blue'; 
+    if (validIntervals.includes(val)) return val; 
     const diffDays = Math.ceil((new Date(val).setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / (1000 * 60 * 60 * 24));
     return diffDays < 0 ? 'dot-red' : (diffDays <= 7 ? 'dot-yellow' : 'dot-green');                    
 }
@@ -737,7 +827,6 @@ async function saveCompanyForm() {
     await storage.saveCompany(company);
     closeCompanyModal();
     
-    // Nach Speichern die Oberfläche direkt refreshen
     await updateUIBasedOnState();
 }
 
