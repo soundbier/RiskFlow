@@ -21,6 +21,7 @@
 /* 4. Views */
 @import './views/_betriebe.css';
 @import './views/_workspace.css';
+@import './views/_settings.css';
 
 /* 5. Utilities */
 @import './utilities/_print.css';
