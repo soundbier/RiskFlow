@@ -3,14 +3,9 @@
  * Initialisiert die Benutzeroberfläche und das Routing
  */
 
-let currentView = 'setup'; // Startet standardmäßig im Setup, Logik folgt später
+let currentView = 'betriebe';
 let onNavigateCallback = null;
 
-/**
- * Erlaubt logic.js, sich als Callback zu registrieren, der nach jeder
- * Navigation (auch per Browser-Zurück/Vor) aufgerufen wird, um die neu
- * gerenderte Ansicht mit Daten zu befüllen.
- */
 export function setOnNavigateCallback(cb) {
   onNavigateCallback = cb;
 }
@@ -25,9 +20,6 @@ export async function initializeApp() {
   }
 }
 
-/**
- * Baut das statische Grundgerüst (Header, Main-Container, globale Modals).
- */
 function renderLayout() {
   const app = document.getElementById('app');
   
@@ -39,72 +31,71 @@ function renderLayout() {
           <span>RiskFlow – Arbeitsschutz einfach gemacht</span>
         </div>
         <div class="header-actions no-print">
-          <button id="btn-goto-betriebe" class="btn btn-secondary">🏢 Betriebe</button>
+          <button id="btn-goto-betriebe" class="btn btn-primary">🏢 Meine Betriebe</button>
           <button id="btn-settings" class="btn btn-secondary">⚙️ Einstellungen</button>
           <button id="btn-export" class="btn btn-secondary" style="display:none;">Excel Export</button>
           <button id="btn-print" class="btn btn-secondary" style="display:none;">PDF Drucken</button>
-          <button id="btn-clear" class="btn btn-danger-outline" style="display:none;">Alle Löschen</button>
         </div>
       </div>
       
-      <!-- Aktive Betriebsdaten-Leiste (wird eingeblendet, wenn Daten vorhanden sind) -->
-      <div id="company-info-bar" class="company-info-bar">
-        <div class="company-details-grid">
+      <!-- Aktive Betriebsdaten-Leiste (wird im Workspace eingeblendet) -->
+      <div id="company-info-bar" class="company-info-bar" style="display: none;">
+        <div class="company-details-grid" style="flex-grow: 1;">
             <div class="info-block"><span class="info-label">Betrieb / Firma</span><span class="info-value" id="display-c-name">-</span></div>
-            <div class="info-block"><span class="info-label">Standort / Filiale</span><span class="info-value" id="display-c-location">-</span></div>
+            <div class="info-block"><span class="info-label">Standort / Anschrift</span><span class="info-value" id="display-c-location">-</span></div>
             <div class="info-block"><span class="info-label">Geprüft durch</span><span class="info-value" id="display-c-auditor">-</span></div>
-            <div class="info-block"><span class="info-label">Erstellungsdatum</span><span class="info-value" id="display-c-date">-</span></div>
-            <div class="info-block"><span class="info-label">Nächste Überarbeitung</span><span class="info-value" id="display-c-next-review">-</span></div>
+            <div class="info-block"><span class="info-label">Angelegt am</span><span class="info-value" id="display-c-date">-</span></div>
         </div>
-        <button id="btn-edit-company" class="btn btn-outline no-print" style="font-size: 11px; padding: 6px 12px; margin-left: 15px;">Stammdaten bearbeiten</button>
+        <div style="display: flex; gap: 8px; margin-left: 20px;">
+            <button id="btn-edit-company" class="btn btn-outline no-print" style="font-size: 11px; padding: 6px 12px;">Stammdaten bearbeiten</button>
+            <button id="btn-close-workspace" class="btn btn-secondary no-print" style="font-size: 11px; padding: 6px 12px;">✕ Schließen</button>
+        </div>
       </div>
 
-      <!-- Hier werden die dynamischen Views (Setup oder Workspace) gerendert -->
       <main id="main-content"></main>
     </div>
 
-    <!-- GLOBALE MODALS (werden in Schritt 4 mit Event-Listenern versehen) -->
+    <!-- GLOBALE MODALS -->
     ${renderPsaModal()}
     ${renderSettingsModal()}
     ${renderBetriebFormModal()}
   `;
 
-  document.getElementById('brand-title').addEventListener('click', () => navigateTo('workspace'));
+  document.getElementById('brand-title').addEventListener('click', () => navigateTo('betriebe'));
 }
 
-/**
- * PWA Routing
- */
 function handleRouting() {
   const params = new URLSearchParams(window.location.search);
   const action = params.get('action');
 
   if (action === 'workspace') navigateTo('workspace', false);
-  else if (action === 'setup') navigateTo('setup', false);
-  else if (action === 'betriebe') navigateTo('betriebe', false);
-  else navigateTo('workspace', false); // Standard-Route
+  else navigateTo('betriebe', false); // Die Betriebsübersicht ist nun der Standard!
 }
 
 export function navigateTo(view, pushState = true) {
   currentView = view;
   
   if (pushState) {
-    const url = view === 'workspace' ? '/' : `/?action=${view}`;
+    const params = new URLSearchParams(window.location.search);
+    let url = view === 'betriebe' ? '/' : `/?action=${view}`;
+    
+    // Firmen-ID beim Navigieren in den Workspace an die URL hängen
+    if (view === 'workspace' && params.has('companyId')) {
+        url += `&companyId=${params.get('companyId')}`;
+    }
+    
     window.history.pushState({ view }, '', url);
   }
 
   const mainContent = document.getElementById('main-content');
   mainContent.innerHTML = ''; 
 
-  if (view === 'setup') {
-    mainContent.innerHTML = renderCompanySetup();
-  } else if (view === 'workspace') {
+  if (view === 'workspace') {
     mainContent.innerHTML = renderWorkspace();
-  } else if (view === 'betriebe') {
+  } else {
     mainContent.innerHTML = renderBetriebeUebersicht();
   }
 
-  // Neu gerenderte Ansicht mit Daten befüllen (logic.js-Callback)
   if (onNavigateCallback) onNavigateCallback();
 }
 
@@ -112,37 +103,10 @@ export function navigateTo(view, pushState = true) {
 // VIEWS (HTML Templates)
 // ==========================================
 
-function renderCompanySetup() {
-  return `
-    <div id="company-setup-card" class="card company-setup no-print">
-      <h2>
-        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-        Betriebsanlage & Stammdaten
-      </h2>
-      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 24px;">Bitte erfassen Sie zunächst die Kerndaten des Betriebs oder der Filiale, für die diese Gefährdungsbeurteilung durchgeführt wird.</p>
-      
-      <form id="company-form">
-        <div class="form-grid">
-            <div class="form-group"><label for="c-name">Firmenname / Betrieb <span style="color:red;">*</span></label><input type="text" id="c-name" required placeholder="z.B. Muster GmbH"></div>
-            <div class="form-group"><label for="c-location">Standort / Filiale / Abteilung <span style="color:red;">*</span></label><input type="text" id="c-location" required placeholder="z.B. Zentrale Berlin"></div>
-            <div class="form-group"><label for="c-auditor">Geprüft durch (Name)</label><input type="text" id="c-auditor" placeholder="Name des Erstellers"></div>
-            <div class="form-group" style="display: flex; gap: 10px;">
-                <div style="flex: 1;"><label for="c-date">Erstellungsdatum</label><input type="date" id="c-date"></div>
-                <div style="flex: 1;"><label for="c-next-review">Nächste Überarbeitung</label><input type="date" id="c-next-review"></div>
-            </div>
-        </div>
-        <button type="submit" class="btn btn-primary" style="margin-top: 10px; font-size: 14px; padding: 12px 24px;">Betrieb speichern & Dashboard öffnen →</button>
-      </form>
-    </div>
-  `;
-}
-
 function renderWorkspace() {
   return `
     <div id="gb-workspace">
-      <!-- TAB-PANEL: ERSTELLUNG -->
       <div class="tab-panel active" id="tab-panel-create" data-panel="create">
-      <!-- WIZARD FORM -->
       <form id="gb-form" class="card no-print" style="padding: 0;">
         <div class="wizard-header">
             <div class="step-indicator active current" id="ind-1"><span>1</span> Identifikation</div>
@@ -151,7 +115,6 @@ function renderWorkspace() {
         </div>
 
         <div class="wizard-body">
-            <!-- EDITING BANNER -->
             <div id="edit-mode-banner" class="edit-banner">
                 <span>✏️ Sie bearbeiten einen bestehenden Eintrag.</span>
                 <button type="button" class="btn btn-secondary" id="btn-cancel-edit" style="padding: 4px 10px; font-size: 11px;">Bearbeitung abbrechen</button>
@@ -172,28 +135,34 @@ function renderWorkspace() {
                         <option value="einzelhandel">Einzelhandel</option>
                     </select>
                 </div>
+                
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="taetigkeit">Arbeitsplatz / Tätigkeit <span style="color:red;">*</span></label>
-                        <input type="text" id="taetigkeit" list="taetigkeit-list" required placeholder="Tippen oder auswählen... z. B. Bohrmaschine">
-                        <datalist id="taetigkeit-list"></datalist>
+                        <label for="bereich-input">Bereich / Abteilung (Neu)</label>
+                        <input type="text" id="bereich-input" list="bereich-list" placeholder="z. B. Lager, Produktion, Filiale...">
+                        <datalist id="bereich-list"></datalist>
                     </div>
                     <div class="form-group">
-                        <label for="gefaehrdung">Gefährdungsfaktor <span style="color:red;">*</span></label>
-                        <select id="gefaehrdung" required>
-                            <option value="Mechanische Gefährdungen">1. Mechanische Gefährdungen</option>
-                            <option value="Elektrische Gefährdungen">2. Elektrische Gefährdungen</option>
-                            <option value="Gefahrstoffe">3. Gefahrstoffe</option>
-                            <option value="Biologische Arbeitsstoffe">4. Biologische Arbeitsstoffe</option>
-                            <option value="Brand und Explosionsgefährdungen">5. Brand und Explosionsgefährdungen</option>
-                            <option value="Thermische Gefährdungen">6. Thermische Gefährdungen</option>
-                            <option value="Gefährdung durch spezielle physikalische Einwirkungen">7. Gefährdung durch spezielle physikalische Einwirkungen</option>
-                            <option value="Gefährdungen durch Arbeitsumgebungsbedingungen">8. Gefährdungen durch Arbeitsumgebungsbedingungen</option>
-                            <option value="Physische Belastung/Arbeitsschwere">9. Physische Belastung/Arbeitsschwere</option>
-                            <option value="Psychische Faktoren">10. Psychische Faktoren</option>
-                            <option value="Sonstige Gefährdungen">11. Sonstige Gefährdungen</option>
-                        </select>
+                        <label for="taetigkeit">Arbeitsplatz / Tätigkeit <span style="color:red;">*</span></label>
+                        <input type="text" id="taetigkeit" list="taetigkeit-list" required placeholder="z. B. Bohrmaschine">
+                        <datalist id="taetigkeit-list"></datalist>
                     </div>
+                </div>
+                <div class="form-group">
+                    <label for="gefaehrdung">Gefährdungsfaktor <span style="color:red;">*</span></label>
+                    <select id="gefaehrdung" required>
+                        <option value="Mechanische Gefährdungen">1. Mechanische Gefährdungen</option>
+                        <option value="Elektrische Gefährdungen">2. Elektrische Gefährdungen</option>
+                        <option value="Gefahrstoffe">3. Gefahrstoffe</option>
+                        <option value="Biologische Arbeitsstoffe">4. Biologische Arbeitsstoffe</option>
+                        <option value="Brand und Explosionsgefährdungen">5. Brand und Explosionsgefährdungen</option>
+                        <option value="Thermische Gefährdungen">6. Thermische Gefährdungen</option>
+                        <option value="Gefährdung durch spezielle physikalische Einwirkungen">7. Gefährdung durch spezielle physikalische Einwirkungen</option>
+                        <option value="Gefährdungen durch Arbeitsumgebungsbedingungen">8. Gefährdungen durch Arbeitsumgebungsbedingungen</option>
+                        <option value="Physische Belastung/Arbeitsschwere">9. Physische Belastung/Arbeitsschwere</option>
+                        <option value="Psychische Faktoren">10. Psychische Faktoren</option>
+                        <option value="Sonstige Gefährdungen">11. Sonstige Gefährdungen</option>
+                    </select>
                 </div>
             </div>
 
@@ -259,7 +228,6 @@ function renderWorkspace() {
                 <div class="form-group" style="margin-top: 20px;">
                     <span style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Schutzmaßnahmen nach STOP-Prinzip</span>
                     <div class="stop-input-container">
-                        <!-- S, T, O, P Containers (werden via JS befüllt) -->
                         <div class="stop-row"><div class="stop-indicator s">S</div><div class="stop-field-wrapper"><div id="multi-s"></div><button type="button" class="btn-add-small" data-stop="s" data-placeholder="Substitution (Gefahr beseitigen)">+ Maßnahme ergänzen</button></div></div>
                         <div class="stop-row"><div class="stop-indicator t">T</div><div class="stop-field-wrapper"><div id="multi-t"></div><button type="button" class="btn-add-small" data-stop="t" data-placeholder="Technische Maßnahmen">+ Maßnahme ergänzen</button></div></div>
                         <div class="stop-row"><div class="stop-indicator o">O</div><div class="stop-field-wrapper"><div id="multi-o"></div><button type="button" class="btn-add-small" data-stop="o" data-placeholder="Organisatorische Maßnahmen">+ Maßnahme ergänzen</button></div></div>
@@ -296,12 +264,8 @@ function renderWorkspace() {
         </div>
       </form>
       </div>
-      <!-- /TAB-PANEL: ERSTELLUNG -->
 
-      <!-- TAB-PANEL: ÜBERSICHT -->
       <div class="tab-panel" id="tab-panel-table" data-panel="table">
-
-      <!-- Table Section -->
       <div id="table-anchor" class="table-toolbar no-print" style="margin-top: 20px;">
           <h3 style="font-size: 16px; color: #1e293b;">Dokumentierte Risiken</h3>
           <div style="display:flex; flex-direction: column; align-items: flex-end; gap: 6px;">
@@ -337,9 +301,8 @@ function renderWorkspace() {
           </table>
       </div>
       </div>
-      <!-- /TAB-PANEL: ÜBERSICHT -->
 
-      <!-- MOBILE-TABLEISTE (nur < 768px sichtbar, siehe style.css) -->
+      <!-- MOBILE-TABLEISTE -->
       <nav class="mobile-tabbar no-print" id="mobile-tabbar">
           <button type="button" class="mobile-tab active" data-tab="create">
               <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -452,8 +415,8 @@ function renderBetriebeUebersicht() {
     <div id="betriebe-view" class="no-print">
       <div class="betriebe-header">
         <div>
-          <h2>Betriebe</h2>
-          <p class="betriebe-subtitle">Alle erfassten Betriebe – jeder Betrieb kann mehrere Gefährdungsbeurteilungen enthalten.</p>
+          <h2>Meine Betriebe</h2>
+          <p class="betriebe-subtitle">Wählen Sie einen Betrieb aus, um dessen Gefährdungsbeurteilungen zu bearbeiten.</p>
         </div>
         <button type="button" class="btn btn-primary" id="btn-new-betrieb">+ Neuer Betrieb</button>
       </div>
@@ -479,8 +442,12 @@ function renderBetriebFormModal() {
                   <input type="text" id="betrieb-name" required placeholder="z.B. Muster GmbH">
               </div>
               <div class="form-group" style="margin-top: 14px;">
-                  <label for="betrieb-anschrift">Anschrift</label>
+                  <label for="betrieb-anschrift">Standort / Anschrift</label>
                   <input type="text" id="betrieb-anschrift" placeholder="Straße, PLZ Ort">
+              </div>
+              <div class="form-group" style="margin-top: 14px;">
+                  <label for="betrieb-auditor">Geprüft durch (Name)</label>
+                  <input type="text" id="betrieb-auditor" placeholder="Name des Erstellers / SiFa">
               </div>
           </div>
           <div class="modal-footer">
