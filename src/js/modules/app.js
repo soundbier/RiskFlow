@@ -31,14 +31,16 @@ function renderLayout() {
           <span>RiskFlow – Arbeitsschutz einfach gemacht</span>
         </div>
         <div class="header-actions no-print">
+          <!-- Schnell-Umschalter für Betriebe im Header -->
+          <select id="company-quick-select" class="btn btn-secondary" style="display:none; font-size: 12px; max-width: 220px; text-overflow: ellipsis;" title="Betrieb wechseln"></select>
           <button id="btn-goto-betriebe" class="btn btn-primary">🏢 Meine Betriebe</button>
+          <button id="btn-export" class="btn btn-secondary" style="display:none;">📊 Excel Export</button>
+          <button id="btn-print" class="btn btn-secondary" style="display:none;">🖨️ PDF Drucken</button>
           <button id="btn-settings" class="btn btn-secondary">⚙️ Einstellungen</button>
-          <button id="btn-export" class="btn btn-secondary" style="display:none;">Excel Export</button>
-          <button id="btn-print" class="btn btn-secondary" style="display:none;">PDF Drucken</button>
         </div>
       </div>
       
-      <!-- Aktive Betriebsdaten-Leiste (wird im Workspace eingeblendet) -->
+      <!-- Aktive Betriebsdaten-Leiste -->
       <div id="company-info-bar" class="company-info-bar" style="display: none;">
         <div class="company-details-grid" style="flex-grow: 1;">
             <div class="info-block"><span class="info-label">Betrieb / Firma</span><span class="info-value" id="display-c-name">-</span></div>
@@ -69,7 +71,7 @@ function handleRouting() {
   const action = params.get('action');
 
   if (action === 'workspace') navigateTo('workspace', false);
-  else navigateTo('betriebe', false); // Die Betriebsübersicht ist nun der Standard!
+  else navigateTo('betriebe', false);
 }
 
 export function navigateTo(view, pushState = true) {
@@ -79,7 +81,6 @@ export function navigateTo(view, pushState = true) {
     const params = new URLSearchParams(window.location.search);
     let url = view === 'betriebe' ? '/' : `/?action=${view}`;
     
-    // Firmen-ID beim Navigieren in den Workspace an die URL hängen
     if (view === 'workspace' && params.has('companyId')) {
         url += `&companyId=${params.get('companyId')}`;
     }
@@ -138,7 +139,7 @@ function renderWorkspace() {
                 
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="bereich-input">Bereich / Abteilung (Neu)</label>
+                        <label for="bereich-input">Bereich / Abteilung</label>
                         <input type="text" id="bereich-input" list="bereich-list" placeholder="z. B. Lager, Produktion, Filiale...">
                         <datalist id="bereich-list"></datalist>
                     </div>
