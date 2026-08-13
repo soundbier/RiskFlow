@@ -6,6 +6,7 @@
 import * as storage from './storage.js';
 import { defaultStandardTemplates } from './storage.js';
 import { navigateTo, setOnNavigateCallback, Icons } from './app.js';
+import { escapeHtml } from './utils.js';
 
 // ==========================================
 // SYSTEM KONFIGURATION & STATE
@@ -114,7 +115,7 @@ function renderQuickCompanySelect() {
     if (!select) return;
 
     select.innerHTML = companiesList.map(c => `
-        <option value="${c.id}" ${c.id === activeCompanyId ? 'selected' : ''}>${c.name}</option>
+        <option value="${c.id}" ${c.id === activeCompanyId ? 'selected' : ''}>${escapeHtml(c.name)}</option>
     `).join('');
     select.style.display = 'inline-flex';
 }
@@ -371,7 +372,7 @@ function addStopRow(letter, placeholder, value = '') {
     row.className = 'input-row';
     row.innerHTML = `
         <span class="row-num">${container.children.length + 1}.</span>
-        <input type="text" class="stop-val" placeholder="${placeholder}" value="${value}">
+        <input type="text" class="stop-val" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(value)}">
         <button type="button" class="btn-remove" data-letter="${letter}">${Icons.x}</button>
     `;
     container.appendChild(row);
@@ -496,7 +497,7 @@ function renderTable() {
     groups.forEach(groupName => {
         const trGroup = document.createElement('tr');
         trGroup.className = 'group-header-row';
-        trGroup.innerHTML = `<td colspan="9"><div style="display:flex; justify-content: space-between; align-items: center;"><span class="group-title">${Icons.folder} <span style="color: var(--primary);">${groupName}</span></span><span style="font-size: 11px; font-weight: normal; color: #64748b;">${groupMap[groupName].length} Gefährdung(en)</span></div></td>`;
+        trGroup.innerHTML = `<td colspan="9"><div style="display:flex; justify-content: space-between; align-items: center;"><span class="group-title">${Icons.folder} <span style="color: var(--primary);">${escapeHtml(groupName)}</span></span><span style="font-size: 11px; font-weight: normal; color: #64748b;">${groupMap[groupName].length} Gefährdung(en)</span></div></td>`;
         tbody.appendChild(trGroup);
 
         groupMap[groupName].forEach(item => {
@@ -512,7 +513,7 @@ function renderTable() {
 
             let psaColHtml = `<span style="color:#94a3b8; font-style:italic;">Keine PSA</span>`;
             if (item.psaList && item.psaList.length > 0) {
-                psaColHtml = item.psaList.map(p => `<span class="psa-cell-badge">${Icons.shield} ${p}</span>`).join('');
+                psaColHtml = item.psaList.map(p => `<span class="psa-cell-badge">${Icons.shield} ${escapeHtml(p)}</span>`).join('');
                 const isReq = item.psaStillRequired !== false;
                 psaColHtml += `<div style="font-size: 11px; margin-top: 4px; color: ${isReq ? '#db2777' : '#64748b'};">Nach Maßnahmen: ${isReq ? '<strong>Erforderlich</strong>' : '<span style="color:#64748b;">Entbehrlich</span>'}</div>`;
             }
@@ -523,12 +524,12 @@ function renderTable() {
 
             tr.innerHTML = `
                 <td class="no-print drag-cell"><div class="drag-handle">☰</div></td>
-                <td data-label="Tätigkeit" style="font-weight: 600; font-size: 12px; color: #475569;">${item.taetigkeit}</td>
-                <td data-label="Gefahr"><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #334155;">${item.gefaehrdung}</span></td>
+                <td data-label="Tätigkeit" style="font-weight: 600; font-size: 12px; color: #475569;">${escapeHtml(item.taetigkeit)}</td>
+                <td data-label="Gefahr"><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #334155;">${escapeHtml(item.gefaehrdung)}</span></td>
                 <td data-label="Risiko"><div><span class="badge ${riskVor.class}">${riskVor.level}</span><span class="risk-arrow">➔</span><span class="badge ${riskNach.class}">${riskNach.level}</span></div></td>
                 <td data-label="Maßnahmen (STOP)">${stopHtml}</td>
                 <td data-label="PSA / Schutzausrüstung">${psaColHtml}</td>
-                <td data-label="Verantw.">${item.verantwortlich}</td>
+                <td data-label="Verantw.">${escapeHtml(item.verantwortlich)}</td>
                 <td data-label="Frist"><div class="frist-container"><div class="status-dot ${getFristColor(item.frist)}"></div>${formatFrist(item.frist)}</div></td>
                 <td class="no-print action-td">
                     <div class="action-cell">
@@ -553,8 +554,8 @@ function renderTable() {
 function renderStopList(dataStr) {
     if (!dataStr) return '';
     const items = dataStr.split('|');
-    if (items.length === 1) return items[0]; 
-    return `<ol>${items.map(i => `<li>${i}</li>`).join('')}</ol>`;
+    if (items.length === 1) return escapeHtml(items[0]); 
+    return `<ol>${items.map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ol>`;
 }
 
 function formatDate(dateStr) {
@@ -582,11 +583,11 @@ function updateDatalist() {
     const bList = document.getElementById('bereich-list');
     if(tList) {
         const uniqueT = [...new Set(assessmentList.map(i => i.taetigkeit).filter(Boolean))];
-        tList.innerHTML = uniqueT.map(t => `<option value="${t}">`).join('');
+        tList.innerHTML = uniqueT.map(t => `<option value="${escapeHtml(t)}">`).join('');
     }
     if(bList) {
         const uniqueB = [...new Set(assessmentList.map(i => i.bereich).filter(Boolean))];
-        bList.innerHTML = uniqueB.map(b => `<option value="${b}">`).join('');
+        bList.innerHTML = uniqueB.map(b => `<option value="${escapeHtml(b)}">`).join('');
     }
 }
 
@@ -698,10 +699,10 @@ function renderModalPsaList() {
             const isChecked = currentSelectedPsa.includes(badgeText);
             html += `
                 <div class="modal-item-row">
-                    <input type="checkbox" value="${badgeText}" ${isChecked ? 'checked' : ''} class="psa-checkbox">
+                    <input type="checkbox" value="${escapeHtml(badgeText)}" ${isChecked ? 'checked' : ''} class="psa-checkbox">
                     <div>
-                        <div style="font-weight: 600; font-size: 13px; color: var(--text-main);">${item.label}</div>
-                        <div style="font-size: 11.5px; color: var(--text-muted); display:flex; align-items:center; gap:4px;">${Icons.shield} ${item.psa} — Ref: ${item.ref}</div>
+                        <div style="font-weight: 600; font-size: 13px; color: var(--text-main);">${escapeHtml(item.label)}</div>
+                        <div style="font-size: 11.5px; color: var(--text-muted); display:flex; align-items:center; gap:4px;">${Icons.shield} ${escapeHtml(item.psa)} — Ref: ${escapeHtml(item.ref)}</div>
                     </div>
                 </div>
             `;
@@ -728,7 +729,7 @@ function renderStep3PsaPreview() {
     if(!container) return;
     document.getElementById('psa-badge-count').innerText = `${currentSelectedPsa.length} gewählt`;
     if (currentSelectedPsa.length === 0) { container.innerHTML = `<span style="font-size: 12px; color: var(--text-muted); font-style: italic;">Keine PSA ausgewählt</span>`; return; }
-    container.innerHTML = currentSelectedPsa.map(p => `<span class="selected-psa-tag">${Icons.shield} ${p}</span>`).join('');
+    container.innerHTML = currentSelectedPsa.map(p => `<span class="selected-psa-tag">${Icons.shield} ${escapeHtml(p)}</span>`).join('');
 }
 
 // ==========================================
@@ -768,8 +769,8 @@ function renderCompaniesGrid() {
             <div class="betrieb-card-main">
                 <div class="betrieb-card-icon">${Icons.building}</div>
                 <div class="betrieb-card-info">
-                    <div class="betrieb-card-name">${c.name}</div>
-                    <div class="betrieb-card-address">${c.anschrift || 'Keine Anschrift hinterlegt'}</div>
+                    <div class="betrieb-card-name">${escapeHtml(c.name)}</div>
+                    <div class="betrieb-card-address">${escapeHtml(c.anschrift) || 'Keine Anschrift hinterlegt'}</div>
                     <div class="betrieb-card-meta">${c._gbCount} Gefährdungsbeurteilung${c._gbCount === 1 ? '' : 'en'}</div>
                 </div>
             </div>
