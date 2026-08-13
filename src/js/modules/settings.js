@@ -2,6 +2,9 @@
  * Modul zur Verwaltung des Einstellungsmenüs
  */
 
+// Importiere die synchronen Speicher-Funktionen aus storage.js
+import { loadUISettings, saveUISettings, applyTheme } from './storage.js';
+
 export function initSettings() {
   // DOM Elemente referenzieren
   const modal = document.getElementById('settings-modal');
@@ -13,16 +16,36 @@ export function initSettings() {
   const tabs = document.querySelectorAll('.settings-tab');
   const panels = document.querySelectorAll('.settings-panel');
 
+  // Input-Elemente für die Einstellungen referenzieren
+  const themeSelect = document.getElementById('theme-select');
+  const companySelect = document.getElementById('active-company');
+  const arbSchGCheckbox = document.getElementById('require-arbSchG');
+  const arbStattVCheckbox = document.getElementById('require-arbStattV');
+
   // Sicherheitscheck: Abbrechen, falls das Modal im DOM fehlt
   if (!modal) {
     console.error('Settings-Modal im DOM nicht gefunden.');
     return;
   }
 
+  // --- Initiale Theme-Anwendung beim Start der App ---
+  const initialSettings = loadUISettings();
+  applyTheme(initialSettings.theme);
+
+  // --- Werte in das UI laden ---
+  const populateUI = () => {
+    const currentSettings = loadUISettings();
+    
+    if (themeSelect) themeSelect.value = currentSettings.theme;
+    if (companySelect) companySelect.value = currentSettings.activeCompany;
+    if (arbSchGCheckbox) arbSchGCheckbox.checked = currentSettings.requireArbSchG;
+    if (arbStattVCheckbox) arbStattVCheckbox.checked = currentSettings.requireArbStattV;
+  };
+
   // --- Modal öffnen ---
   if (openBtn) {
     openBtn.addEventListener('click', () => {
-      // Später: Hier aktuelle Werte aus storage.js laden, bevor das Modal angezeigt wird
+      populateUI(); // Lade aktuelle Werte in die Formularfelder, bevor das Modal sichtbar wird
       modal.showModal(); 
       document.body.style.overflow = 'hidden'; // Hintergrund-Scrollen verhindern
     });
@@ -50,13 +73,26 @@ export function initSettings() {
   // --- Einstellungen Speichern ---
   if (saveBtn) {
     saveBtn.addEventListener('click', () => {
-      // Später: Werte aus den Inputs auslesen und über storage.js speichern
-      console.log('Einstellungen werden gespeichert...');
+      // 1. Werte aus den Inputs auslesen
+      const newSettings = {
+        theme: themeSelect ? themeSelect.value : 'system',
+        activeCompany: companySelect ? companySelect.value : '1',
+        requireArbSchG: arbSchGCheckbox ? arbSchGCheckbox.checked : true,
+        requireArbStattV: arbStattVCheckbox ? arbStattVCheckbox.checked : true
+      };
+
+      // 2. Werte über storage.js speichern
+      saveUISettings(newSettings);
+
+      // 3. Sofortige UI-Aktualisierung (z. B. Dark Mode direkt umschalten)
+      applyTheme(newSettings.theme);
       
-      // Visuelles Feedback (optional später durch ein Toast-Modul ersetzen)
+      // 4. Visuelles Feedback
+      const originalText = saveBtn.textContent;
       saveBtn.textContent = 'Gespeichert!';
+      
       setTimeout(() => {
-        saveBtn.textContent = 'Speichern';
+        saveBtn.textContent = originalText;
         closeModal();
       }, 800);
     });
