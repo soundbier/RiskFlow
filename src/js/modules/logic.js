@@ -642,7 +642,7 @@ function updateDatalist() {
 }
 
 // ==========================================
-// ACTIONS (Delete, Edit, Sort, Templates)
+// ACTIONS (Delete, Edit, Sort)
 // ==========================================
 
 async function deleteRecord(id) { 
