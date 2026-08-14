@@ -4,7 +4,17 @@
  */
 
 import { Icons } from './ui/icons.js';
-import { Button, IconButton, Badge, BetriebCard, EmptyState } from './ui/components.js';
+import {
+  Button,
+  IconButton,
+  BetriebCard,
+  EmptyState,
+  WizardHeader,
+  RiskMatrixColumn,
+  StopInputGroup,
+  ContextBanner,
+  ActionCard
+} from './ui/components.js';
 
 let currentView = 'betriebe';
 let onNavigateCallback = null;
@@ -39,16 +49,16 @@ function renderLayout() {
           </div>
 
           <div class="header-actions no-print">
-            <select id="company-quick-select" class="btn btn-secondary desktop-only" style="display:none; font-size: 12px; max-width: 200px;" title="Betrieb wechseln"></select>
-            ${Button({ text: 'Export', icon: 'download', id: 'btn-export', variant: 'secondary', className: 'desktop-only', attr: 'style="display:none;"' })}
-            ${Button({ text: 'Drucken', icon: 'printer', id: 'btn-print', variant: 'secondary', className: 'desktop-only', attr: 'style="display:none;"' })}
+            <select id="company-quick-select" class="btn btn-secondary desktop-only hidden" style="font-size: 12px; max-width: 200px;" title="Betrieb wechseln"></select>
+            ${Button({ text: 'Export', icon: 'download', id: 'btn-export', variant: 'secondary', className: 'desktop-only hidden' })}
+            ${Button({ text: 'Drucken', icon: 'printer', id: 'btn-print', variant: 'secondary', className: 'desktop-only hidden' })}
             ${Button({ text: 'Meine Betriebe', icon: 'building', id: 'btn-goto-betriebe', variant: 'primary', className: 'desktop-only' })}
             ${IconButton({ icon: 'settings', id: 'open-settings-btn', ariaLabel: 'Einstellungen' })}
           </div>
         </div>
       </header>
       
-      <div id="company-info-bar" class="company-info-bar" style="display: none;">
+      <div id="company-info-bar" class="company-info-bar hidden">
         <div class="company-info-content">
           <div class="info-main">
             <span class="info-label">Betrieb</span>
@@ -92,7 +102,6 @@ function renderLayout() {
   // Mobile Nav Handlers
   document.getElementById('nav-betriebe')?.addEventListener('click', () => navigateTo('betriebe'));
   document.getElementById('nav-plus')?.addEventListener('click', () => {
-    // Falls wir auf der Betriebe-Seite sind, neuen Betrieb anlegen
     const btn = document.getElementById('btn-new-betrieb');
     if (btn) btn.click();
   });
@@ -110,10 +119,10 @@ function handleRouting() {
 export function navigateTo(view, pushState = true) {
   currentView = view;
 
-  // Update mobile navigation visibility
   const globalNav = document.querySelector('.mobile-navigation');
   if (globalNav) {
-    globalNav.style.display = view === 'betriebe' ? 'flex' : 'none';
+    if (view === 'betriebe') globalNav.classList.remove('hidden');
+    else globalNav.classList.add('hidden');
   }
 
   if (pushState) {
@@ -150,16 +159,11 @@ function renderBetriebeUebersicht() {
         ${Button({ text: 'Neuer Betrieb', icon: 'plus', id: 'btn-new-betrieb', variant: 'primary' })}
       </div>
 
-      <div class="betriebe-grid" id="betriebe-grid">
-        <!-- Platzhalter für Ladezustand oder JS-Inhalt -->
-      </div>
+      <div class="betriebe-grid" id="betriebe-grid"></div>
     </div>
   `;
 }
 
-/**
- * Hilfsfunktion zum Rendern der Liste (wird von logic.js aufgerufen)
- */
 export function updateBetriebeGrid(betriebe = []) {
   const grid = document.getElementById('betriebe-grid');
   if (!grid) return;
@@ -182,17 +186,15 @@ function renderWorkspace() {
     <div id="gb-workspace">
       <div class="tab-panel active" id="tab-panel-create" data-panel="create">
       <form id="gb-form" class="card no-print" style="padding: 0;">
-        <div class="wizard-header">
-            <div class="step-indicator active current" id="ind-1"><span>1</span> Identifikation</div>
-            <div class="step-indicator" id="ind-2"><span>2</span> Risikobewertung</div>
-            <div class="step-indicator" id="ind-3"><span>3</span> Maßnahmen & Fristen</div>
-        </div>
+        ${WizardHeader(['Identifikation', 'Risikobewertung', 'Maßnahmen & Fristen'])}
 
         <div class="wizard-body">
-            <div id="edit-mode-banner" class="edit-banner" style="display: none; align-items: center; justify-content: space-between;">
-                <span style="display:flex; align-items:center; gap:8px;">${Icons.edit} Sie bearbeiten einen bestehenden Eintrag.</span>
-                <button type="button" class="btn btn-secondary" id="btn-cancel-edit" style="padding: 4px 10px; font-size: 11px;">Abbrechen</button>
-            </div>
+            ${ContextBanner({
+              text: 'Sie bearbeiten einen bestehenden Eintrag.',
+              icon: 'edit',
+              id: 'edit-mode-banner',
+              className: 'edit-banner hidden'
+            })}
 
             <!-- SCHRITT 1: Identifikation -->
             <div class="wizard-step active" id="step-1">
@@ -260,33 +262,19 @@ function renderWorkspace() {
                         </div>
                     </div>
                     <div class="dual-matrix-container">
-                        <div class="matrix-col">
-                            <div class="matrix-title">Vorher</div>
-                            <div class="matrix-grid">
-                                <div class="matrix-cell c-yellow" id="vor-3-1">Mittel</div><div class="matrix-cell c-red" id="vor-3-2">Hoch</div><div class="matrix-cell c-red" id="vor-3-3">Hoch</div>
-                                <div class="matrix-cell c-green" id="vor-2-1">Gering</div><div class="matrix-cell c-yellow" id="vor-2-2">Mittel</div><div class="matrix-cell c-red" id="vor-2-3">Hoch</div>
-                                <div class="matrix-cell c-green" id="vor-1-1">Gering</div><div class="matrix-cell c-green" id="vor-1-2">Gering</div><div class="matrix-cell c-yellow" id="vor-1-3">Mittel</div>
-                            </div>
-                        </div>
+                        ${RiskMatrixColumn({ title: 'Vorher', type: 'vor' })}
                         <div style="display:flex; align-items:center; color: #cbd5e1;">${Icons.arrowRight}</div>
-                        <div class="matrix-col">
-                            <div class="matrix-title">Nachher</div>
-                            <div class="matrix-grid">
-                                <div class="matrix-cell c-yellow" id="nach-3-1">Mittel</div><div class="matrix-cell c-red" id="nach-3-2">Hoch</div><div class="matrix-cell c-red" id="nach-3-3">Hoch</div>
-                                <div class="matrix-cell c-green" id="nach-2-1">Gering</div><div class="matrix-cell c-yellow" id="nach-2-2">Mittel</div><div class="matrix-cell c-red" id="nach-2-3">Hoch</div>
-                                <div class="matrix-cell c-green" id="nach-1-1">Gering</div><div class="matrix-cell c-green" id="nach-1-2">Gering</div><div class="matrix-cell c-yellow" id="nach-1-3">Mittel</div>
-                            </div>
-                        </div>
+                        ${RiskMatrixColumn({ title: 'Nachher', type: 'nach' })}
                     </div>
                 </div>
             </div>
 
             <!-- SCHRITT 3: Maßnahmen & Fristen -->
             <div class="wizard-step" id="step-3">
-                <div id="step3-context-banner" class="context-banner">
-                    ${Icons.info}
-                    <span>Aktueller Gefährdungsfaktor: <span id="step3-current-gefaehrdung" style="font-weight: 800;">-</span></span>
-                </div>
+                ${ContextBanner({
+                  text: 'Aktueller Gefährdungsfaktor: <span id="step3-current-gefaehrdung" style="font-weight: 800;">-</span>',
+                  id: 'step3-context-banner'
+                })}
                 <div class="form-group">
                     <label>Persönliche Schutzausrüstung (PSA-Auswahl)</label>
                     <button type="button" class="btn btn-secondary" id="btn-open-psa" style="width: 100%; justify-content: space-between; background: #fff; border: 1px solid #cbd5e1; font-weight: 600;">
@@ -305,10 +293,10 @@ function renderWorkspace() {
                 <div class="form-group" style="margin-top: 20px;">
                     <span style="display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 12px;">Schutzmaßnahmen nach STOP-Prinzip</span>
                     <div class="stop-input-container">
-                        <div class="stop-row"><div class="stop-indicator s">S</div><div class="stop-field-wrapper"><div id="multi-s"></div><button type="button" class="btn-add-small" data-stop="s" data-placeholder="Substitution (Gefahr beseitigen)">${Icons.plus} Maßnahme ergänzen</button></div></div>
-                        <div class="stop-row"><div class="stop-indicator t">T</div><div class="stop-field-wrapper"><div id="multi-t"></div><button type="button" class="btn-add-small" data-stop="t" data-placeholder="Technische Maßnahmen">${Icons.plus} Maßnahme ergänzen</button></div></div>
-                        <div class="stop-row"><div class="stop-indicator o">O</div><div class="stop-field-wrapper"><div id="multi-o"></div><button type="button" class="btn-add-small" data-stop="o" data-placeholder="Organisatorische Maßnahmen">${Icons.plus} Maßnahme ergänzen</button></div></div>
-                        <div class="stop-row" style="border: none; padding: 0;"><div class="stop-indicator p">P</div><div class="stop-field-wrapper"><div id="multi-p"></div><button type="button" class="btn-add-small" data-stop="p" data-placeholder="Persönliche Schutzmaßnahmen">${Icons.plus} Maßnahme ergänzen</button></div></div>
+                        ${StopInputGroup({ letter: 'S', label: 'Substitution', placeholder: 'Substitution (Gefahr beseitigen)' })}
+                        ${StopInputGroup({ letter: 'T', label: 'Technisch', placeholder: 'Technische Maßnahmen' })}
+                        ${StopInputGroup({ letter: 'O', label: 'Organisatorisch', placeholder: 'Organisatorische Maßnahmen' })}
+                        ${StopInputGroup({ letter: 'P', label: 'Persönlich', placeholder: 'Persönliche Schutzmaßnahmen' })}
                     </div>
                 </div>
                 <div class="form-grid">
@@ -334,10 +322,10 @@ function renderWorkspace() {
         </div>
 
         <div class="wizard-footer">
-            <button type="button" id="btn-prev" class="btn btn-secondary" style="display: none;">Zurück</button>
+            <button type="button" id="btn-prev" class="btn btn-secondary hidden">Zurück</button>
             <div style="flex-grow: 1;"></div>
             <button type="button" id="btn-next" class="btn btn-primary">Weiter</button>
-            <button type="submit" id="btn-submit" class="btn btn-primary" style="display: none; background-color: #10b981;">Speichern</button>
+            <button type="submit" id="btn-submit" class="btn btn-primary hidden" style="background-color: #10b981;">Speichern</button>
         </div>
       </form>
       </div>
@@ -390,7 +378,7 @@ function renderWorkspace() {
 
 function renderPsaModal() {
   return `
-    <div id="psa-modal" class="modal-overlay">
+    <div id="psa-modal" class="modal-overlay hidden">
       <div class="modal-container">
           <div class="modal-header">
               <h3 style="font-size: 16px; font-weight: 700; color: #1e293b; display:flex; align-items:center; gap:8px;">${Icons.shield} PSA-Auswahl-Assistent</h3>
@@ -454,7 +442,6 @@ function renderSettingsModal() {
           </nav>
 
           <main class="settings-content">
-            <!-- Tab: Allgemein -->
             <section id="settings-general" class="settings-panel active">
               <div class="panel-section">
                 <h3 class="section-title">Erscheinungsbild</h3>
@@ -510,10 +497,6 @@ function renderSettingsModal() {
                   <label for="prof-role">Position / Fachkunde</label>
                   <input type="text" id="prof-role" class="form-control" placeholder="z.B. Fachkraft für Arbeitssicherheit">
                 </div>
-
-                <div class="form-group" style="display:none;">
-                  <input type="text" id="prof-cert">
-                </div>
               </div>
             </section>
 
@@ -523,24 +506,21 @@ function renderSettingsModal() {
                 <p class="section-desc">Sichern Sie Ihre lokalen Daten oder stellen Sie diese wieder her.</p>
 
                 <div class="data-action-cards">
-                  <div class="action-card">
-                    <div class="card-icon">${Icons.download}</div>
-                    <div class="card-text">
-                      <h4>Exportieren</h4>
-                      <p>Alle Daten als JSON-Datei sichern.</p>
-                    </div>
-                    <button id="btn-export-db" class="btn btn-outline btn-sm">Backup erstellen</button>
-                  </div>
-
-                  <div class="action-card">
-                    <div class="card-icon">${Icons.upload}</div>
-                    <div class="card-text">
-                      <h4>Importieren</h4>
-                      <p>Daten aus einer Sicherung einlesen.</p>
-                    </div>
-                    <button id="btn-import-trigger" class="btn btn-outline btn-sm">Datei wählen</button>
-                    <input type="file" id="db-import-file" style="display: none;" accept=".json">
-                  </div>
+                  ${ActionCard({
+                    title: 'Exportieren',
+                    desc: 'Alle Daten als JSON-Datei sichern.',
+                    icon: 'download',
+                    actionText: 'Backup erstellen',
+                    actionId: 'btn-export-db'
+                  })}
+                  ${ActionCard({
+                    title: 'Importieren',
+                    desc: 'Daten aus einer Sicherung einlesen.',
+                    icon: 'upload',
+                    actionText: 'Datei wählen',
+                    actionId: 'btn-import-trigger'
+                  })}
+                  <input type="file" id="db-import-file" class="hidden" accept=".json">
                 </div>
 
                 <div class="danger-zone-box">
@@ -552,12 +532,6 @@ function renderSettingsModal() {
                   <button id="btn-factory-reset" class="btn btn-danger-soft">App vollständig zurücksetzen</button>
                 </div>
               </div>
-            </section>
-
-            <section id="settings-suggestions" class="settings-panel" style="display:none;">
-                <select id="suggest-type-select"><option value="taetigkeit"></option></select>
-                <div id="suggestion-list-container"></div>
-                <button id="btn-refresh-suggestions"></button>
             </section>
           </main>
         </div>
@@ -574,7 +548,7 @@ function renderSettingsModal() {
 
 function renderBetriebFormModal() {
   return `
-    <div id="betrieb-modal" class="modal-overlay">
+    <div id="betrieb-modal" class="modal-overlay hidden">
       <div class="modal-container" style="width: 520px; max-width: 95vw;">
         <form id="betrieb-form">
           <div class="modal-header">

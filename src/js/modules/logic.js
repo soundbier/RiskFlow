@@ -7,6 +7,7 @@ import * as storage from './storage.js';
 import { defaultStandardTemplates } from './storage.js';
 import { navigateTo, setOnNavigateCallback, updateBetriebeGrid } from './app.js';
 import { Icons } from './ui/icons.js';
+import { StopInputRow } from './ui/components.js';
 import { escapeHtml } from './utils.js';
 
 // ==========================================
@@ -77,14 +78,15 @@ async function updateUIBasedOnState() {
     const printBtn = document.getElementById('btn-print');
     const printBtnMobile = document.getElementById('btn-print-mobile');
     const quickSelect = document.getElementById('company-quick-select');
+    const companyInfoBar = document.getElementById('company-info-bar');
 
     if (document.getElementById('betriebe-grid')) {
-        document.getElementById('company-info-bar').style.display = 'none';
-        if (exportBtn) exportBtn.style.display = 'none';
-        if (exportBtnMobile) exportBtnMobile.style.display = 'none';
-        if (printBtn) printBtn.style.display = 'none';
-        if (printBtnMobile) printBtnMobile.style.display = 'none';
-        if (quickSelect) quickSelect.style.display = 'none';
+        if (companyInfoBar) companyInfoBar.classList.add('hidden');
+        if (exportBtn) exportBtn.classList.add('hidden');
+        if (exportBtnMobile) exportBtnMobile.classList.add('hidden');
+        if (printBtn) printBtn.classList.add('hidden');
+        if (printBtnMobile) printBtnMobile.classList.add('hidden');
+        if (quickSelect) quickSelect.classList.add('hidden');
 
         await loadAndRenderCompanies();
     }
@@ -102,10 +104,10 @@ async function updateUIBasedOnState() {
         renderCompanyState();
         renderQuickCompanySelect();
 
-        if (exportBtn) exportBtn.style.display = 'inline-flex';
-        if (exportBtnMobile) exportBtnMobile.style.display = 'inline-flex';
-        if (printBtn) printBtn.style.display = 'inline-flex';
-        if (printBtnMobile) printBtnMobile.style.display = 'inline-flex';
+        if (exportBtn) exportBtn.classList.remove('hidden');
+        if (exportBtnMobile) exportBtnMobile.classList.remove('hidden');
+        if (printBtn) printBtn.classList.remove('hidden');
+        if (printBtnMobile) printBtnMobile.classList.remove('hidden');
 
         assessmentList = await storage.getGbsByCompany(activeCompanyId);
 
@@ -124,7 +126,7 @@ function renderQuickCompanySelect() {
     select.innerHTML = companiesList.map(c => `
         <option value="${c.id}" ${c.id === activeCompanyId ? 'selected' : ''}>${escapeHtml(c.name)}</option>
     `).join('');
-    select.style.display = 'inline-flex';
+    select.classList.remove('hidden');
 }
 
 function updateSortIcons() {
@@ -246,8 +248,8 @@ function setupEventDelegation() {
         if (['s-vor', 'w-vor', 's-nach', 'w-nach'].includes(e.target.id)) updateDualMatrix();
         if (e.target.id === 'frist-typ') {
             const di = document.getElementById('frist-datum');
-            if (e.target.value === 'datum') { di.style.display = 'block'; di.required = true; } 
-            else { di.style.display = 'none'; di.required = false; di.value = ''; }
+            if (e.target.value === 'datum') { di.classList.remove('hidden'); di.required = true; }
+            else { di.classList.add('hidden'); di.required = false; di.value = ''; }
         }
     });
 }
@@ -320,7 +322,7 @@ function renderCompanyState() {
     const infoBar = document.getElementById('company-info-bar');
     if (!infoBar || !activeCompany) return;
     
-    infoBar.style.display = 'flex';
+    infoBar.classList.remove('hidden');
     const nameEl = document.getElementById('display-c-name');
     const locEl = document.getElementById('display-c-location');
     const audEl = document.getElementById('display-c-auditor');
@@ -354,9 +356,9 @@ function showStep(step) {
     const btnNext = document.getElementById('btn-next');
     const btnSubmit = document.getElementById('btn-submit');
     
-    if(btnPrev) btnPrev.style.display = step === 1 ? 'none' : 'inline-flex';
-    if(btnNext) btnNext.style.display = step === 3 ? 'none' : 'inline-flex';
-    if(btnSubmit) btnSubmit.style.display = step === 3 ? 'inline-flex' : 'none';
+    if(btnPrev) btnPrev.classList.toggle('hidden', step === 1);
+    if(btnNext) btnNext.classList.toggle('hidden', step === 3);
+    if(btnSubmit) btnSubmit.classList.toggle('hidden', step !== 3);
 }
 
 function validateCurrentStep() {
@@ -388,13 +390,12 @@ function updateDualMatrix() {
 function addStopRow(letter, placeholder, value = '') {
     const container = document.getElementById(`multi-${letter}`);
     if(!container) return;
-    const row = document.createElement('div');
-    row.className = 'input-row';
-    row.innerHTML = `
-        <span class="row-num">${container.children.length + 1}.</span>
-        <input type="text" class="stop-val" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(value)}">
-        <button type="button" class="btn-remove" data-letter="${letter}">${Icons.x}</button>
-    `;
+
+    const index = container.children.length + 1;
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = StopInputRow({ letter, index, placeholder, value });
+    const row = tempDiv.firstElementChild;
+
     container.appendChild(row);
     updateStopNumbers(letter);
 }
@@ -477,7 +478,7 @@ function resetFormAfterSave(keepTaetigkeit, keepBereich) {
     document.getElementById('s-vor').value = "3"; document.getElementById('w-vor').value = "2"; 
     document.getElementById('s-nach').value = "1"; document.getElementById('w-nach').value = "1";
     document.getElementById('frist-typ').value = 'datum'; 
-    document.getElementById('frist-datum').style.display = 'block'; 
+    document.getElementById('frist-datum').classList.remove('hidden');
     document.getElementById('frist-datum').required = true;
     resetStopFields(); 
     currentStep = 1; 
@@ -494,9 +495,9 @@ function renderTable() {
     if (countBadge) {
         if (assessmentList.length > 0) {
             countBadge.textContent = assessmentList.length;
-            countBadge.style.display = 'inline-flex';
+            countBadge.classList.remove('hidden');
         } else {
-            countBadge.style.display = 'none';
+            countBadge.classList.add('hidden');
         }
     }
 
@@ -554,7 +555,7 @@ function renderTable() {
                 <td class="no-print action-td">
                     <div class="action-cell">
                         <button type="button" class="btn-icon edit" title="Bearbeiten">${Icons.edit}</button>
-                        <button type="button" class="btn-icon delete" title="Löschen"><svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                        <button type="button" class="btn-icon delete" title="Löschen">${Icons.trash}</button>
                     </div>
                 </td>
             `;
@@ -628,7 +629,7 @@ function editRecord(id) {
     const record = assessmentList.find(r => r.id === id);
     if (!record) return;
     editingRecordId = record.id;
-    document.getElementById('edit-mode-banner').style.display = 'flex';
+    document.getElementById('edit-mode-banner').classList.remove('hidden');
     document.getElementById('bereich-input').value = record.bereich || '';
     document.getElementById('taetigkeit').value = record.taetigkeit || '';
     document.getElementById('gefaehrdung').value = record.gefaehrdung || gefaehrdungOrder[0];
@@ -649,9 +650,9 @@ function editRecord(id) {
     document.getElementById('verantwortlich').value = record.verantwortlich || '';
     const fristVal = record.frist || '';
     if (validIntervals.includes(fristVal)) {
-        document.getElementById('frist-typ').value = fristVal; document.getElementById('frist-datum').style.display = 'none'; document.getElementById('frist-datum').required = false; document.getElementById('frist-datum').value = '';
+        document.getElementById('frist-typ').value = fristVal; document.getElementById('frist-datum').classList.add('hidden'); document.getElementById('frist-datum').required = false; document.getElementById('frist-datum').value = '';
     } else {
-        document.getElementById('frist-typ').value = 'datum'; document.getElementById('frist-datum').style.display = 'block'; document.getElementById('frist-datum').required = true; document.getElementById('frist-datum').value = fristVal;
+        document.getElementById('frist-typ').value = 'datum'; document.getElementById('frist-datum').classList.remove('hidden'); document.getElementById('frist-datum').required = true; document.getElementById('frist-datum').value = fristVal;
     }
     currentStep = 1; showStep(currentStep);
     switchMobileTab('create');
@@ -660,7 +661,7 @@ function editRecord(id) {
 
 function cancelEditMode() {
     editingRecordId = null;
-    document.getElementById('edit-mode-banner').style.display = 'none';
+    document.getElementById('edit-mode-banner').classList.add('hidden');
     resetFormAfterSave(document.getElementById('taetigkeit').value, document.getElementById('bereich-input').value);
 }
 
@@ -702,11 +703,11 @@ async function loadTemplate(type) {
 
 function openPsaModal() { 
     renderModalPsaList(); 
-    document.getElementById('psa-modal').style.display = 'flex'; 
+    document.getElementById('psa-modal').classList.remove('hidden');
 }
 
 function closePsaModal() { 
-    document.getElementById('psa-modal').style.display = 'none'; 
+    document.getElementById('psa-modal').classList.add('hidden');
 }
 
 function renderModalPsaList() {
@@ -831,12 +832,12 @@ function openCompanyModal(id = null) {
         }
     }
 
-    document.getElementById('betrieb-modal').style.display = 'flex';
+    document.getElementById('betrieb-modal').classList.remove('hidden');
     nameInput.focus();
 }
 
 function closeCompanyModal() {
-    document.getElementById('betrieb-modal').style.display = 'none';
+    document.getElementById('betrieb-modal').classList.add('hidden');
     editingCompanyId = null;
 }
 

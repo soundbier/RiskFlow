@@ -25,5 +25,6 @@
 @import './views/_settings.css';
 
 /* 5. Utilities */
+@import './utilities/_display.css';
 @import './utilities/_print.css';
 @import './utilities/_responsive.css';

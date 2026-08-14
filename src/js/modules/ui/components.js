@@ -4,16 +4,7 @@
  */
 
 import { Icons } from './icons.js';
-
-const escapeHtml = (unsafe) => {
-  if (typeof unsafe !== 'string') return unsafe;
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-};
+import { escapeHtml } from '../utils.js';
 
 /**
  * Erstellt einen Button
@@ -42,8 +33,8 @@ export function IconButton({ icon, variant = 'icon', className = '', id = '', ar
 /**
  * Erstellt ein Badge (Zähler oder Status)
  */
-export function Badge({ text, variant = 'primary', id = '' }) {
-  return `<span id="${id}" class="badge badge-${variant}">${text}</span>`;
+export function Badge({ text, variant = 'primary', id = '', className = '' }) {
+  return `<span id="${id}" class="badge badge-${variant} ${className}">${text}</span>`;
 }
 
 /**
@@ -92,6 +83,101 @@ export function EmptyState({ title, message, icon = 'folder', actionText, action
       <h3 class="empty-state-title">${title}</h3>
       <p class="empty-state-message">${message}</p>
       ${actionText ? Button({ text: actionText, id: actionId, icon: 'plus', variant: 'primary' }) : ''}
+    </div>
+  `;
+}
+
+/**
+ * Wizard Header mit Schritten
+ */
+export function WizardHeader(steps) {
+  return `
+    <div class="wizard-header">
+      ${steps.map((step, index) => `
+        <div class="step-indicator ${index === 0 ? 'active current' : ''}" id="ind-${index + 1}">
+          <span>${index + 1}</span> ${step}
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+/**
+ * Risikomatrix (Einzelspalte Vorher/Nachher)
+ */
+export function RiskMatrixColumn({ title, type }) {
+  return `
+    <div class="matrix-col">
+      <div class="matrix-title">${title}</div>
+      <div class="matrix-grid">
+        <div class="matrix-cell c-yellow" id="${type}-3-1">Mittel</div>
+        <div class="matrix-cell c-red" id="${type}-3-2">Hoch</div>
+        <div class="matrix-cell c-red" id="${type}-3-3">Hoch</div>
+        <div class="matrix-cell c-green" id="${type}-2-1">Gering</div>
+        <div class="matrix-cell c-yellow" id="${type}-2-2">Mittel</div>
+        <div class="matrix-cell c-red" id="${type}-2-3">Hoch</div>
+        <div class="matrix-cell c-green" id="${type}-1-1">Gering</div>
+        <div class="matrix-cell c-green" id="${type}-1-2">Gering</div>
+        <div class="matrix-cell c-yellow" id="${type}-1-3">Mittel</div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * STOP-Maßnahmen Eingabeblock
+ */
+export function StopInputGroup({ letter, label, placeholder }) {
+  return `
+    <div class="stop-row">
+      <div class="stop-indicator ${letter.toLowerCase()}">${letter}</div>
+      <div class="stop-field-wrapper">
+        <div id="multi-${letter.toLowerCase()}"></div>
+        <button type="button" class="btn-add-small" data-stop="${letter.toLowerCase()}" data-placeholder="${escapeHtml(placeholder)}">
+          ${Icons.plus} Maßnahme ergänzen
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Einzelne STOP-Eingabezeile
+ */
+export function StopInputRow({ letter, index, placeholder, value = '' }) {
+  return `
+    <div class="input-row">
+        <span class="row-num">${index}.</span>
+        <input type="text" class="stop-val" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(value)}">
+        <button type="button" class="btn-remove" data-letter="${letter}">${Icons.x}</button>
+    </div>
+  `;
+}
+
+/**
+ * Banner für Kontext-Infos (z.B. Edit-Mode oder Gefährdung)
+ */
+export function ContextBanner({ text, icon = 'info', className = '', id = '' }) {
+  return `
+    <div id="${id}" class="context-banner ${className}">
+      ${Icons[icon] || ''}
+      <span>${text}</span>
+    </div>
+  `;
+}
+
+/**
+ * Action Card für Daten-Aktionen
+ */
+export function ActionCard({ title, desc, icon, actionText, actionId }) {
+  return `
+    <div class="action-card">
+      <div class="card-icon">${Icons[icon] || ''}</div>
+      <div class="card-text">
+        <h4>${title}</h4>
+        <p>${desc}</p>
+      </div>
+      <button id="${actionId}" class="btn btn-outline btn-sm">${actionText}</button>
     </div>
   `;
 }
