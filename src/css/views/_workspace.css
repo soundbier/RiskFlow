@@ -151,16 +151,22 @@
 
 /* Risk Matrix */
 .risk-assessment-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .risk-split {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
+}
+
+/* Wenn der Platz für 2 Spalten in der Risk-Split Box nicht reicht (z.B. im Wizard) */
+@media (max-width: 1400px) and (min-width: 1281px), (max-width: 600px) {
+  .risk-split {
+    grid-template-columns: 1fr;
+  }
 }
 
 .risk-split-box {
@@ -178,12 +184,13 @@
 
 .dual-matrix-container {
   display: flex;
-  gap: 20px;
+  gap: 12px;
   justify-content: center;
   background: white;
-  padding: 20px;
+  padding: 16px;
   border-radius: 10px;
   border: 1px dashed var(--border);
+  overflow-x: auto;
 }
 
 .matrix-col {
@@ -390,10 +397,12 @@
 @media (min-width: 1281px) {
   .workspace-split-container {
     display: grid;
-    grid-template-columns: 480px 1fr;
-    gap: 24px;
-    padding: 0 20px 20px;
+    grid-template-columns: 460px 1fr;
+    gap: 32px;
+    padding: 0 24px 24px;
     align-items: start;
+    max-width: 1600px;
+    margin: 0 auto;
   }
 
   .workspace-split-container .tab-panel {
@@ -515,8 +524,15 @@
   }
 
   .risk-assessment-layout {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 20px;
+  }
+
+  .risk-split {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .dual-matrix-container {
