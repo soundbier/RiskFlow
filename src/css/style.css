@@ -25,3 +25,4 @@
 
 /* 5. Utilities */
 @import './utilities/_print.css';
+@import './utilities/_responsive.css';

@@ -107,3 +107,31 @@
   gap: 6px;
   flex-shrink: 0;
 }
+
+@media (max-width: 768px) {
+  .betriebe-header {
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 16px;
+    gap: 12px;
+  }
+
+  .betriebe-header h2 {
+    font-size: 18px;
+  }
+
+  .betriebe-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .betrieb-card {
+    padding: 12px;
+  }
+
+  .betrieb-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+}

@@ -47,27 +47,32 @@ function renderLayout() {
       <div class="header">
         <div class="logo-area" id="brand-title" tabindex="0" role="button" style="cursor: pointer;">
           <h1>RiskFlow</h1>
-          <span>RiskFlow – Arbeitsschutz einfach gemacht</span>
+          <span class="header-subtitle">Arbeitsschutz einfach gemacht</span>
         </div>
         <div class="header-actions no-print">
-          <select id="company-quick-select" class="btn btn-secondary" style="display:none; font-size: 12px; max-width: 220px; text-overflow: ellipsis;" title="Betrieb wechseln"></select>
-          <button id="btn-goto-betriebe" class="btn btn-primary">${Icons.building} Meine Betriebe</button>
-          <button id="btn-export" class="btn btn-secondary" style="display:none;">${Icons.download} Excel Export</button>
-          <button id="btn-print" class="btn btn-secondary" style="display:none;">${Icons.printer} PDF Drucken</button>
-          <button id="open-settings-btn" class="btn btn-secondary">${Icons.settings} Einstellungen</button>
+          <select id="company-quick-select" class="btn btn-secondary desktop-only" style="display:none; font-size: 12px; max-width: 200px;" title="Betrieb wechseln"></select>
+          <button id="btn-goto-betriebe" class="btn btn-primary desktop-only">${Icons.building} Meine Betriebe</button>
+          <button id="btn-export" class="btn btn-secondary desktop-only" style="display:none;">${Icons.download} Export</button>
+          <button id="btn-print" class="btn btn-secondary desktop-only" style="display:none;">${Icons.printer} Drucken</button>
+          <button id="open-settings-btn" class="btn btn-secondary desktop-only">${Icons.settings} Einstellungen</button>
         </div>
       </div>
       
       <div id="company-info-bar" class="company-info-bar" style="display: none;">
-        <div class="company-details-grid" style="flex-grow: 1;">
-            <div class="info-block"><span class="info-label">Betrieb / Firma</span><span class="info-value" id="display-c-name">-</span></div>
-            <div class="info-block"><span class="info-label">Standort / Anschrift</span><span class="info-value" id="display-c-location">-</span></div>
-            <div class="info-block"><span class="info-label">Geprüft durch</span><span class="info-value" id="display-c-auditor">-</span></div>
-            <div class="info-block"><span class="info-label">Angelegt am</span><span class="info-value" id="display-c-date">-</span></div>
+        <div class="company-info-content">
+          <div class="info-main">
+            <span class="info-label">Betrieb</span>
+            <span class="info-value" id="display-c-name">-</span>
+          </div>
+          <div class="info-details desktop-only">
+            <div class="info-block"><span class="info-label">Standort</span><span class="info-value" id="display-c-location">-</span></div>
+            <div class="info-block"><span class="info-label">Prüfer</span><span class="info-value" id="display-c-auditor">-</span></div>
+            <div class="info-block"><span class="info-label">Datum</span><span class="info-value" id="display-c-date">-</span></div>
+          </div>
         </div>
-        <div style="display: flex; gap: 8px; margin-left: 20px;">
-            <button id="btn-edit-company" class="btn btn-outline no-print" style="font-size: 11px; padding: 6px 12px;">Stammdaten bearbeiten</button>
-            <button id="btn-close-workspace" class="btn btn-secondary no-print" style="font-size: 11px; padding: 6px 12px;">${Icons.x} Schließen</button>
+        <div class="company-info-actions">
+            <button id="btn-edit-company" class="btn btn-outline btn-sm no-print" title="Stammdaten bearbeiten">${Icons.edit}</button>
+            <button id="btn-close-workspace" class="btn btn-secondary btn-sm no-print" title="Schließen">${Icons.x}</button>
         </div>
       </div>
 
@@ -279,10 +284,16 @@ function renderWorkspace() {
       </div>
 
       <div class="tab-panel" id="tab-panel-table" data-panel="table">
-      <div id="table-anchor" class="table-toolbar no-print" style="margin-top: 20px;">
-          <h3 style="font-size: 16px; color: #1e293b;">Dokumentierte Risiken</h3>
-          <div style="display:flex; flex-direction: column; align-items: flex-end; gap: 6px;">
-              <span style="font-size: 12px; color: #64748b;">Basis-GB inkl. Standard-Risiken laden:</span>
+      <div id="table-anchor" class="table-toolbar no-print">
+          <div class="toolbar-title">
+            <h3 style="font-size: 16px; color: #1e293b; margin: 0;">Dokumentierte Risiken</h3>
+            <div class="toolbar-actions mobile-only">
+              <button id="btn-export-mobile" class="btn btn-outline btn-sm">${Icons.download} Export</button>
+              <button id="btn-print-mobile" class="btn btn-outline btn-sm">${Icons.printer} Druck</button>
+            </div>
+          </div>
+          <div class="template-section">
+              <span class="template-label">Basis-GB laden:</span>
               <div class="template-buttons" id="template-btn-container">
                   <button class="btn btn-outline tpl-btn" data-tpl="spielhalle">${Icons.file} Spielhalle</button>
                   <button class="btn btn-outline tpl-btn" data-tpl="fitnessstudio">${Icons.file} Fitness</button>
@@ -375,11 +386,11 @@ function renderSettingsModal() {
           <!-- Sidebar Navigation -->
           <nav class="settings-sidebar">
             <ul class="settings-menu">
-              <li><button class="settings-tab active" data-target="settings-general">Allgemein</button></li>
-              <li><button class="settings-tab" data-target="settings-profile">Profil</button></li>
-              <li><button class="settings-tab" data-target="settings-suggestions">Vorschläge</button></li>
-              <li><button class="settings-tab" data-target="settings-structure">Betrieb & Abteilungen</button></li>
-              <li><button class="settings-tab" data-target="settings-data">Daten & Backup</button></li>
+              <li><button class="settings-tab active" data-target="settings-general">${Icons.settings} Allgemein</button></li>
+              <li><button class="settings-tab" data-target="settings-profile">👤 Profil</button></li>
+              <li><button class="settings-tab" data-target="settings-suggestions">💡 Vorschläge</button></li>
+              <li><button class="settings-tab" data-target="settings-structure">${Icons.building} Betrieb</button></li>
+              <li><button class="settings-tab" data-target="settings-data">💾 Daten</button></li>
             </ul>
           </nav>
 

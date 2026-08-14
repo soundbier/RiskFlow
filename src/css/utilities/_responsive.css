@@ -1,0 +1,27 @@
+.mobile-only {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+    .mobile-only {
+        display: flex !important;
+    }
+
+    /* Global Compact adjustments */
+    :root {
+        --radius: 8px;
+    }
+
+    .app-container {
+        padding: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .app-container {
+        padding: 10px;
+    }
+}

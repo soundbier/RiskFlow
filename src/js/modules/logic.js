@@ -72,13 +72,17 @@ async function updateUIBasedOnState() {
     companiesList = await storage.getAllCompanies();
 
     const exportBtn = document.getElementById('btn-export');
+    const exportBtnMobile = document.getElementById('btn-export-mobile');
     const printBtn = document.getElementById('btn-print');
+    const printBtnMobile = document.getElementById('btn-print-mobile');
     const quickSelect = document.getElementById('company-quick-select');
 
     if (document.getElementById('betriebe-grid')) {
         document.getElementById('company-info-bar').style.display = 'none';
         if (exportBtn) exportBtn.style.display = 'none';
+        if (exportBtnMobile) exportBtnMobile.style.display = 'none';
         if (printBtn) printBtn.style.display = 'none';
+        if (printBtnMobile) printBtnMobile.style.display = 'none';
         if (quickSelect) quickSelect.style.display = 'none';
 
         await loadAndRenderCompanies();
@@ -98,7 +102,9 @@ async function updateUIBasedOnState() {
         renderQuickCompanySelect();
 
         if (exportBtn) exportBtn.style.display = 'inline-flex';
+        if (exportBtnMobile) exportBtnMobile.style.display = 'inline-flex';
         if (printBtn) printBtn.style.display = 'inline-flex';
+        if (printBtnMobile) printBtnMobile.style.display = 'inline-flex';
 
         assessmentList = await storage.getGbsByCompany(activeCompanyId);
 
@@ -143,8 +149,8 @@ function setupEventDelegation() {
         
         // Navigation & Globale Aktionen
         if (e.target.closest('#btn-goto-betriebe') || e.target.closest('#btn-close-workspace')) navigateTo('betriebe');
-        if (e.target.closest('#btn-export')) exportCompanyToCSV();
-        if (e.target.closest('#btn-print')) window.print();
+        if (e.target.closest('#btn-export') || e.target.closest('#btn-export-mobile')) exportCompanyToCSV();
+        if (e.target.closest('#btn-print') || e.target.closest('#btn-print-mobile')) window.print();
 
         // Betriebe Verwaltung
         if (e.target.closest('#btn-edit-company')) {
