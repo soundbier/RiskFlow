@@ -387,6 +387,26 @@
   display: block;
 }
 
+@media (min-width: 1281px) {
+  .workspace-split-container {
+    display: grid;
+    grid-template-columns: 480px 1fr;
+    gap: 24px;
+    padding: 0 20px 20px;
+    align-items: start;
+  }
+
+  .workspace-split-container .tab-panel {
+    display: block !important;
+  }
+
+  #tab-panel-create {
+    position: sticky;
+    top: 80px;
+    z-index: 10;
+  }
+}
+
 .mobile-tabbar {
   display: none;
 }

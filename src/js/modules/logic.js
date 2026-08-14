@@ -57,6 +57,7 @@ export async function initializeLogic() {
 }
 
 function switchMobileTab(tab) {
+    if (window.innerWidth > 1280) return;
     document.querySelectorAll('.tab-panel').forEach(p => {
         p.classList.toggle('active', p.dataset.panel === tab);
     });
@@ -487,7 +488,7 @@ async function saveAssessmentRecord() {
     document.getElementById('gefaehrdung').focus();
 
     const tableAnchor = document.getElementById('table-anchor');
-    if (tableAnchor && window.innerWidth > 768) {
+    if (tableAnchor && window.innerWidth > 768 && window.innerWidth <= 1280) {
         tableAnchor.scrollIntoView({ behavior: 'smooth' });
     }
 }

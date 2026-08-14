@@ -1,52 +1,49 @@
-# Entfernung von Schnell-Tags und hardcodierten Vorlagen
+# Desktop (PC) UI-Optimierung: "High-Speed-Workspace"
 
-Dieser Plan beschreibt die vollständige Entfernung der "Schnell-Tags für Kontext laden" im Wizard sowie aller hardcodierten Gefährdungsbeurteilungs-Vorlagen (Templates). Dies dient der Verschlankung der App und der Vorbereitung auf ein flexibleres System.
+Dieses Update optimiert die RiskFlow-Haptik für große Bildschirme. Das Ziel ist es, die vertikale Streckung zu reduzieren und durch ein Side-by-Side-Layout ("Dual-Pane") die Datenerfassung und -kontrolle gleichzeitig zu ermöglichen.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> Durch diese Änderung werden alle vordefinierten "Basis-GB" Schaltflächen in der Tabellenansicht entfernt. Der Benutzer muss Gefährdungen von Grund auf neu erstellen oder (falls später implementiert) eigene Vorlagen nutzen.
-
-> [!WARNING]
-> Die Dropdown-Auswahl "Schnell-Tags für Kontext laden" im ersten Schritt des Wizards wird ersatzlos gestrichen.
+> Auf Bildschirmen breiter als 1280px werden das Formular (Wizard) und die Tabelle nebeneinander angezeigt. Die manuelle Tab-Umschaltung (Erstellen vs. Tabelle) entfällt auf Desktop-PCs, da beide Bereiche permanent sichtbar sind.
 
 ## Proposed Changes
 
-### Logic & Data Layer
-
-#### [MODIFY] [storage.js](file:///C:/Users/Lukas/AndroidStudioProjects/RiskFlow/src/js/modules/storage.js)
-- Entfernen der Konstanten `defaultStandardTemplates` und `defaultTemplates`.
-- Entfernen der Logik in `seedInitialSettings`, die `branchTemplates` in die Datenbank schreibt.
-- Entfernen der Funktion `getBranchTemplates`.
-
-#### [MODIFY] [logic.js](file:///C:/Users/Lukas/AndroidStudioProjects/RiskFlow/src/js/modules/logic.js)
-- Entfernen des Imports von `defaultStandardTemplates`.
-- Entfernen der Variable `branchTemplates` und deren Initialisierung in `initWorkspace`.
-- Löschen der Funktion `loadTemplate`.
-- Entfernen des Klick-Handlers für `.tpl-btn` innerhalb von `setupEventDelegation`.
-
----
-
-### UI Layer
+### Layout & Struktur
 
 #### [MODIFY] [app.js](file:///C:/Users/Lukas/AndroidStudioProjects/RiskFlow/src/js/modules/app.js)
-- Entfernen des HTML-Blocks für den `bereich-selector` (Schnell-Tags) im Wizard Schritt 1.
-- Entfernen der `template-section` (Basis-GB laden) aus der `table-toolbar` in der Tabellenansicht.
+- Anpassung des HTML-Gerüsts im `renderWorkspace`: Umschließen von Wizard und Tabelle in einem neuen Container `.workspace-split-container`.
+- Entfernen der `tab-panel` Klassen-Logik für Desktop, da beide Panels gleichzeitig aktiv sind.
+
+#### [MODIFY] [_app-container.css](file:///C:/Users/Lukas/AndroidStudioProjects/RiskFlow/src/css/layout/_app-container.css)
+- Hinzufügen einer `max-width: 1600px` für den Hauptcontainer auf Desktop.
 
 ---
 
-### Styling
-
-#### [MODIFY] [_tables.css](file:///C:/Users/Lukas/AndroidStudioProjects/RiskFlow/src/css/components/_tables.css)
-- Entfernen der CSS-Regeln für `.template-section`, `.template-label` und `.template-buttons`.
+### Styling (Desktop-Spezifisch)
 
 #### [MODIFY] [_workspace.css](file:///C:/Users/Lukas/AndroidStudioProjects/RiskFlow/src/css/views/_workspace.css)
-- Entfernen der CSS-Regeln für `.bereich-selector`.
+- Implementierung des `.workspace-split-container`:
+    - `display: grid; grid-template-columns: 450px 1fr;` auf Bildschirmen > 1280px.
+- Sticky-Verhalten für den Wizard: `position: sticky; top: 80px;` damit das Eingabefeld beim Scrollen der (langen) Tabelle sichtbar bleibt.
+- Optimierung der Formular-Abstände für Desktop.
+
+#### [MODIFY] [_tables.css](file:///C:/Users/Lukas/AndroidStudioProjects/RiskFlow/src/css/components/_tables.css)
+- Festlegung einer `max-height` für die Tabelle auf Desktop mit `overflow-y: auto`.
+- Verbessertes Hover-Feedback für Tabellenzeilen.
+
+---
+
+### Logik-Anpassungen
+
+#### [MODIFY] [logic.js](file:///C:/Users/Lukas/AndroidStudioProjects/RiskFlow/src/js/modules/logic.js)
+- Anpassung der `switchMobileTab`-Funktion: Verhindern des Ausblendens von Panels auf Desktop.
+- Automatisches Neuladen der Tabelle nach jedem Speichern ohne Tab-Wechsel (da sie bereits sichtbar ist).
 
 ## Verification Plan
 
 ### Manual Verification
-- **Wizard:** Prüfen, ob das Dropdown "Schnell-Tags für Kontext laden" im ersten Schritt nicht mehr angezeigt wird.
-- **Tabelle:** Prüfen, ob die Schaltflächen unter "Basis-GB laden" in der Tabellenansicht verschwunden sind.
-- **Konsole:** Sicherstellen, dass beim Öffnen des Workspace keine Fehler wie `ReferenceError: branchTemplates is not defined` auftreten.
-- **Speichern:** Verifizieren, dass das normale Speichern von Gefährdungen weiterhin einwandfrei funktioniert.
+- **Responsivität:** Prüfen, ob das Layout bei 1280px sauber von Stacked auf Side-by-Side umschaltet.
+- **Scroll-Verhalten:** Sicherstellen, dass der Wizard links stehen bleibt, während man durch eine lange Tabelle rechts scrollt.
+- **Interaktion:** Verifizieren, dass das Hinzufügen einer Gefährdung im Wizard sofort die Tabelle rechts aktualisiert.
+- **Mobile Regression:** Sicherstellen, dass auf dem Smartphone weiterhin die Tab-Bar unten genutzt wird und das Layout wie gewohnt funktioniert.

@@ -184,7 +184,7 @@ export function updateBetriebeGrid(betriebe = []) {
 
 function renderWorkspace() {
   return `
-    <div id="gb-workspace">
+    <div id="gb-workspace" class="workspace-split-container">
       <div class="tab-panel active" id="tab-panel-create" data-panel="create">
       <form id="gb-form" class="card no-print" style="padding: 0;">
         ${WizardHeader(['Identifikation', 'Risikobewertung', 'Maßnahmen & Fristen'])}

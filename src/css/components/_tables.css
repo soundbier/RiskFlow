@@ -27,6 +27,13 @@
   overflow-x: auto;
 }
 
+@media (min-width: 1281px) {
+  .table-container {
+    max-height: calc(100vh - 180px);
+    overflow-y: auto;
+  }
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -74,7 +81,8 @@ tbody tr {
 }
 
 tbody tr:hover:not(.group-header-row) {
-  background-color: #f8fafc;
+  background-color: #f1f5f9;
+  cursor: pointer;
 }
 
 tbody tr.dragging {
