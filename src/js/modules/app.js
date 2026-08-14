@@ -19,7 +19,15 @@ export const Icons = {
   clipboard: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>`,
   save: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>`,
   plus: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`,
-  file: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`
+  file: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`,
+  menu: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>`,
+  info: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`,
+  user: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`,
+  bulb: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15 13a5 5 0 1 0-6 0"></path></svg>`,
+  arrowRight: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`,
+  arrowUp: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>`,
+  arrowDown: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`,
+  chevronsUpDown: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 15 12 20 17 15"></polyline><polyline points="7 9 12 4 17 9"></polyline></svg>`
 };
 
 let currentView = 'betriebe';
@@ -212,7 +220,7 @@ function renderWorkspace() {
                                 <div class="matrix-cell c-green" id="vor-1-1">Gering</div><div class="matrix-cell c-green" id="vor-1-2">Gering</div><div class="matrix-cell c-yellow" id="vor-1-3">Mittel</div>
                             </div>
                         </div>
-                        <div style="display:flex; align-items:center; font-size: 24px; color: #cbd5e1; font-weight: bold;">➔</div>
+                        <div style="display:flex; align-items:center; color: #cbd5e1;">${Icons.arrowRight}</div>
                         <div class="matrix-col">
                             <div class="matrix-title">Nachher</div>
                             <div class="matrix-grid">
@@ -311,13 +319,13 @@ function renderWorkspace() {
               <thead>
                   <tr>
                       <th style="width: 3%;" class="no-print"></th>
-                      <th style="width: 15%;" class="sortable" data-sort="taetigkeit">Tätigkeit <span class="sort-icon">↕</span></th>
-                      <th style="width: 13%;" class="sortable" data-sort="gefaehrdung">Gefahr <span class="sort-icon">↕</span></th>
-                      <th style="width: 13%;" class="sortable" data-sort="risiko">Risiko <span class="sort-icon">↕</span></th>
+                      <th style="width: 15%;" class="sortable" data-sort="taetigkeit">Tätigkeit <span class="sort-icon">${Icons.chevronsUpDown}</span></th>
+                      <th style="width: 13%;" class="sortable" data-sort="gefaehrdung">Gefahr <span class="sort-icon">${Icons.chevronsUpDown}</span></th>
+                      <th style="width: 13%;" class="sortable" data-sort="risiko">Risiko <span class="sort-icon">${Icons.chevronsUpDown}</span></th>
                       <th style="width: 24%;">Maßnahmen (STOP)</th>
                       <th style="width: 15%;">PSA / Schutzausrüstung</th>
-                      <th style="width: 10%;" class="sortable" data-sort="verantwortlich">Verantw. <span class="sort-icon">↕</span></th>
-                      <th style="width: 7%;" class="sortable" data-sort="frist">Frist <span class="sort-icon">↕</span></th>
+                      <th style="width: 10%;" class="sortable" data-sort="verantwortlich">Verantw. <span class="sort-icon">${Icons.chevronsUpDown}</span></th>
+                      <th style="width: 7%;" class="sortable" data-sort="frist">Frist <span class="sort-icon">${Icons.chevronsUpDown}</span></th>
                       <th style="width: 2%;" class="no-print">Aktion</th>
                   </tr>
               </thead>
@@ -387,8 +395,8 @@ function renderSettingsModal() {
           <nav class="settings-sidebar">
             <ul class="settings-menu">
               <li><button class="settings-tab active" data-target="settings-general">${Icons.settings} Allgemein</button></li>
-              <li><button class="settings-tab" data-target="settings-profile">👤 Profil</button></li>
-              <li><button class="settings-tab" data-target="settings-suggestions">💡 Vorschläge</button></li>
+              <li><button class="settings-tab" data-target="settings-profile">${Icons.user} Profil</button></li>
+              <li><button class="settings-tab" data-target="settings-suggestions">${Icons.bulb} Vorschläge</button></li>
               <li><button class="settings-tab" data-target="settings-structure">${Icons.building} Betrieb</button></li>
               <li><button class="settings-tab" data-target="settings-data">💾 Daten</button></li>
             </ul>

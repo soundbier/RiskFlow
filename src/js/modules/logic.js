@@ -131,10 +131,10 @@ function updateSortIcons() {
         const icon = th.querySelector('.sort-icon');
         if(!icon) return;
         if (currentSort.key === th.getAttribute('data-sort')) { 
-            icon.innerHTML = currentSort.dir === 'asc' ? '↑' : '↓'; 
+            icon.innerHTML = currentSort.dir === 'asc' ? Icons.arrowUp : Icons.arrowDown;
             icon.style.color = 'var(--primary)'; 
         } else { 
-            icon.innerHTML = '↕'; 
+            icon.innerHTML = Icons.chevronsUpDown;
             icon.style.color = '#cbd5e1'; 
         }
     });
@@ -488,7 +488,7 @@ function renderTable() {
 
     const groupMap = {};
     assessmentList.forEach(item => {
-        const bName = item.bereich ? `${item.bereich} ➔ ` : '';
+        const bName = item.bereich ? `${item.bereich} ` + Icons.arrowRight + ' ' : '';
         const tName = item.taetigkeit || 'Ohne Zuordnung';
         const groupKey = bName + tName;
         if (!groupMap[groupKey]) groupMap[groupKey] = [];
@@ -529,10 +529,10 @@ function renderTable() {
             if(item.id === highlightRecordId) tr.classList.add('highlight-record');
 
             tr.innerHTML = `
-                <td class="no-print drag-cell"><div class="drag-handle">☰</div></td>
+                <td class="no-print drag-cell"><div class="drag-handle">${Icons.menu}</div></td>
                 <td data-label="Tätigkeit" style="font-weight: 600; font-size: 12px; color: #475569;">${escapeHtml(item.taetigkeit)}</td>
                 <td data-label="Gefahr"><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #334155;">${escapeHtml(item.gefaehrdung)}</span></td>
-                <td data-label="Risiko"><div><span class="badge ${riskVor.class}">${riskVor.level}</span><span class="risk-arrow">➔</span><span class="badge ${riskNach.class}">${riskNach.level}</span></div></td>
+                <td data-label="Risiko"><div><span class="badge ${riskVor.class}">${riskVor.level}</span><span class="risk-arrow">${Icons.arrowRight}</span><span class="badge ${riskNach.class}">${riskNach.level}</span></div></td>
                 <td data-label="Maßnahmen (STOP)">${stopHtml}</td>
                 <td data-label="PSA / Schutzausrüstung">${psaColHtml}</td>
                 <td data-label="Verantw.">${escapeHtml(item.verantwortlich)}</td>
