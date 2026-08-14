@@ -4,9 +4,6 @@
 
 /**
  * Escaped einen Wert für die sichere Verwendung in innerHTML
- * (sowohl als Text-Inhalt als auch innerhalb von HTML-Attributen wie value="...").
- * Verhindert HTML-/Script-Injection durch Nutzereingaben (z.B. Anführungszeichen
- * in STOP-Maßnahmen, Betriebsnamen, Tätigkeiten etc.).
  */
 export function escapeHtml(value) {
   if (value === null || value === undefined) return '';
@@ -16,4 +13,18 @@ export function escapeHtml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+/**
+ * Steuert die Sichtbarkeit eines Elements über die .hidden Klasse
+ */
+export function setVisible(elementOrId, isVisible) {
+  const el = typeof elementOrId === 'string' ? document.getElementById(elementOrId) : elementOrId;
+  if (!el) return;
+
+  if (isVisible) {
+    el.classList.remove('hidden');
+  } else {
+    el.classList.add('hidden');
+  }
 }
