@@ -1,7 +1,7 @@
 {
-  "name": "riskflow-pwa",
+  "name": "riskwerk-pwa",
   "version": "1.0.0",
-  "description": "RiskFlow – PWA für Gefährdungsbeurteilungen und Risikobewertung im Arbeitsschutz",
+  "description": "RiskWerk – PWA für Gefährdungsbeurteilungen und Risikobewertung im Arbeitsschutz",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,7 @@
     "serve": "vite preview --port 5000"
   },
   "keywords": [
-    "RiskFlow",
+    "RiskWerk",
     "Gefährdungsbeurteilung",
     "Risikobewertung",
     "Arbeitsschutz",

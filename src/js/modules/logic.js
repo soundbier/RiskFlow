@@ -1,5 +1,5 @@
 /**
- * RiskFlow & GB-Tool – Kernlogik
+ * RiskWerk & GB-Tool – Kernlogik
  * Steuert Formular-Workflows, Risikomatrix, STOP-Prinzip, Multi-Betriebs-Logik, Export & Drucken
  */
 

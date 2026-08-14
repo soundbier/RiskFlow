@@ -1,12 +1,12 @@
-# RiskFlow – Gefährdungsbeurteilungen & Arbeitsschutz (PWA)
+# RiskWerk – Gefährdungsbeurteilungen & Arbeitsschutz (PWA)
 
-RiskFlow ist eine moderne, vollständig offline-fähige Progressive Web App (PWA), die speziell für Fachkräfte für Arbeitssicherheit und Arbeitsschutz-Beauftragte entwickelt wurde. Sie ermöglicht die nahtlose, strukturierte und rechtssichere digitale Erfassung von Gefährdungsbeurteilungen direkt vor Ort – von der Identifikation über das STOP-Prinzip bis zur Risikomatrix.
+RiskWerk ist eine moderne, vollständig offline-fähige Progressive Web App (PWA), die speziell für Fachkräfte für Arbeitssicherheit und Arbeitsschutz-Beauftragte entwickelt wurde. Sie ermöglicht die nahtlose, strukturierte und rechtssichere digitale Erfassung von Gefährdungsbeurteilungen direkt vor Ort – von der Identifikation über das STOP-Prinzip bis zur Risikomatrix.
 
 ## ✨ Hauptfunktionen
 
 * **🏢 Multi-Betriebs-Management:** Verwaltung mehrerer Betriebe, Kunden oder Standorte in einer App. Isolierte Workspaces garantieren, dass Daten nicht vermischt werden.
 * **📱 Native Mobile Experience:** Kompromisslos für das Smartphone optimiert. Mit Bottom-Tab-Bar, wischbaren Elementen, iOS-Zoom-Prävention und großen Touch-Targets für den Einsatz im Außendienst.
-* **📶 100 % Offline-Fähig:** Alle Daten werden lokal in der asynchronen `IndexedDB` gespeichert. Die App funktioniert tief im Keller oder in Lagerhallen ohne Empfang reibungslos.
+* **📶 100 % Offline-Fähig:** Alle Daten werden lokal in der asynchronen `IndexedDB` gespeichert. Die App funktioniert tief im Keller oder in Lagerhallen ohne Empfang reibos.
 * **🛑 Integrierte Arbeitsschutz-Methodik:** 
   * Risikobewertung per dynamischer Nohl-Matrix (Vorher/Nachher).
   * Gefahrenminimierung nach dem STOP-Prinzip.
@@ -15,7 +15,7 @@ RiskFlow ist eine moderne, vollständig offline-fähige Progressive Web App (PWA
 
 ## 🛠 Technologie-Stack
 
-RiskFlow verzichtet bewusst auf schwere Frameworks und setzt auf einen schlanken, performanten Stack:
+RiskWerk verzichtet bewusst auf schwere Frameworks und setzt auf einen schlanken, performanten Stack:
 
 * **Frontend:** HTML5, Vanilla JavaScript (ES6 Modules), CSS3 (CSS Variables, Flexbox/Grid)
 * **Build-Tool:** [Vite](https://vitejs.dev/) für blitzschnelles lokales Entwickeln und optimierte Produktions-Builds.
@@ -28,7 +28,7 @@ RiskFlow verzichtet bewusst auf schwere Frameworks und setzt auf einen schlanken
 Die Code-Basis ist strikt modular aufgebaut, um Skalierbarkeit und einfache Wartung zu gewährleisten:
 
 ```text
-riskflow-pwa/
+riskwerk-pwa/
 ├── public/                 # Statische Assets (Icons, Screenshots)
 ├── src/
 │   ├── css/                # Modulare CSS-Architektur
@@ -47,3 +47,4 @@ riskflow-pwa/
 ├── index.html              # PWA HTML-Gerüst
 ├── package.json            # Abhängigkeiten & Scripts
 └── vite.config.js          # Vite & PWA Konfiguration
+```

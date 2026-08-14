@@ -1,5 +1,5 @@
 /**
- * RiskFlow – Allgemeine Hilfsfunktionen
+ * RiskWerk – Allgemeine Hilfsfunktionen
  */
 
 /**

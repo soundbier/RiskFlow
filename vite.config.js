@@ -13,9 +13,9 @@ export default defineConfig({
       
       manifest: {
         // Die ID ist ein neuerer Standard, um die PWA eindeutig zu identifizieren
-        id: 'de.riskflow.app', 
-        name: 'RiskFlow – Gefährdungsbeurteilungen',
-        short_name: 'RiskFlow',
+        id: 'de.riskwerk.app',
+        name: 'RiskWerk – Gefährdungsbeurteilungen',
+        short_name: 'RiskWerk',
         description: 'Progressive Web App für Gefährdungsbeurteilungen, Risikobewertung und Arbeitsschutzmanagement',
         
         // Sprache und Leserichtung (wichtig für Accessibility und Screenreader)

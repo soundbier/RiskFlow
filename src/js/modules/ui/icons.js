@@ -1,5 +1,5 @@
 /**
- * RiskFlow SVG Icon Dictionary
+ * RiskWerk SVG Icon Dictionary
  * Zentrales Repository für alle Icons der Anwendung
  */
 

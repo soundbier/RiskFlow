@@ -1,5 +1,5 @@
 /**
- * RiskFlow & GB-Tool – Haupt-App Modul
+ * RiskWerk & GB-Tool – Haupt-App Modul
  * Initialisiert die Benutzeroberfläche und das Routing
  */
 
@@ -47,7 +47,7 @@ function renderLayout() {
           <div class="logo-area" id="brand-title" tabindex="0" role="button">
             <div class="logo-icon">${Icons.shield}</div>
             <div class="logo-text">
-              <h1>RiskFlow</h1>
+              <h1>RiskWerk</h1>
               <span class="header-subtitle">Arbeitsschutz einfach gemacht</span>
             </div>
           </div>

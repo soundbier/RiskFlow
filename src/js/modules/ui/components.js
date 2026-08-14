@@ -1,5 +1,5 @@
 /**
- * RiskFlow UI Components
+ * RiskWerk UI Components
  * Wiederverwendbare UI-Elemente für ein konsistentes Design
  */
 

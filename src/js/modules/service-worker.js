@@ -5,7 +5,7 @@ export async function registerServiceWorker() {
     try {
       const updateSW = registerSW({
         onNeedRefresh() {
-          console.log('✅ RiskFlow wurde aktualisiert');
+          console.log('✅ RiskWerk wurde aktualisiert');
           notifyUpdate();
         },
         onOfflineReady() {
@@ -13,7 +13,7 @@ export async function registerServiceWorker() {
         },
       });
     } catch (error) {
-      console.error('RiskFlow Service Worker Registrierung fehlgeschlagen:', error);
+      console.error('RiskWerk Service Worker Registrierung fehlgeschlagen:', error);
     }
   } else {
     console.warn('Service Worker wird nicht unterstützt');
@@ -22,7 +22,7 @@ export async function registerServiceWorker() {
 
 function notifyUpdate() {
   if ('Notification' in window && Notification.permission === 'granted') {
-    new Notification('RiskFlow aktualisiert', {
+    new Notification('RiskWerk aktualisiert', {
       body: 'Eine neue Version ist verfügbar. Bitte lade die Seite neu.',
       icon: '/icons/icon-192.png'
     });

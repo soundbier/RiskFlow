@@ -1,12 +1,12 @@
 /**
- * RiskFlow & GB-Tool Storage Module
+ * RiskWerk & GB-Tool Storage Module
  * Asynchrone IndexedDB-Verwaltung für Gefährdungsbeurteilungen und Einstellungen
  * Inklusive LocalStorage-Verwaltung für synchrone UI-Präferenzen
  */
 
 import { openDB } from 'idb';
 
-const DB_NAME = 'riskflow-db';
+const DB_NAME = 'riskwerk-db';
 const DB_VERSION = 3; // Upgrade auf Version 3 für Multi-Betrieb-Struktur
 
 let db;
@@ -240,7 +240,7 @@ export async function importDatabase(data) {
 // Diese Funktionen arbeiten synchron, damit das UI (z.B. Darkmode) direkt
 // beim Seitenaufbau ohne Datenbank-Verzögerung angewendet werden kann.
 
-const UI_SETTINGS_KEY = 'riskflow_ui_settings';
+const UI_SETTINGS_KEY = 'riskwerk_ui_settings';
 
 const defaultUiSettings = {
   theme: 'system',

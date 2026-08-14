@@ -232,7 +232,7 @@ export function initSettings() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `RiskFlow_Backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `RiskWerk_Backup_${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
     });
@@ -265,7 +265,7 @@ export function initSettings() {
   if (factoryResetBtn) {
     factoryResetBtn.addEventListener('click', () => {
       if (confirm('SIND SIE SICHER? Dies löscht alle Betriebe, Beurteilungen und Einstellungen unwiderruflich!')) {
-        indexedDB.deleteDatabase('riskflow-db');
+        indexedDB.deleteDatabase('riskwerk-db');
         localStorage.clear();
         alert('Alle Daten wurden gelöscht. Die App wird neu gestartet.');
         window.location.reload();

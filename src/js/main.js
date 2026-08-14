@@ -1,5 +1,5 @@
 /**
- * RiskFlow – Main Entry Point
+ * RiskWerk – Main Entry Point
  * Progressive Web App für Gefährdungsbeurteilungen
  */
 
@@ -11,7 +11,7 @@ import { initSettings } from './modules/settings.js';
 
 async function bootstrapApp() {
   try {
-    console.log('🚀 RiskFlow wird initialisiert...');
+    console.log('🚀 RiskWerk wird initialisiert...');
     
     // 1. IndexedDB initialisieren
     await initializeStorage();
@@ -27,14 +27,14 @@ async function bootstrapApp() {
 
     // 4. Geschäftslogik und Event-Listener verknüpfen
     await initializeLogic();
-    console.log('✅ RiskFlow erfolgreich gestartet');
+    console.log('✅ RiskWerk erfolgreich gestartet');
     
     // 5. Einstellungsmenü initialisieren
     initSettings();
     console.log('✅ Settings-Modul geladen');
     
   } catch (error) {
-    console.error('❌ Fehler beim Starten von RiskFlow:', error);
+    console.error('❌ Fehler beim Starten von RiskWerk:', error);
     
     // Greife auf den body zu, falls kein spezifischer Container gefunden wird
     const errorContainer = document.querySelector('.app-container') || document.body;
