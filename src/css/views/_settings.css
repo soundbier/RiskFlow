@@ -13,7 +13,8 @@ dialog#settings-modal {
 
 dialog#settings-modal::backdrop {
   background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .settings-container {
@@ -120,6 +121,10 @@ dialog#settings-modal::backdrop {
   text-align: left;
 }
 
+.settings-tab:active {
+  transform: scale(0.98);
+}
+
 .settings-tab:hover {
   background: rgba(79, 70, 229, 0.04);
   color: var(--primary);
@@ -218,94 +223,6 @@ dialog#settings-modal::backdrop {
 .setting-info span {
   font-size: 0.85rem;
   color: var(--text-muted);
-}
-
-/* Custom Switches (Toggle) */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 44px;
-  height: 24px;
-  flex-shrink: 0;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #cbd5e1;
-  transition: .4s;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: .4s;
-}
-
-input:checked + .slider {
-  background-color: var(--primary);
-}
-
-input:checked + .slider:before {
-  transform: translateX(20px);
-}
-
-.slider.round {
-  border-radius: 24px;
-}
-
-.slider.round:before {
-  border-radius: 50%;
-}
-
-/* Custom Range Slider */
-.range-container {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-top: var(--space-2);
-}
-
-.range-min, .range-max {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-
-.range-custom {
-  flex: 1;
-  height: 6px;
-  background: var(--bg-color);
-  border-radius: 3px;
-  outline: none;
-  -webkit-appearance: none;
-}
-
-.range-custom::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 20px;
-  height: 20px;
-  background: var(--primary);
-  border: 4px solid var(--surface);
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
 }
 
 /* Data Cards */

@@ -13,6 +13,10 @@
   font-family: var(--font-family);
 }
 
+.btn:active {
+  transform: scale(0.98);
+}
+
 .btn-primary {
   background-color: var(--primary);
   color: white;
@@ -73,6 +77,10 @@
 .btn-icon:hover {
   background: #cbd5e1;
   color: #0f172a;
+}
+
+.btn-icon:active {
+  transform: scale(0.95);
 }
 
 .btn-icon.edit:hover {

@@ -294,13 +294,16 @@ function renderWorkspace() {
                         <span id="psa-badge-count" style="background: var(--primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">0 gewählt</span>
                     </button>
                     <div id="step3-psa-preview" class="selected-psa-preview-box"></div>
-                    <div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" id="psa-still-required" checked style="width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer;">
-                        <label for="psa-still-required" style="margin: 0; cursor: pointer; text-transform: none; font-weight: 600; font-size: 12px; color: var(--text-main);">PSA ist nach getroffenen (T/O-)Maßnahmen weiterhin erforderlich</label>
+                    <div style="margin-top: 12px; display: flex; align-items: center; gap: 12px; background: #f1f5f9; padding: 12px; border-radius: 8px;">
+                        <label class="switch">
+                            <input type="checkbox" id="psa-still-required" checked>
+                            <span class="slider round"></span>
+                        </label>
+                        <label for="psa-still-required" style="margin: 0; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--text-main);">PSA ist nach getroffenen (T/O-)Maßnahmen weiterhin erforderlich</label>
                     </div>
                 </div>
                 <div class="form-group" style="margin-top: 20px;">
-                    <span style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Schutzmaßnahmen nach STOP-Prinzip</span>
+                    <span style="display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 12px;">Schutzmaßnahmen nach STOP-Prinzip</span>
                     <div class="stop-input-container">
                         <div class="stop-row"><div class="stop-indicator s">S</div><div class="stop-field-wrapper"><div id="multi-s"></div><button type="button" class="btn-add-small" data-stop="s" data-placeholder="Substitution (Gefahr beseitigen)">${Icons.plus} Maßnahme ergänzen</button></div></div>
                         <div class="stop-row"><div class="stop-indicator t">T</div><div class="stop-field-wrapper"><div id="multi-t"></div><button type="button" class="btn-add-small" data-stop="t" data-placeholder="Technische Maßnahmen">${Icons.plus} Maßnahme ergänzen</button></div></div>
