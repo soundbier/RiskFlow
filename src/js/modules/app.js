@@ -199,20 +199,6 @@ function renderWorkspace() {
 
             <!-- SCHRITT 1: Identifikation -->
             <div class="wizard-step active" id="step-1">
-                <div class="bereich-selector">
-                    <label for="bereich" style="color: var(--primary); margin: 0;">Schnell-Tags für Kontext laden:</label>
-                    <select id="bereich">
-                        <option value="allgemein">Allgemeiner Betrieb</option>
-                        <option value="spielhalle">Spielhalle / Kasino</option>
-                        <option value="fitnessstudio">Fitnessstudio</option>
-                        <option value="schwimmbad">Schwimmbad / Therme</option>
-                        <option value="buero">Büro / Verwaltung</option>
-                        <option value="gebaeudereinigung">Gebäudereinigung</option>
-                        <option value="itunternehmen">IT-Unternehmen</option>
-                        <option value="einzelhandel">Einzelhandel</option>
-                    </select>
-                </div>
-                
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="bereich-input">Bereich / Abteilung</label>
@@ -335,18 +321,6 @@ function renderWorkspace() {
               <button id="btn-export-mobile" class="btn btn-outline btn-sm">${Icons.download} Export</button>
               <button id="btn-print-mobile" class="btn btn-outline btn-sm">${Icons.printer} Druck</button>
             </div>
-          </div>
-          <div class="template-section">
-              <span class="template-label">Basis-GB laden:</span>
-              <div class="template-buttons" id="template-btn-container">
-                  <button class="btn btn-outline tpl-btn" data-tpl="spielhalle">${Icons.file} Spielhalle</button>
-                  <button class="btn btn-outline tpl-btn" data-tpl="fitnessstudio">${Icons.file} Fitness</button>
-                  <button class="btn btn-outline tpl-btn" data-tpl="schwimmbad">${Icons.file} Schwimmbad</button>
-                  <button class="btn btn-outline tpl-btn" data-tpl="buero">${Icons.file} Büro</button>
-                  <button class="btn btn-outline tpl-btn" data-tpl="gebaeudereinigung">${Icons.file} Reinigung</button>
-                  <button class="btn btn-outline tpl-btn" data-tpl="itunternehmen">${Icons.file} IT</button>
-                  <button class="btn btn-outline tpl-btn" data-tpl="einzelhandel">${Icons.file} Handel</button>
-              </div>
           </div>
       </div>
 

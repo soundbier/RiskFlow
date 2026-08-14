@@ -149,24 +149,6 @@
   border-radius: 0 0 var(--radius) var(--radius);
 }
 
-.bereich-selector {
-  background: linear-gradient(145deg, #f8fafc, #f1f5f9);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px;
-  margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.bereich-selector select {
-  max-width: 300px;
-  font-weight: 600;
-  font-size: 14px;
-  border-color: #cbd5e1;
-}
-
 /* Risk Matrix */
 .risk-assessment-layout {
   display: grid;
@@ -510,16 +492,6 @@
   .wizard-footer .btn {
     min-height: 46px;
     flex: 1 1 auto;
-  }
-
-  .bereich-selector {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-
-  .bereich-selector select {
-    max-width: 100%;
   }
 
   .risk-assessment-layout {

@@ -11,7 +11,6 @@ RiskFlow ist eine moderne, vollständig offline-fähige Progressive Web App (PWA
   * Risikobewertung per dynamischer Nohl-Matrix (Vorher/Nachher).
   * Gefahrenminimierung nach dem STOP-Prinzip.
   * Interaktiver PSA-Auswahl-Assistent inkl. DGUV-Referenzen.
-* **📋 Branchen-Templates:** Schneller Start durch vorab auswählbare Standard-Gefährdungen für verschiedene Branchen (Büro, Handwerk, Spielhalle, Schwimmbad etc.).
 * **📊 Reporting & Export:** Direkter Export von betriebsspezifischen Daten als Excel-kompatible CSV-Datei (inkl. UTF-8 BOM) sowie eine optimierte A4-Druckansicht zur PDF-Generierung.
 
 ## 🛠 Technologie-Stack

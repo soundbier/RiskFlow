@@ -19,25 +19,6 @@
   gap: 8px;
 }
 
-.template-section {
-  border-top: 1px solid var(--border);
-  padding-top: 12px;
-}
-
-.template-label {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-main);
-  margin-bottom: 8px;
-}
-
-.template-buttons {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
 .table-container {
   background: var(--surface);
   border-radius: var(--radius);
@@ -263,10 +244,6 @@ tbody tr.drag-over {
 
   .toolbar-title {
     margin-bottom: 12px;
-  }
-
-  .template-buttons {
-    max-width: 100%;
   }
 
   /* Datentabelle: Umwandlung in Karten-Ansicht */

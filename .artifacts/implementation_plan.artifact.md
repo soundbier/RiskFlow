@@ -1,36 +1,52 @@
-# Optimierung der Einstellungen-Navigation für Mobilgeräte
+# Entfernung von Schnell-Tags und hardcodierten Vorlagen
 
-Das aktuelle Einstellungsmenü nutzt auf Mobilgeräten horizontale Tabs, die seitlich gescrollt werden müssen. Dies erschwert die Navigation und Entdeckung der verschiedenen Einstellungsbereiche. Dieser Plan sieht vor, die Navigation auf ein "Drill-Down"-Modell umzustellen: Eine vertikale Liste von Kategorien, die beim Antippen die entsprechenden Einstellungen in einer Unteransicht öffnen.
+Dieser Plan beschreibt die vollständige Entfernung der "Schnell-Tags für Kontext laden" im Wizard sowie aller hardcodierten Gefährdungsbeurteilungs-Vorlagen (Templates). Dies dient der Verschlankung der App und der Vorbereitung auf ein flexibleres System.
+
+## User Review Required
+
+> [!IMPORTANT]
+> Durch diese Änderung werden alle vordefinierten "Basis-GB" Schaltflächen in der Tabellenansicht entfernt. Der Benutzer muss Gefährdungen von Grund auf neu erstellen oder (falls später implementiert) eigene Vorlagen nutzen.
+
+> [!WARNING]
+> Die Dropdown-Auswahl "Schnell-Tags für Kontext laden" im ersten Schritt des Wizards wird ersatzlos gestrichen.
 
 ## Proposed Changes
 
-### [UI/UX]
+### Logic & Data Layer
+
+#### [MODIFY] [storage.js](file:///C:/Users/Lukas/AndroidStudioProjects/RiskFlow/src/js/modules/storage.js)
+- Entfernen der Konstanten `defaultStandardTemplates` und `defaultTemplates`.
+- Entfernen der Logik in `seedInitialSettings`, die `branchTemplates` in die Datenbank schreibt.
+- Entfernen der Funktion `getBranchTemplates`.
+
+#### [MODIFY] [logic.js](file:///C:/Users/Lukas/AndroidStudioProjects/RiskFlow/src/js/modules/logic.js)
+- Entfernen des Imports von `defaultStandardTemplates`.
+- Entfernen der Variable `branchTemplates` und deren Initialisierung in `initWorkspace`.
+- Löschen der Funktion `loadTemplate`.
+- Entfernen des Klick-Handlers für `.tpl-btn` innerhalb von `setupEventDelegation`.
+
+---
+
+### UI Layer
 
 #### [MODIFY] [app.js](file:///C:/Users/Lukas/AndroidStudioProjects/RiskFlow/src/js/modules/app.js)
-- Hinzufügen eines "Zurück"-Buttons im Header des Einstellungsmodals (nur auf Mobilgeräten sichtbar, wenn eine Kategorie ausgewählt wurde).
-- Ergänzung der `Icons` um ein `arrowLeft` Icon.
-- Hinzufügen eines Indikator-Icons (Chevron/Pfeil rechts) für die Menüpunkte in der mobilen Ansicht.
+- Entfernen des HTML-Blocks für den `bereich-selector` (Schnell-Tags) im Wizard Schritt 1.
+- Entfernen der `template-section` (Basis-GB laden) aus der `table-toolbar` in der Tabellenansicht.
 
-#### [MODIFY] [_settings.css](file:///C:/Users/Lukas/AndroidStudioProjects/RiskFlow/src/css/views/_settings.css)
-- Umstellung der `.settings-menu` auf `flex-direction: column` für Mobilgeräte.
-- Implementierung der Drill-Down Logik via CSS-Klassen:
-    - Wenn eine Kategorie aktiv ist, wird die Seitenleiste ausgeblendet und der Inhalt vollflächig angezeigt.
-    - Anzeige des Zurück-Buttons im Header.
-- Optimierung der `.settings-tab` Styles für die vertikale Liste (breiter, mit Trennlinien).
+---
 
-#### [MODIFY] [settings.js](file:///C:/Users/Lukas/AndroidStudioProjects/RiskFlow/src/js/modules/settings.js)
-- Aktualisierung der Tab-Klick-Logik: Hinzufügen einer Klasse (z.B. `mobile-view-active`) zum Container, um den Drill-Down Effekt auszulösen.
-- Implementierung des Event-Handlers für den neuen Zurück-Button, um zur Kategorieliste zurückzukehren.
+### Styling
+
+#### [MODIFY] [_tables.css](file:///C:/Users/Lukas/AndroidStudioProjects/RiskFlow/src/css/components/_tables.css)
+- Entfernen der CSS-Regeln für `.template-section`, `.template-label` und `.template-buttons`.
+
+#### [MODIFY] [_workspace.css](file:///C:/Users/Lukas/AndroidStudioProjects/RiskFlow/src/css/views/_workspace.css)
+- Entfernen der CSS-Regeln für `.bereich-selector`.
 
 ## Verification Plan
 
 ### Manual Verification
-- Öffnen der Einstellungen auf einem mobilen Gerät (oder im Emulator/DevTools Mobile View).
-- Prüfen, ob die Kategorien vertikal untereinander gelistet sind.
-- Antippen einer Kategorie:
-    - Sidebar verschwindet.
-    - Einstellungen der Kategorie erscheinen.
-    - "Zurück"-Button erscheint oben links.
-- Antippen des "Zurück"-Buttons:
-    - Rückkehr zur Kategorieliste.
-- Speichern und Abbrechen der Einstellungen auf Funktionalität prüfen.
+- **Wizard:** Prüfen, ob das Dropdown "Schnell-Tags für Kontext laden" im ersten Schritt nicht mehr angezeigt wird.
+- **Tabelle:** Prüfen, ob die Schaltflächen unter "Basis-GB laden" in der Tabellenansicht verschwunden sind.
+- **Konsole:** Sicherstellen, dass beim Öffnen des Workspace keine Fehler wie `ReferenceError: branchTemplates is not defined` auftreten.
+- **Speichern:** Verifizieren, dass das normale Speichern von Gefährdungen weiterhin einwandfrei funktioniert.

@@ -25,21 +25,6 @@ const defaultPsaHazardData = [
     { letter: 'G', group: 'Sonstige Gefährdungen', items: [{ id: 'sonst_ertrinken', label: 'Ertrinken', psa: 'PSA gegen Ertrinken', ref: 'DGUV Regel 112-201' }, { id: 'sonst_erstickung', label: 'Sauerstoffmangel', psa: 'Umluftunabh. Atemschutz', ref: 'DGUV Regel 112-190' }] }
 ];
 
-export const defaultStandardTemplates = [
-    { taetigkeit: "Brandschutz", gefaehrdung: "Brand und Explosionsgefährdungen", sVor: "3", wVor: "1", sNach: "2", wNach: "1", stopS: "", stopT: "Rauchmelder|Feuerlöscher", stopO: "Brandschutzordnung", stopP: "", psaList: [], psaStillRequired: false, verantwortlich: "Arbeitgeber", frist: "Jährlich" },
-    { taetigkeit: "Erste Hilfe", gefaehrdung: "Gefährdungen durch Arbeitsumgebungsbedingungen", sVor: "3", wVor: "1", sNach: "1", wNach: "1", stopS: "", stopT: "Verbandkasten", stopO: "Ersthelfer benennen", stopP: "", psaList: [], psaStillRequired: false, verantwortlich: "Arbeitgeber", frist: "Jährlich" }
-];
-
-const defaultTemplates = {
-    spielhalle: [{ taetigkeit: "Kassenführung", gefaehrdung: "Sonstige Gefährdungen", sVor: "3", wVor: "2", sNach: "3", wNach: "1", stopS: "Bargeld minimieren", stopT: "Notrufknopf", stopO: "Deeskalationstraining", stopP: "", psaList: [], psaStillRequired: false, verantwortlich: "Filialleitung", frist: "Täglich" }],
-    fitnessstudio: [{ taetigkeit: "Wartung Kraftgeräte", gefaehrdung: "Mechanische Gefährdungen", sVor: "2", wVor: "3", sNach: "2", wNach: "1", stopS: "", stopT: "Klemmschutz", stopO: "Sichtprüfung", stopP: "", psaList: ["Schutzhandschuhe (DGUV Regel 112-195)"], psaStillRequired: true, verantwortlich: "Technik", frist: "Wöchentlich" }],
-    schwimmbad: [{ taetigkeit: "Chlorgasraum", gefaehrdung: "Gefahrstoffe", sVor: "3", wVor: "2", sNach: "3", wNach: "1", stopS: "Elektrolyse", stopT: "Warnanlage", stopO: "2-Personen-Regel", stopP: "", psaList: ["Atemschutz (DGUV Regel 112-190)"], psaStillRequired: true, verantwortlich: "Schwimmmeister", frist: "Monatlich" }],
-    buero: [{ taetigkeit: "Bildschirmarbeit", gefaehrdung: "Physische Belastung/Arbeitsschwere", sVor: "2", wVor: "3", sNach: "1", wNach: "1", stopS: "Abwechslung", stopT: "Ergo-Stuhl", stopO: "Pausen", stopP: "", psaList: [], psaStillRequired: false, verantwortlich: "Büroleitung", frist: "Jährlich" }],
-    gebaeudereinigung: [{ taetigkeit: "Unterhaltsreinigung", gefaehrdung: "Gefahrstoffe", sVor: "2", wVor: "3", sNach: "1", wNach: "1", stopS: "Milde Reiniger", stopT: "Dosieranlagen", stopO: "Hautschutzplan", stopP: "", psaList: ["Chemikalienschutzhandschuhe (DGUV Info 212-007)"], psaStillRequired: true, verantwortlich: "Objektleitung", frist: "Täglich" }],
-    itunternehmen: [{ taetigkeit: "Serverwartung", gefaehrdung: "Elektrische Gefährdungen", sVor: "3", wVor: "2", sNach: "2", wNach: "1", stopS: "", stopT: "Serverracks", stopO: "Freischalten", stopP: "", psaList: ["Isolierende Ausrüstung (DGUV Regel 112-195)"], psaStillRequired: true, verantwortlich: "IT", frist: "Jährlich" }],
-    einzelhandel: [{ taetigkeit: "Warenverräumung", gefaehrdung: "Physische Belastung/Arbeitsschwere", sVor: "2", wVor: "3", sNach: "1", wNach: "1", stopS: "Rollcontainer", stopT: "Hubwagen", stopO: "Hebetechnik", stopP: "", psaList: ["Sicherheitsschuhe (DGUV Regel 112-191)"], psaStillRequired: true, verantwortlich: "Lagerleitung", frist: "Laufend" }]
-};
-
 // ============================================================================
 // 2. INITIALISIERUNG (IndexedDB)
 // ============================================================================
@@ -86,9 +71,6 @@ export async function initializeStorage() {
 async function seedInitialSettings() {
   const psaCatalog = await getSetting('psaCatalog');
   if (!psaCatalog) await saveSetting('psaCatalog', defaultPsaHazardData);
-  
-  const templates = await getSetting('branchTemplates');
-  if (!templates) await saveSetting('branchTemplates', defaultTemplates);
 }
 
 async function migrateV2ToV3() {
@@ -203,14 +185,8 @@ export async function getPsaCatalog() {
   return data ? data.value : defaultPsaHazardData;
 }
 
-export async function getBranchTemplates() {
-  const data = await getSetting('branchTemplates');
-  return data ? data.value : defaultTemplates;
-}
-
 export async function resetFactorySettings() {
   await saveSetting('psaCatalog', defaultPsaHazardData);
-  await saveSetting('branchTemplates', defaultTemplates);
 }
 
 // ============================================================================

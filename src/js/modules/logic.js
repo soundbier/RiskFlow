@@ -4,7 +4,6 @@
  */
 
 import * as storage from './storage.js';
-import { defaultStandardTemplates } from './storage.js';
 import { navigateTo, setOnNavigateCallback, updateBetriebeGrid } from './app.js';
 import { Icons } from './ui/icons.js';
 import { StopInputRow } from './ui/components.js';
@@ -32,7 +31,6 @@ const validIntervals = ['Täglich', 'Wöchentlich', 'Monatlich', 'Quartalsweise'
 // State
 let assessmentList = [];
 let psaHazardData = [];
-let branchTemplates = {};
 
 // Multi-Betrieb-State
 let companiesList = [];
@@ -52,7 +50,6 @@ let currentStep = 1;
 
 export async function initializeLogic() {
     psaHazardData = await storage.getPsaCatalog();
-    branchTemplates = await storage.getBranchTemplates();
 
     setupEventDelegation();
     setOnNavigateCallback(updateUIBasedOnState);
@@ -200,10 +197,6 @@ function setupEventDelegation() {
         if (e.target.closest('#btn-apply-psa')) applyPsaModalSelection();
 
         // Tabelle & Datensätze
-        if (e.target.closest('.tpl-btn')) {
-            const tpl = e.target.closest('.tpl-btn').dataset.tpl;
-            await loadTemplate(tpl);
-        }
         if (e.target.closest('th.sortable')) {
             sortTable(e.target.closest('th.sortable').dataset.sort);
         }
@@ -719,18 +712,6 @@ function applyCurrentSort() {
         if (valA > valB) return currentSort.dir === 'asc' ? 1 : -1;
         return 0;
     });
-}
-
-async function loadTemplate(type) {
-    const combinedTemplates = [...defaultStandardTemplates, ...(branchTemplates[type] || [])];
-    const newRecords = combinedTemplates.map(t => ({ 
-        ...t, 
-        id: Date.now() + Math.floor(Math.random() * 1000),
-        companyId: activeCompanyId 
-    }));
-    await storage.saveMultipleAssessments(newRecords);
-    assessmentList = await storage.getGbsByCompany(activeCompanyId);
-    applyCurrentSort(); renderTable(); alert("Vorlagen erfolgreich geladen!");
 }
 
 // ==========================================
