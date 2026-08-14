@@ -44,10 +44,14 @@
   padding: 18px;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center; /* Zentriert Icons vertikal */
+  gap: 12px;
   box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: all 0.2s ease;
+}
+
+.betrieb-card:active {
+  transform: scale(0.98);
 }
 
 .betrieb-card:hover {
@@ -57,15 +61,17 @@
 
 .betrieb-card-main {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 14px;
   min-width: 0;
+  flex: 1;
 }
 
 .betrieb-card-icon {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   background: #f0f9ff;
   display: flex;
   align-items: center;

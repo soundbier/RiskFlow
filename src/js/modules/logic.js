@@ -770,45 +770,74 @@ function renderCompaniesGrid() {
         return;
     }
 
-    grid.innerHTML = companiesList.map(c => `
-        <div class="betrieb-card" data-id="${c.id}" style="cursor: pointer;">
-            <div class="betrieb-card-main">
-                <div class="betrieb-card-icon">${Icons.building}</div>
-                <div class="betrieb-card-info">
-                    <div class="betrieb-card-name">${escapeHtml(c.name)}</div>
-                    <div class="betrieb-card-address">${escapeHtml(c.anschrift) || 'Keine Anschrift hinterlegt'}</div>
-                    <div class="betrieb-card-meta">${c._gbCount} Gefährdungsbeurteilung${c._gbCount === 1 ? '' : 'en'}</div>
+    grid.innerHTML = companiesList.map(c => {
+        // Formatted address for display
+        const displayAddr = [c.strasse, [c.plz, c.ort].filter(Boolean).join(' ')].filter(Boolean).join(', ') || c.anschrift || 'Keine Anschrift hinterlegt';
+
+        return `
+            <div class="betrieb-card" data-id="${c.id}" style="cursor: pointer;">
+                <div class="betrieb-card-main">
+                    <div class="betrieb-card-icon">${Icons.building}</div>
+                    <div class="betrieb-card-info">
+                        <div class="betrieb-card-name">${escapeHtml(c.name)}</div>
+                        <div class="betrieb-card-address">${escapeHtml(displayAddr)}</div>
+                        <div class="betrieb-card-meta">${c._gbCount} Gefährdungsbeurteilung${c._gbCount === 1 ? '' : 'en'}</div>
+                    </div>
+                </div>
+                <div class="betrieb-card-actions">
+                    <button type="button" class="btn-icon edit-betrieb" title="Bearbeiten" data-id="${c.id}">
+                        ${Icons.edit}
+                    </button>
+                    <button type="button" class="btn-icon delete-betrieb" title="Löschen" data-id="${c.id}">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
                 </div>
             </div>
-            <div class="betrieb-card-actions" style="cursor: default;" onclick="event.stopPropagation();">
-                <button type="button" class="btn-icon edit-betrieb" title="Bearbeiten" data-id="${c.id}">
-                    ${Icons.edit}
-                </button>
-                <button type="button" class="btn-icon delete-betrieb" title="Löschen" data-id="${c.id}">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                </button>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function openCompanyModal(id = null) {
     editingCompanyId = id;
     const title = document.getElementById('betrieb-modal-title');
     const nameInput = document.getElementById('betrieb-name');
-    const anschriftInput = document.getElementById('betrieb-anschrift');
+    const strasseInput = document.getElementById('betrieb-strasse');
+    const plzInput = document.getElementById('betrieb-plz');
+    const ortInput = document.getElementById('betrieb-ort');
+    const kontaktInput = document.getElementById('betrieb-kontakt');
+    const telefonInput = document.getElementById('betrieb-telefon');
+    const emailInput = document.getElementById('betrieb-email');
     const auditorInput = document.getElementById('betrieb-auditor');
 
     if (id !== null) {
         const c = companiesList.find(x => x.id === id);
         title.textContent = 'Betrieb bearbeiten';
         nameInput.value = c?.name || '';
-        anschriftInput.value = c?.anschrift || '';
+
+        // Populate new fields or fallback to legacy anschrift
+        strasseInput.value = c?.strasse || '';
+        plzInput.value = c?.plz || '';
+        ortInput.value = c?.ort || '';
+
+        // If it's a legacy entry without new fields but has anschrift, maybe pre-fill strasse?
+        // For now, we keep it separate to avoid messy splitting.
+        if (!c.strasse && !c.plz && !c.ort && c.anschrift) {
+            strasseInput.value = c.anschrift;
+        }
+
+        kontaktInput.value = c?.kontakt || '';
+        telefonInput.value = c?.telefon || '';
+        emailInput.value = c?.email || '';
         if(auditorInput) auditorInput.value = c?.auditor || '';
     } else {
         title.textContent = 'Neuer Betrieb';
         nameInput.value = '';
-        anschriftInput.value = '';
+        strasseInput.value = '';
+        plzInput.value = '';
+        ortInput.value = '';
+        kontaktInput.value = '';
+        telefonInput.value = '';
+        emailInput.value = '';
 
         // Pre-fill from Auditor Profile
         const uiSettings = storage.loadUISettings();
@@ -831,7 +860,12 @@ function closeCompanyModal() {
 
 async function saveCompanyForm() {
     const name = document.getElementById('betrieb-name').value.trim();
-    const anschrift = document.getElementById('betrieb-anschrift').value.trim();
+    const strasse = document.getElementById('betrieb-strasse').value.trim();
+    const plz = document.getElementById('betrieb-plz').value.trim();
+    const ort = document.getElementById('betrieb-ort').value.trim();
+    const kontakt = document.getElementById('betrieb-kontakt').value.trim();
+    const telefon = document.getElementById('betrieb-telefon').value.trim();
+    const email = document.getElementById('betrieb-email').value.trim();
     const auditorInput = document.getElementById('betrieb-auditor');
     const auditor = auditorInput ? auditorInput.value.trim() : '';
     
@@ -842,10 +876,20 @@ async function saveCompanyForm() {
     const company = {
         id: editingCompanyId !== null ? editingCompanyId : Date.now(),
         name,
-        anschrift,
+        strasse,
+        plz,
+        ort,
+        kontakt,
+        telefon,
+        email,
         auditor,
         createdAt: existing?.createdAt || new Date().toISOString()
     };
+
+    // If we have legacy data, we keep it just in case, but preferred are the new fields
+    if (existing?.anschrift && !strasse && !plz && !ort) {
+        company.anschrift = existing.anschrift;
+    }
 
     await storage.saveCompany(company);
     closeCompanyModal();

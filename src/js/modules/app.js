@@ -578,7 +578,7 @@ function renderBetriebeUebersicht() {
 function renderBetriebFormModal() {
   return `
     <div id="betrieb-modal" class="modal-overlay">
-      <div class="modal-container" style="width: 480px;">
+      <div class="modal-container" style="width: 520px; max-width: 95vw;">
         <form id="betrieb-form">
           <div class="modal-header">
               <h3 id="betrieb-modal-title" style="font-size: 16px; font-weight: 700; color: #1e293b;">Neuer Betrieb</h3>
@@ -589,10 +589,39 @@ function renderBetriebFormModal() {
                   <label for="betrieb-name">Name / Firma <span style="color:red;">*</span></label>
                   <input type="text" id="betrieb-name" required placeholder="z.B. Muster GmbH">
               </div>
+
               <div class="form-group" style="margin-top: 14px;">
-                  <label for="betrieb-anschrift">Standort / Anschrift</label>
-                  <input type="text" id="betrieb-anschrift" placeholder="Straße, PLZ Ort">
+                  <label for="betrieb-strasse">Straße & Hausnummer</label>
+                  <input type="text" id="betrieb-strasse" placeholder="Musterstraße 123">
               </div>
+
+              <div class="form-grid" style="margin-top: 14px;">
+                  <div class="form-group">
+                      <label for="betrieb-plz">PLZ</label>
+                      <input type="text" id="betrieb-plz" placeholder="12345">
+                  </div>
+                  <div class="form-group">
+                      <label for="betrieb-ort">Ort</label>
+                      <input type="text" id="betrieb-ort" placeholder="Musterstadt">
+                  </div>
+              </div>
+
+              <div class="form-group" style="margin-top: 14px;">
+                  <label for="betrieb-kontakt">Ansprechpartner</label>
+                  <input type="text" id="betrieb-kontakt" placeholder="Max Mustermann">
+              </div>
+
+              <div class="form-grid" style="margin-top: 14px;">
+                  <div class="form-group">
+                      <label for="betrieb-telefon">Telefon</label>
+                      <input type="tel" id="betrieb-telefon" placeholder="0123 456789">
+                  </div>
+                  <div class="form-group">
+                      <label for="betrieb-email">E-Mail</label>
+                      <input type="email" id="betrieb-email" placeholder="max@beispiel.de">
+                  </div>
+              </div>
+
               <div class="form-group" style="margin-top: 14px;">
                   <label for="betrieb-auditor">Geprüft durch (Name)</label>
                   <input type="text" id="betrieb-auditor" placeholder="Name des Erstellers / SiFa">
