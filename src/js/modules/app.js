@@ -566,14 +566,6 @@ function renderSettingsModal() {
   `;
 }
 
-        <footer class="settings-footer">
-          <button id="save-settings-btn" class="btn btn-primary" style="width: 100%;">Einstellungen speichern</button>
-        </footer>
-      </div>
-    </dialog>
-  `;
-}
-
 function renderBetriebFormModal() {
   return `
     <div id="betrieb-modal" class="modal-overlay">
