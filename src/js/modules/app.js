@@ -39,6 +39,9 @@ function renderLayout() {
           </div>
 
           <div class="header-actions no-print">
+            <select id="company-quick-select" class="btn btn-secondary desktop-only" style="display:none; font-size: 12px; max-width: 200px;" title="Betrieb wechseln"></select>
+            ${Button({ text: 'Export', icon: 'download', id: 'btn-export', variant: 'secondary', className: 'desktop-only', attr: 'style="display:none;"' })}
+            ${Button({ text: 'Drucken', icon: 'printer', id: 'btn-print', variant: 'secondary', className: 'desktop-only', attr: 'style="display:none;"' })}
             ${Button({ text: 'Meine Betriebe', icon: 'building', id: 'btn-goto-betriebe', variant: 'primary', className: 'desktop-only' })}
             ${IconButton({ icon: 'settings', id: 'open-settings-btn', ariaLabel: 'Einstellungen' })}
           </div>
@@ -88,6 +91,11 @@ function renderLayout() {
 
   // Mobile Nav Handlers
   document.getElementById('nav-betriebe')?.addEventListener('click', () => navigateTo('betriebe'));
+  document.getElementById('nav-plus')?.addEventListener('click', () => {
+    // Falls wir auf der Betriebe-Seite sind, neuen Betrieb anlegen
+    const btn = document.getElementById('btn-new-betrieb');
+    if (btn) btn.click();
+  });
   document.getElementById('nav-settings')?.addEventListener('click', () => document.getElementById('settings-modal').showModal());
 }
 
@@ -101,7 +109,13 @@ function handleRouting() {
 
 export function navigateTo(view, pushState = true) {
   currentView = view;
-  
+
+  // Update mobile navigation visibility
+  const globalNav = document.querySelector('.mobile-navigation');
+  if (globalNav) {
+    globalNav.style.display = view === 'betriebe' ? 'flex' : 'none';
+  }
+
   if (pushState) {
     const params = new URLSearchParams(window.location.search);
     let url = view === 'betriebe' ? '/' : `/?action=${view}`;
@@ -408,15 +422,18 @@ function renderSettingsModal() {
         <div class="settings-body">
           <nav class="settings-sidebar">
             <ul class="settings-menu">
-              <li><button class="settings-tab active" data-target="settings-general">${Icons.settings} Allgemein</button></li>
-              <li><button class="settings-tab" data-target="settings-profile">${Icons.user} Profil</button></li>
-              <li><button class="settings-tab" data-target="settings-data">💾 Daten</button></li>
+              <li><button class="settings-tab active" data-target="settings-general">${Icons.settings} <span class="tab-label">Allgemein</span></button></li>
+              <li><button class="settings-tab" data-target="settings-profile">${Icons.user} <span class="tab-label">Profil</span></button></li>
+              <li><button class="settings-tab" data-target="settings-data">${Icons.save} <span class="tab-label">Daten</span></button></li>
             </ul>
           </nav>
 
           <main class="settings-content">
             <section id="settings-general" class="settings-panel active">
-              <h3>Erscheinungsbild</h3>
+              <div class="panel-header">
+                <h3>Erscheinungsbild</h3>
+                <p>Passen Sie die Darstellung der App an.</p>
+              </div>
               <div class="form-group">
                 <label for="theme-select">Farbschema</label>
                 <select id="theme-select" class="form-control">
@@ -425,25 +442,75 @@ function renderSettingsModal() {
                   <option value="dark">Dunkles Design</option>
                 </select>
               </div>
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="compact-view-check">
+                  <span>Kompakt-Ansicht aktivieren</span>
+                </label>
+              </div>
+              <div class="form-group">
+                <label for="font-size-range">Schriftgröße (<span id="font-size-label">100</span>%)</label>
+                <input type="range" id="font-size-range" min="80" max="150" step="5" value="100" style="width: 100%; cursor: pointer;">
+              </div>
             </section>
 
             <section id="settings-profile" class="settings-panel">
-              <h3>Profil</h3>
+              <div class="panel-header">
+                <h3>Prüfer-Profil</h3>
+                <p>Hinterlegen Sie Standardwerte für neue Berichte.</p>
+              </div>
               <div class="form-group">
                 <label for="prof-name">Name des Prüfers</label>
-                <input type="text" id="prof-name" class="form-control">
+                <input type="text" id="prof-name" class="form-control" placeholder="z.B. Max Mustermann">
+              </div>
+              <div class="form-group">
+                <label for="prof-role">Position / Fachkunde</label>
+                <input type="text" id="prof-role" class="form-control" placeholder="z.B. Fachkraft für Arbeitssicherheit">
+              </div>
+              <div class="form-group" style="display:none;">
+                 <input type="text" id="prof-cert">
               </div>
             </section>
 
             <section id="settings-data" class="settings-panel">
-              <h3>Backup</h3>
-              <button id="btn-export-db" class="btn btn-primary" style="width: 100%;">Daten exportieren</button>
+              <div class="panel-header">
+                <h3>Datenverwaltung</h3>
+                <p>Exportieren oder importieren Sie Ihre lokale Datenbank.</p>
+              </div>
+              <div class="data-grid" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button id="btn-export-db" class="btn btn-primary" style="flex: 1;">${Icons.download} Backup erstellen</button>
+                <button id="btn-import-trigger" class="btn btn-outline" style="flex: 1;">${Icons.upload} Backup einlesen</button>
+                <input type="file" id="db-import-file" style="display: none;" accept=".json">
+              </div>
+              <div class="danger-zone" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
+                <h4 style="color: #ef4444; margin-bottom: 10px;">Gefahrenzone</h4>
+                <button id="btn-factory-reset" class="btn btn-outline" style="color: #ef4444; border-color: #fecaca; width: 100%;">App vollständig zurücksetzen</button>
+              </div>
+            </section>
+
+            <section id="settings-suggestions" class="settings-panel">
+              <div class="panel-header">
+                <h3>Vorschlags-Verwaltung</h3>
+                <p>Verwalten Sie die Begriffe in den Auswahl-Listen.</p>
+              </div>
+              <div class="form-group">
+                <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                  <select id="suggest-type-select" class="form-control" style="flex: 1;">
+                    <option value="taetigkeit">Tätigkeiten / Arbeitsplätze</option>
+                    <option value="bereich">Bereiche / Abteilungen</option>
+                  </select>
+                  ${IconButton({ icon: 'check', id: 'btn-refresh-suggestions', ariaLabel: 'Aktualisieren' })}
+                </div>
+                <div id="suggestion-list-container" class="suggestion-list-box">
+                  <!-- Dynamisch befüllt durch settings.js -->
+                </div>
+              </div>
             </section>
           </main>
         </div>
 
         <footer class="settings-footer">
-          <button id="save-settings-btn" class="btn btn-primary">Speichern</button>
+          <button id="save-settings-btn" class="btn btn-primary" style="width: 100%;">Einstellungen speichern</button>
         </footer>
       </div>
     </dialog>
@@ -456,26 +523,55 @@ function renderBetriebFormModal() {
       <div class="modal-container" style="width: 520px; max-width: 95vw;">
         <form id="betrieb-form">
           <div class="modal-header">
-              <h3 id="betrieb-modal-title" style="font-size: 16px; font-weight: 700;">Neuer Betrieb</h3>
-              <button type="button" id="btn-close-betrieb-top" class="btn-icon">${Icons.x}</button>
+              <h3 id="betrieb-modal-title" style="font-size: 16px; font-weight: 700; color: #1e293b;">Neuer Betrieb</h3>
+              <button type="button" id="btn-close-betrieb-top" class="btn-icon" style="background: transparent; font-size: 18px; cursor: pointer;">${Icons.x}</button>
           </div>
           <div class="modal-body">
               <div class="form-group">
                   <label for="betrieb-name">Name / Firma <span style="color:red;">*</span></label>
                   <input type="text" id="betrieb-name" required placeholder="z.B. Muster GmbH">
               </div>
-              <div class="form-group">
-                  <label for="betrieb-ort">Ort</label>
-                  <input type="text" id="betrieb-ort" placeholder="Musterstadt">
+
+              <div class="form-group" style="margin-top: 14px;">
+                  <label for="betrieb-strasse">Straße & Hausnummer</label>
+                  <input type="text" id="betrieb-strasse" placeholder="Musterstraße 123">
               </div>
-              <div class="form-group">
+
+              <div class="form-grid" style="margin-top: 14px; display: flex; gap: 10px;">
+                  <div class="form-group" style="flex: 1;">
+                      <label for="betrieb-plz">PLZ</label>
+                      <input type="text" id="betrieb-plz" placeholder="12345">
+                  </div>
+                  <div class="form-group" style="flex: 2;">
+                      <label for="betrieb-ort">Ort</label>
+                      <input type="text" id="betrieb-ort" placeholder="Musterstadt">
+                  </div>
+              </div>
+
+              <div class="form-group" style="margin-top: 14px;">
+                  <label for="betrieb-kontakt">Ansprechpartner</label>
+                  <input type="text" id="betrieb-kontakt" placeholder="Max Mustermann">
+              </div>
+
+              <div class="form-grid" style="margin-top: 14px; display: flex; gap: 10px;">
+                  <div class="form-group" style="flex: 1;">
+                      <label for="betrieb-telefon">Telefon</label>
+                      <input type="tel" id="betrieb-telefon" placeholder="0123 456789">
+                  </div>
+                  <div class="form-group" style="flex: 1;">
+                      <label for="betrieb-email">E-Mail</label>
+                      <input type="email" id="betrieb-email" placeholder="max@beispiel.de">
+                  </div>
+              </div>
+
+              <div class="form-group" style="margin-top: 14px;">
                   <label for="betrieb-auditor">Geprüft durch (Name)</label>
                   <input type="text" id="betrieb-auditor" placeholder="Name des Erstellers / SiFa">
               </div>
           </div>
           <div class="modal-footer">
               <button type="button" class="btn btn-secondary" id="btn-close-betrieb-bottom">Abbrechen</button>
-              <button type="submit" class="btn btn-primary">Speichern</button>
+              <button type="submit" class="btn btn-primary">Betrieb speichern</button>
           </div>
         </form>
       </div>

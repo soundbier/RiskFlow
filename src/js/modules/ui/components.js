@@ -5,6 +5,16 @@
 
 import { Icons } from './icons.js';
 
+const escapeHtml = (unsafe) => {
+  if (typeof unsafe !== 'string') return unsafe;
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
 /**
  * Erstellt einen Button
  */
@@ -45,17 +55,18 @@ export function BetriebCard(betrieb) {
       <div class="card-header">
         <div class="card-icon">${Icons.building}</div>
         <div class="card-title-group">
-          <h3 class="card-title">${betrieb.name}</h3>
-          <span class="card-subtitle">${betrieb.ort || 'Kein Standort hinterlegt'}</span>
+          <h3 class="card-title">${escapeHtml(betrieb.name)}</h3>
+          <span class="card-subtitle">${escapeHtml(betrieb.ort) || 'Kein Standort hinterlegt'}</span>
         </div>
         <div class="card-actions">
            ${IconButton({ icon: 'edit', id: `edit-${betrieb.id}`, className: 'btn-edit-betrieb', ariaLabel: 'Bearbeiten' })}
+           ${IconButton({ icon: 'x', id: `delete-${betrieb.id}`, className: 'btn-delete-betrieb', ariaLabel: 'Löschen' })}
         </div>
       </div>
       <div class="card-body">
         <div class="card-info-row">
           <span class="info-label">${Icons.user} Prüfer:</span>
-          <span class="info-value">${betrieb.auditor || 'Nicht zugewiesen'}</span>
+          <span class="info-value">${escapeHtml(betrieb.auditor) || 'Nicht zugewiesen'}</span>
         </div>
         <div class="card-info-row">
           <span class="info-label">${Icons.clipboard} Beurteilungen:</span>

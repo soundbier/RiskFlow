@@ -167,8 +167,8 @@ function setupEventDelegation() {
         if (e.target.closest('.btn-edit-betrieb')) {
             openCompanyModal(Number(e.target.closest('.btn-edit-betrieb').id.replace('edit-', '')));
         }
-        if (e.target.closest('.delete-betrieb')) {
-            await deleteCompanyHandler(Number(e.target.closest('.delete-betrieb').dataset.id));
+        if (e.target.closest('.btn-delete-betrieb')) {
+            await deleteCompanyHandler(Number(e.target.closest('.btn-delete-betrieb').id.replace('delete-', '')));
         }
         if (e.target.closest('#btn-close-betrieb-top') || e.target.closest('#btn-close-betrieb-bottom')) {
             closeCompanyModal();
