@@ -218,14 +218,17 @@ function setupEventDelegation() {
         if (e.target.closest('#nav-betriebe')) navigateTo('betriebe');
         if (e.target.closest('#nav-plus')) {
             const params = new URLSearchParams(window.location.search);
-            if (params.has('companyId')) {
+            const isWorkspace = params.has('companyId') && document.getElementById('gb-workspace');
+
+            if (isWorkspace) {
                 // Im Workspace: Fokus auf neue Gefährdung
                 currentStep = 1;
                 showStep(currentStep);
                 switchMobileTab('create');
-                document.getElementById('taetigkeit').focus();
+                const tInput = document.getElementById('taetigkeit');
+                if (tInput) tInput.focus();
             } else {
-                // In Betriebe: Neuer Betrieb
+                // In Betriebe oder wenn Workspace noch nicht da: Neuer Betrieb
                 openCompanyModal();
             }
         }
@@ -865,12 +868,14 @@ function openCompanyModal(id = null) {
         }
     }
 
-    document.getElementById('betrieb-modal').classList.remove('hidden');
-    nameInput.focus();
+    const modal = document.getElementById('betrieb-modal');
+    if (modal) modal.classList.remove('hidden');
+    if (nameInput) nameInput.focus();
 }
 
 function closeCompanyModal() {
-    document.getElementById('betrieb-modal').classList.add('hidden');
+    const modal = document.getElementById('betrieb-modal');
+    if (modal) modal.classList.add('hidden');
     editingCompanyId = null;
 }
 

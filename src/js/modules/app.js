@@ -157,7 +157,7 @@ function renderBetriebeUebersicht() {
           <h2>Meine Betriebe</h2>
           <p class="view-subtitle">Wählen Sie einen Betrieb aus, um dessen Gefährdungsbeurteilungen zu bearbeiten.</p>
         </div>
-        ${Button({ text: 'Neuer Betrieb', icon: 'plus', id: 'btn-new-betrieb', variant: 'primary' })}
+        ${Button({ text: 'Neuer Betrieb', icon: 'plus', id: 'btn-new-betrieb', variant: 'primary', className: 'desktop-only' })}
       </div>
 
       <div class="betriebe-grid" id="betriebe-grid"></div>

@@ -2,24 +2,9 @@
  * RiskFlow Responsive Utilities
  */
 
-.mobile-only {
-    display: none !important;
-}
-
-.desktop-only {
-    display: flex !important;
-}
-
-@media (max-width: 600px) {
-    .desktop-only {
-        display: none !important;
-    }
-    .mobile-only {
-        display: flex !important;
-    }
-
+@media (max-width: 768px) {
     .app-container {
-        padding: 0; /* Container selbst hat kein Padding mehr, Views regeln das */
+        padding: 0;
     }
 
     .view-container {

@@ -1,5 +1,5 @@
 .modal-overlay {
-  display: none;
+  display: flex; /* Standardmäßig flex, Sichtbarkeit über .hidden gesteuert */
   position: fixed;
   top: 0;
   left: 0;
