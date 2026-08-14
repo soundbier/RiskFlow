@@ -4,7 +4,7 @@
 
 // Importiere die synchronen Speicher-Funktionen aus storage.js
 import { loadUISettings, saveUISettings, applyTheme, applyUIOptions, exportDatabase, importDatabase } from './storage.js';
-import { Icons } from './app.js';
+import { Icons } from './ui/icons.js';
 import * as storage from './storage.js';
 
 let currentSuggestions = [];
