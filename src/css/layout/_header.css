@@ -29,7 +29,7 @@
 .logo-area {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-4); /* Erhöht von space-3 */
   text-decoration: none;
   color: inherit;
   transition: opacity 0.2s;
@@ -61,10 +61,10 @@
 }
 
 .logo-text h1 {
-  font-size: 18px;
+  font-size: 20px; /* Leicht vergrößert von 18px */
   font-weight: 800;
   margin: 0;
-  line-height: 1.2;
+  line-height: 1.1;
 }
 
 .header-subtitle {
@@ -78,7 +78,24 @@
   gap: var(--space-2);
 }
 
-/* Mobile Navigation Bar (Bottom) - Context Aware */
+@media (max-width: 768px) {
+  .app-header {
+    height: 72px; /* Mehr Höhe für Mobile */
+  }
+
+  .header-container {
+    padding: 0 var(--space-6); /* Mehr seitlicher Abstand */
+  }
+
+  .logo-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .logo-text h1 {
+    font-size: 19px;
+  }
+}
 .mobile-navigation {
   position: fixed;
   bottom: 0;

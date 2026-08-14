@@ -137,88 +137,7 @@
 }
 
 /* Wizard */
-.wizard-header {
-  display: flex;
-  background: #f8fafc;
-  border-bottom: 1px solid var(--border);
-  padding: 12px 20px;
-  gap: 10px;
-  border-radius: var(--radius) var(--radius) 0 0;
-}
-
-.step-indicator {
-  flex: 1;
-  text-align: center;
-  position: relative;
-  padding: 6px;
-  color: #94a3b8;
-  font-weight: 600;
-  font-size: 12px;
-  transition: all 0.3s;
-}
-
-.step-indicator::after {
-  content: '';
-  position: absolute;
-  bottom: -13px;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: transparent;
-  transition: all 0.3s;
-}
-
-.step-indicator.active {
-  color: var(--text-main);
-}
-
-.step-indicator.active::after {
-  background: var(--primary);
-}
-
-.step-indicator.current span {
-  background: var(--primary);
-  color: white;
-  box-shadow: 0 0 0 3px var(--ring);
-}
-
-.step-indicator span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #e2e8f0;
-  color: #64748b;
-  font-size: 12px;
-  margin-right: 8px;
-  font-weight: 700;
-  transition: all 0.3s;
-}
-
-.step-indicator.active span {
-  background: var(--primary);
-  color: white;
-}
-
-.wizard-body {
-  padding: 20px;
-}
-
-.wizard-step {
-  display: none;
-  animation: fadeIn 0.3s ease;
-}
-
-.wizard-step.active {
-  display: block;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+/* Styles moved to animations.css for centralized mobile-first handling */
 
 .wizard-footer {
   padding: 20px 30px;
@@ -582,30 +501,7 @@
     padding: 20px;
   }
 
-  .wizard-header {
-    padding: 10px 8px;
-    gap: 4px;
-  }
-
-  .step-indicator {
-    font-size: 0;
-    padding: 4px;
-  }
-
-  .step-indicator span {
-    margin-right: 0;
-    font-size: 11px;
-    width: 20px;
-    height: 20px;
-  }
-
-  .step-indicator::after {
-    bottom: -11px;
-  }
-
-  .wizard-body {
-    padding: 16px 12px;
-  }
+  .module-switcher {
 
   .wizard-footer {
     padding: 14px 16px;

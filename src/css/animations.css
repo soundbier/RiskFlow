@@ -90,25 +90,34 @@
 /* Kompakter Wizard Header */
 .wizard-header {
   background: var(--bg-color);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-4) var(--space-4); /* Etwas mehr Padding für "Luft" */
   border-bottom: 1px solid var(--border);
+  min-height: 80px; /* Sicherstellen, dass genug Platz da ist */
+  display: flex;
+  align-items: center;
 }
 
 .wizard-steps-container {
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* Aligns numbers properly */
   justify-content: space-between;
-  max-width: 400px;
+  width: 100%;
+  max-width: 500px;
   margin: 0 auto;
+  position: relative;
 }
 
 .step-indicator {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   opacity: 0.4;
   transition: all 0.3s;
+  position: relative;
+  z-index: 2;
+  flex: 1; /* Gleichmäßige Verteilung */
+  min-width: 0;
 }
 
 .step-indicator.active {
@@ -116,20 +125,23 @@
 }
 
 .step-num {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   background: var(--text-muted);
   color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
+  transition: all 0.3s;
+  flex-shrink: 0;
 }
 
 .step-indicator.active .step-num {
   background: var(--primary);
+  transform: scale(1.1);
 }
 
 .step-indicator.current .step-num {
@@ -138,10 +150,44 @@
 
 .step-label {
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  transition: all 0.3s;
+}
+
+@media (max-width: 600px) {
+  .step-label {
+    display: none; /* Erstmal alle ausblenden */
+  }
+
+  .step-indicator.current .step-label {
+    display: block; /* Nur aktuellen Schritt zeigen */
+    position: absolute;
+    top: 36px;
+    width: auto;
+    min-width: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: var(--primary);
+    background: var(--surface);
+    padding: 2px 8px;
+    border-radius: 4px;
+    box-shadow: var(--shadow-sm);
+    z-index: 10;
+  }
+
+  .wizard-header {
+    min-height: 95px; /* Platz für das absolute Label */
+    padding-bottom: var(--space-6);
+  }
 }
 
 .step-indicator.active .step-label {
@@ -152,8 +198,10 @@
   flex: 1;
   height: 2px;
   background: var(--border);
-  margin: 0 var(--space-2);
-  margin-top: -14px;
+  margin-top: 13px; /* Mittig zur Nummer */
+  margin-left: -10px;
+  margin-right: -10px;
+  z-index: 1;
 }
 
 /* Haptisches Feedback für Karten */
