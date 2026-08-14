@@ -144,6 +144,11 @@ export function BottomNavigation({ items, activeId }) {
   return `
     <nav class="mobile-navigation">
       ${items.map(item => {
+        const isActive = item.id === activeId;
+        const badgeHtml = item.badgeCount > 0
+          ? `<span class="mobile-tab-count">${item.badgeCount}</span>`
+          : '';
+
         if (item.id === 'nav-plus') {
           return `
             <button id="${item.id}" class="nav-item nav-plus-item" aria-label="${item.label}">
@@ -153,8 +158,11 @@ export function BottomNavigation({ items, activeId }) {
           `;
         }
         return `
-          <button id="${item.id}" class="nav-item ${item.id === activeId ? 'active' : ''}" aria-label="${item.label}">
-            ${Icons[item.icon]}
+          <button id="${item.id}" class="nav-item ${isActive ? 'active' : ''}" aria-label="${item.label}">
+            <div class="nav-icon-wrapper">
+              ${Icons[item.icon]}
+              ${badgeHtml}
+            </div>
             <span>${item.label}</span>
           </button>
         `;

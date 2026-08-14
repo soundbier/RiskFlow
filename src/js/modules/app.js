@@ -102,23 +102,32 @@ function handleRouting() {
   else navigateTo('betriebe', false);
 }
 
-export function updateBottomNavigation() {
+export function updateBottomNavigation(activeId = null, badgeCount = 0) {
   const container = document.getElementById('bottom-nav-container');
   if (!container) return;
 
   const isWorkspace = currentView === 'workspace';
+  let items = [];
 
-  const items = [
-    { id: 'nav-betriebe', label: 'Betriebe', icon: 'building' },
-    {
-      id: 'nav-plus',
-      label: isWorkspace ? 'Gefährdung' : 'Betrieb',
-      icon: 'plus'
-    },
-    { id: 'nav-settings', label: 'Optionen', icon: 'settings' }
-  ];
+  if (isWorkspace) {
+    items = [
+      { id: 'nav-betriebe', label: 'Betriebe', icon: 'building' },
+      { id: 'nav-workspace-table', label: 'Liste', icon: 'clipboard', badgeCount: badgeCount },
+      { id: 'nav-workspace-create', label: 'Neu', icon: 'plus' },
+      { id: 'nav-settings', label: 'Optionen', icon: 'settings' }
+    ];
+  } else {
+    items = [
+      { id: 'nav-betriebe', label: 'Betriebe', icon: 'building' },
+      { id: 'nav-plus', label: 'Betrieb', icon: 'plus' },
+      { id: 'nav-settings', label: 'Optionen', icon: 'settings' }
+    ];
+  }
 
-  container.innerHTML = BottomNavigation({ items, activeId: isWorkspace ? '' : 'nav-betriebe' });
+  container.innerHTML = BottomNavigation({
+    items,
+    activeId: activeId || (isWorkspace ? 'nav-workspace-table' : 'nav-betriebe')
+  });
 }
 
 export function navigateTo(view, pushState = true) {

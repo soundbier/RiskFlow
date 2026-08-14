@@ -4,7 +4,7 @@
  */
 
 import * as storage from './storage.js';
-import { navigateTo, setOnNavigateCallback, updateBetriebeGrid } from './app.js';
+import { navigateTo, setOnNavigateCallback, updateBetriebeGrid, updateBottomNavigation } from './app.js';
 import { Icons } from './ui/icons.js';
 import { StopInputRow } from './ui/components.js';
 import { escapeHtml } from './utils.js';
@@ -58,12 +58,16 @@ export async function initializeLogic() {
 
 function switchMobileTab(tab) {
     if (window.innerWidth > 1280) return;
+
+    const panelId = tab === 'table' || tab === 'nav-workspace-table' ? 'table' : 'create';
+    const activeNavId = tab === 'table' || tab === 'nav-workspace-table' ? 'nav-workspace-table' : 'nav-workspace-create';
+
     document.querySelectorAll('.tab-panel').forEach(p => {
-        p.classList.toggle('active', p.dataset.panel === tab);
+        p.classList.toggle('active', p.dataset.panel === panelId);
     });
-    document.querySelectorAll('.mobile-tab[data-tab="create"], .mobile-tab[data-tab="table"]').forEach(b => {
-        b.classList.toggle('active', b.dataset.tab === tab);
-    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    updateBottomNavigation(activeNavId, assessmentList.length);
 }
 
 async function updateUIBasedOnState() {
@@ -114,6 +118,13 @@ async function updateUIBasedOnState() {
         applyCurrentSort();
         renderTable();
         showStep(currentStep);
+
+        // Mobile Auto-Focus: Wenn bereits Einträge da sind, zeige die Liste
+        if (window.innerWidth <= 1280 && assessmentList.length > 0 && editingRecordId === null) {
+            switchMobileTab('table');
+        } else {
+            switchMobileTab('create');
+        }
     }
 }
 
@@ -210,6 +221,9 @@ function setupEventDelegation() {
 
         // Mobile Nav (Bottom Bar)
         if (e.target.closest('#nav-betriebe')) navigateTo('betriebe');
+        if (e.target.closest('#nav-workspace-table')) switchMobileTab('table');
+        if (e.target.closest('#nav-workspace-create')) switchMobileTab('create');
+
         if (e.target.closest('#nav-plus')) {
             const params = new URLSearchParams(window.location.search);
             const isWorkspace = params.has('companyId') && document.getElementById('gb-workspace');
@@ -520,6 +534,12 @@ function renderTable() {
     const tbody = document.querySelector('#gb-table tbody');
     if(!tbody) return;
     tbody.innerHTML = '';
+
+    // Badge in der Bottom-Nav aktualisieren
+    if (window.innerWidth <= 1280 && document.getElementById('gb-workspace')) {
+        const activeNav = document.querySelector('.nav-item.active');
+        updateBottomNavigation(activeNav ? activeNav.id : 'nav-workspace-table', assessmentList.length);
+    }
 
     const countBadge = document.getElementById('mobile-tab-count');
     if (countBadge) {
