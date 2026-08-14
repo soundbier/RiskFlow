@@ -4,9 +4,14 @@
  */
 
 import * as storage from './storage.js';
-import { navigateTo, setOnNavigateCallback, updateBetriebeGrid, updateBottomNavigation } from './app.js';
+import {
+  navigateTo,
+  setOnNavigateCallback,
+  updateBetriebeGrid,
+  updateBottomNavigation
+} from './app.js';
 import { Icons } from './ui/icons.js';
-import { StopInputRow } from './ui/components.js';
+import { StopInputRow, BulkActionBar } from './ui/components.js';
 import { escapeHtml } from './utils.js';
 
 // ==========================================
@@ -43,6 +48,9 @@ let editingRecordId = null;
 let highlightRecordId = null;
 let currentSort = { key: 'gefaehrdung', dir: 'asc' };
 let currentStep = 1;
+
+// Selektions-State
+let selectedAssessmentIds = new Set();
 
 // ==========================================
 // INITIALISIERUNG
@@ -212,6 +220,37 @@ function setupEventDelegation() {
         if (e.target.closest('th.sortable')) {
             sortTable(e.target.closest('th.sortable').dataset.sort);
         }
+        if (e.target.closest('.row-checkbox')) {
+            const cb = e.target.closest('.row-checkbox');
+            const id = Number(cb.dataset.id);
+            if (cb.checked) selectedAssessmentIds.add(id);
+            else selectedAssessmentIds.delete(id);
+            renderBulkBar();
+        }
+        if (e.target.closest('#select-all-rows')) {
+            const masterCb = e.target.closest('#select-all-rows');
+            const allCbs = document.querySelectorAll('.row-checkbox');
+            allCbs.forEach(cb => {
+                cb.checked = masterCb.checked;
+                const id = Number(cb.dataset.id);
+                if (masterCb.checked) selectedAssessmentIds.add(id);
+                else selectedAssessmentIds.delete(id);
+            });
+            renderBulkBar();
+        }
+        if (e.target.closest('#btn-bulk-cancel')) {
+            selectedAssessmentIds.clear();
+            const masterCb = document.getElementById('select-all-rows');
+            if (masterCb) masterCb.checked = false;
+            document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+            renderBulkBar();
+        }
+        if (e.target.closest('#btn-bulk-print')) {
+            printSelection();
+        }
+        if (e.target.closest('#btn-bulk-export')) {
+            exportCompanyToCSV(true);
+        }
         if (e.target.closest('.btn-icon.edit')) {
             editRecord(Number(e.target.closest('tr').dataset.id));
         }
@@ -284,7 +323,7 @@ function setupEventDelegation() {
 // EXPORT PRO BETRIEB (EXCEL / CSV)
 // ==========================================
 
-function exportCompanyToCSV() {
+function exportCompanyToCSV(onlySelected = false) {
     if (!activeCompany) return;
 
     const sanitize = (text) => `"${(text || '').toString().replace(/"/g, '""')}"`;
@@ -305,7 +344,11 @@ function exportCompanyToCSV() {
     ];
     csvContent += headers.map(h => sanitize(h)).join(';') + '\n';
 
-    assessmentList.forEach(item => {
+    const itemsToExport = onlySelected
+        ? assessmentList.filter(a => selectedAssessmentIds.has(a.id))
+        : assessmentList;
+
+    itemsToExport.forEach(item => {
         const riskVor = riskMatrix[`${item.sVor}-${item.wVor}`]?.level || '-';
         const riskNach = riskMatrix[`${item.sNach}-${item.wNach}`]?.level || '-';
 
@@ -338,6 +381,48 @@ function exportCompanyToCSV() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+}
+
+async function printSelection() {
+    if (selectedAssessmentIds.size === 0) {
+        window.print();
+        return;
+    }
+
+    // Temporär nicht ausgewählte Zeilen ausblenden
+    const rows = document.querySelectorAll('#gb-table tbody tr:not(.group-header-row)');
+    const groups = document.querySelectorAll('.group-header-row');
+
+    const hiddenElements = [];
+
+    rows.forEach(row => {
+        if (!selectedAssessmentIds.has(Number(row.dataset.id))) {
+            row.style.display = 'none';
+            hiddenElements.push(row);
+        }
+    });
+
+    // Gruppen-Header verstecken, wenn keine ihrer Zeilen sichtbar ist
+    groups.forEach(group => {
+        let next = group.nextElementSibling;
+        let hasVisible = false;
+        while (next && !next.classList.contains('group-header-row')) {
+            if (next.style.display !== 'none') {
+                hasVisible = true;
+                break;
+            }
+            next = next.nextElementSibling;
+        }
+        if (!hasVisible) {
+            group.style.display = 'none';
+            hiddenElements.push(group);
+        }
+    });
+
+    window.print();
+
+    // Wieder einblenden
+    hiddenElements.forEach(el => el.style.display = '');
 }
 
 // ==========================================
@@ -530,9 +615,30 @@ function resetFormAfterSave(keepTaetigkeit, keepBereich) {
     updateDualMatrix();
 }
 
+function renderBulkBar() {
+    const container = document.getElementById('bulk-action-container');
+    if (!container) return;
+    container.innerHTML = BulkActionBar({
+        count: selectedAssessmentIds.size,
+        onCancelId: 'btn-bulk-cancel',
+        onPrintId: 'btn-bulk-print',
+        onExportId: 'btn-bulk-export'
+    });
+}
+
 function renderTable() {
     const tbody = document.querySelector('#gb-table tbody');
     if(!tbody) return;
+
+    const thead = document.querySelector('#gb-table thead tr');
+    if (thead && !thead.querySelector('#select-all-rows')) {
+        const th = document.createElement('th');
+        th.style.width = '30px';
+        th.className = 'no-print';
+        th.innerHTML = `<input type="checkbox" id="select-all-rows">`;
+        thead.insertBefore(th, thead.firstChild);
+    }
+
     tbody.innerHTML = '';
 
     // Badge in der Bottom-Nav aktualisieren
@@ -597,8 +703,10 @@ function renderTable() {
             const tr = document.createElement('tr');
             tr.dataset.id = item.id;
             if(item.id === highlightRecordId) tr.classList.add('highlight-record');
+            const isSelected = selectedAssessmentIds.has(item.id);
 
             tr.innerHTML = `
+                <td class="no-print"><input type="checkbox" class="row-checkbox" data-id="${item.id}" ${isSelected ? 'checked' : ''}></td>
                 <td class="no-print drag-cell"><div class="drag-handle">${Icons.menu}</div></td>
                 <td data-label="Tätigkeit" style="font-weight: 600; font-size: 12px; color: #475569;">${escapeHtml(item.taetigkeit)}</td>
                 <td data-label="Gefahr"><span style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #334155;">${escapeHtml(item.gefaehrdung)}</span></td>

@@ -189,6 +189,28 @@ export function DrillDownPanel({ id, title, content, isOpen = false }) {
 }
 
 /**
+ * Bulk Action Bar für Selektionen in der Tabelle
+ */
+export function BulkActionBar({ count, onCancelId, onPrintId, onExportId }) {
+  return `
+    <div id="bulk-action-bar" class="bulk-action-bar ${count > 0 ? 'active' : ''} no-print">
+      <div class="bulk-content">
+        <div class="bulk-info">
+          <span class="bulk-count">${count}</span>
+          <span class="bulk-label">ausgewählt</span>
+        </div>
+        <div class="bulk-divider"></div>
+        <div class="bulk-actions">
+          ${Button({ text: 'Drucken', icon: 'printer', id: onPrintId, variant: 'secondary', className: 'btn-sm' })}
+          ${Button({ text: 'Excel Export', icon: 'spreadsheet', id: onExportId, variant: 'secondary', className: 'btn-sm' })}
+          <button id="${onCancelId}" class="btn-bulk-cancel">${Icons.x}</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
  * Risikomatrix (Einzelspalte Vorher/Nachher)
  */
 export function RiskMatrixColumn({ title, type }) {

@@ -81,6 +81,8 @@ function renderLayout() {
 
       <main id="main-content" class="workspace"></main>
 
+      <div id="bulk-action-container"></div>
+
       <div id="bottom-nav-container" class="mobile-only no-print"></div>
     </div>
 
