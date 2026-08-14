@@ -3,34 +3,8 @@
  * Initialisiert die Benutzeroberfläche und das Routing
  */
 
-// Zentrales SVG-Dictionary für sauberen HTML-Code
-export const Icons = {
-  building: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line><line x1="12" y1="14" x2="12.01" y2="14"></line><line x1="12" y1="10" x2="12.01" y2="10"></line><line x1="8" y1="18" x2="8.01" y2="18"></line><line x1="8" y1="14" x2="8.01" y2="14"></line><line x1="8" y1="10" x2="8.01" y2="10"></line><line x1="16" y1="18" x2="16.01" y2="18"></line><line x1="16" y1="14" x2="16.01" y2="14"></line><line x1="16" y1="10" x2="16.01" y2="10"></line></svg>`,
-  settings: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`,
-  download: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`,
-  upload: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>`,
-  printer: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>`,
-  x: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
-  edit: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
-  alert: `<svg class="icon text-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
-  check: `<svg class="icon text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
-  shield: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`,
-  folder: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`,
-  clipboard: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>`,
-  save: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>`,
-  plus: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`,
-  file: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`,
-  menu: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>`,
-  info: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`,
-  user: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`,
-  bulb: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15 13a5 5 0 1 0-6 0"></path></svg>`,
-  arrowRight: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`,
-  arrowLeft: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>`,
-  chevronRight: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`,
-  arrowUp: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>`,
-  arrowDown: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`,
-  chevronsUpDown: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 15 12 20 17 15"></polyline><polyline points="7 9 12 4 17 9"></polyline></svg>`
-};
+import { Icons } from './ui/icons.js';
+import { Button, IconButton, Badge, BetriebCard, EmptyState } from './ui/components.js';
 
 let currentView = 'betriebe';
 let onNavigateCallback = null;
@@ -54,19 +28,22 @@ function renderLayout() {
   
   app.innerHTML = `
     <div class="app-container">
-      <div class="header">
-        <div class="logo-area" id="brand-title" tabindex="0" role="button" style="cursor: pointer;">
-          <h1>RiskFlow</h1>
-          <span class="header-subtitle">Arbeitsschutz einfach gemacht</span>
+      <header class="app-header">
+        <div class="header-container">
+          <div class="logo-area" id="brand-title" tabindex="0" role="button">
+            <div class="logo-icon">${Icons.shield}</div>
+            <div class="logo-text">
+              <h1>RiskFlow</h1>
+              <span class="header-subtitle">Arbeitsschutz einfach gemacht</span>
+            </div>
+          </div>
+
+          <div class="header-actions no-print">
+            ${Button({ text: 'Meine Betriebe', icon: 'building', id: 'btn-goto-betriebe', variant: 'primary', className: 'desktop-only' })}
+            ${IconButton({ icon: 'settings', id: 'open-settings-btn', ariaLabel: 'Einstellungen' })}
+          </div>
         </div>
-        <div class="header-actions no-print">
-          <select id="company-quick-select" class="btn btn-secondary desktop-only" style="display:none; font-size: 12px; max-width: 200px;" title="Betrieb wechseln"></select>
-          <button id="btn-goto-betriebe" class="btn btn-primary desktop-only">${Icons.building} Meine Betriebe</button>
-          <button id="btn-export" class="btn btn-secondary desktop-only" style="display:none;">${Icons.download} Export</button>
-          <button id="btn-print" class="btn btn-secondary desktop-only" style="display:none;">${Icons.printer} Drucken</button>
-          <button id="open-settings-btn" class="btn btn-secondary desktop-only">${Icons.settings} Einstellungen</button>
-        </div>
-      </div>
+      </header>
       
       <div id="company-info-bar" class="company-info-bar" style="display: none;">
         <div class="company-info-content">
@@ -77,16 +54,29 @@ function renderLayout() {
           <div class="info-details desktop-only">
             <div class="info-block"><span class="info-label">Standort</span><span class="info-value" id="display-c-location">-</span></div>
             <div class="info-block"><span class="info-label">Prüfer</span><span class="info-value" id="display-c-auditor">-</span></div>
-            <div class="info-block"><span class="info-label">Datum</span><span class="info-value" id="display-c-date">-</span></div>
           </div>
         </div>
         <div class="company-info-actions">
-            <button id="btn-edit-company" class="btn btn-outline btn-sm no-print" title="Stammdaten bearbeiten">${Icons.edit}</button>
-            <button id="btn-close-workspace" class="btn btn-secondary btn-sm no-print" title="Schließen">${Icons.x}</button>
+            ${IconButton({ icon: 'edit', id: 'btn-edit-company', className: 'btn-sm no-print', ariaLabel: 'Stammdaten bearbeiten' })}
+            ${IconButton({ icon: 'x', id: 'btn-close-workspace', className: 'btn-sm no-print', ariaLabel: 'Schließen' })}
         </div>
       </div>
 
-      <main id="main-content"></main>
+      <main id="main-content" class="workspace"></main>
+
+      <nav class="mobile-navigation mobile-only no-print">
+        <button class="nav-item active" id="nav-betriebe">
+          ${Icons.building}
+          <span>Betriebe</span>
+        </button>
+        <button class="nav-item" id="nav-plus">
+          <div class="nav-plus-circle">${Icons.plus}</div>
+        </button>
+        <button class="nav-item" id="nav-settings">
+          ${Icons.settings}
+          <span>Optionen</span>
+        </button>
+      </nav>
     </div>
 
     ${renderPsaModal()}
@@ -95,6 +85,10 @@ function renderLayout() {
   `;
 
   document.getElementById('brand-title').addEventListener('click', () => navigateTo('betriebe'));
+
+  // Mobile Nav Handlers
+  document.getElementById('nav-betriebe')?.addEventListener('click', () => navigateTo('betriebe'));
+  document.getElementById('nav-settings')?.addEventListener('click', () => document.getElementById('settings-modal').showModal());
 }
 
 function handleRouting() {
@@ -129,6 +123,44 @@ export function navigateTo(view, pushState = true) {
   }
 
   if (onNavigateCallback) onNavigateCallback();
+}
+
+function renderBetriebeUebersicht() {
+  return `
+    <div id="betriebe-view" class="view-container">
+      <div class="view-header">
+        <div class="view-title-group">
+          <h2>Meine Betriebe</h2>
+          <p class="view-subtitle">Wählen Sie einen Betrieb aus, um dessen Gefährdungsbeurteilungen zu bearbeiten.</p>
+        </div>
+        ${Button({ text: 'Neuer Betrieb', icon: 'plus', id: 'btn-new-betrieb', variant: 'primary' })}
+      </div>
+
+      <div class="betriebe-grid" id="betriebe-grid">
+        <!-- Platzhalter für Ladezustand oder JS-Inhalt -->
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Hilfsfunktion zum Rendern der Liste (wird von logic.js aufgerufen)
+ */
+export function updateBetriebeGrid(betriebe = []) {
+  const grid = document.getElementById('betriebe-grid');
+  if (!grid) return;
+
+  if (betriebe.length === 0) {
+    grid.innerHTML = EmptyState({
+      title: 'Noch keine Betriebe',
+      message: 'Legen Sie Ihren ersten Betrieb an, um Gefährdungsbeurteilungen zu dokumentieren.',
+      actionText: 'Betrieb hinzufügen',
+      actionId: 'btn-new-betrieb-empty'
+    });
+    return;
+  }
+
+  grid.innerHTML = betriebe.map(b => BetriebCard(b)).join('');
 }
 
 function renderWorkspace() {
@@ -335,23 +367,6 @@ function renderWorkspace() {
           </table>
       </div>
       </div>
-
-      <!-- MOBILE-TABLEISTE -->
-      <nav class="mobile-tabbar no-print" id="mobile-tabbar">
-          <button type="button" class="mobile-tab active" data-tab="create">
-              ${Icons.plus}
-              <span>Erstellen</span>
-          </button>
-          <button type="button" class="mobile-tab" data-tab="table">
-              ${Icons.file}
-              <span>Übersicht</span>
-              <span class="mobile-tab-count" id="mobile-tab-count" style="display:none;"></span>
-          </button>
-          <button type="button" class="mobile-tab" data-tab="settings" id="mobile-tab-settings">
-              ${Icons.settings}
-              <span>Einstellungen</span>
-          </button>
-      </nav>
     </div>
   `;
 }
@@ -381,197 +396,57 @@ function renderSettingsModal() {
   return `
     <dialog id="settings-modal" class="modal">
       <div class="modal-content settings-container" id="settings-container">
-        
-        <!-- Header -->
         <header class="settings-header">
           <div style="display: flex; align-items: center; gap: 12px;">
-            <button id="back-settings-btn" class="btn-icon mobile-only" aria-label="Zurück" style="display: none;">
-              ${Icons.arrowLeft}
-            </button>
             <h2 id="settings-title" style="display: flex; align-items: center; gap: 8px;">${Icons.settings} Einstellungen</h2>
           </div>
-          <button id="close-settings-btn" class="btn-icon" aria-label="Schließen" style="background: transparent; border: none; cursor: pointer;">
+          <button id="close-settings-btn" class="btn-icon" aria-label="Schließen">
             ${Icons.x}
           </button>
         </header>
 
-        <!-- Body -->
         <div class="settings-body">
-          
-          <!-- Sidebar Navigation -->
           <nav class="settings-sidebar">
             <ul class="settings-menu">
-              <li>
-                <button class="settings-tab active" data-target="settings-general">
-                  <span class="tab-label">${Icons.settings} Allgemein</span>
-                  <span class="mobile-only tab-chevron">${Icons.chevronRight}</span>
-                </button>
-              </li>
-              <li>
-                <button class="settings-tab" data-target="settings-profile">
-                  <span class="tab-label">${Icons.user} Profil</span>
-                  <span class="mobile-only tab-chevron">${Icons.chevronRight}</span>
-                </button>
-              </li>
-              <li>
-                <button class="settings-tab" data-target="settings-suggestions">
-                  <span class="tab-label">${Icons.bulb} Vorschläge</span>
-                  <span class="mobile-only tab-chevron">${Icons.chevronRight}</span>
-                </button>
-              </li>
-              <li>
-                <button class="settings-tab" data-target="settings-structure">
-                  <span class="tab-label">${Icons.building} Betrieb</span>
-                  <span class="mobile-only tab-chevron">${Icons.chevronRight}</span>
-                </button>
-              </li>
-              <li>
-                <button class="settings-tab" data-target="settings-data">
-                  <span class="tab-label">💾 Daten</span>
-                  <span class="mobile-only tab-chevron">${Icons.chevronRight}</span>
-                </button>
-              </li>
+              <li><button class="settings-tab active" data-target="settings-general">${Icons.settings} Allgemein</button></li>
+              <li><button class="settings-tab" data-target="settings-profile">${Icons.user} Profil</button></li>
+              <li><button class="settings-tab" data-target="settings-data">💾 Daten</button></li>
             </ul>
           </nav>
 
-          <!-- Main Content -->
           <main class="settings-content">
-            
-            <!-- Tab: Allgemein -->
             <section id="settings-general" class="settings-panel active">
               <h3>Erscheinungsbild</h3>
-              <p class="settings-description">Passen Sie die Darstellung der App an Ihre Arbeitsumgebung an.</p>
-
               <div class="form-group">
                 <label for="theme-select">Farbschema</label>
                 <select id="theme-select" class="form-control">
                   <option value="system">Systemstandard</option>
                   <option value="light">Helles Design</option>
-                  <option value="dark">Dunkles Design (OLED-freundlich)</option>
+                  <option value="dark">Dunkles Design</option>
                 </select>
               </div>
-
-              <div class="form-group">
-                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                  <input type="checkbox" id="compact-view-check" style="width: 18px; height: 18px; cursor: pointer;">
-                  <span>Kompakt-Ansicht (Tabellen verkleinern)</span>
-                </label>
-              </div>
-
-              <div class="form-group">
-                <label for="font-size-range">Schriftgröße (<span id="font-size-label">100</span>%)</label>
-                <input type="range" id="font-size-range" min="80" max="150" step="5" value="100" style="width: 100%; cursor: pointer;">
-              </div>
             </section>
 
-            <!-- Tab: Profil -->
             <section id="settings-profile" class="settings-panel">
-              <h3>Standard-Prüfer</h3>
-              <p class="settings-description">Hinterlegen Sie hier Ihre Daten, um sie beim Erstellen neuer Betriebe automatisch einzufügen.</p>
-
+              <h3>Profil</h3>
               <div class="form-group">
                 <label for="prof-name">Name des Prüfers</label>
-                <input type="text" id="prof-name" class="form-control" placeholder="z.B. Max Mustermann">
-              </div>
-              <div class="form-group">
-                <label for="prof-role">Position / Fachkunde</label>
-                <input type="text" id="prof-role" class="form-control" placeholder="z.B. Fachkraft für Arbeitssicherheit">
-              </div>
-              <div class="form-group">
-                <label for="prof-cert">Zertifikats- / ID-Nummer</label>
-                <input type="text" id="prof-cert" class="form-control" placeholder="Optional">
+                <input type="text" id="prof-name" class="form-control">
               </div>
             </section>
 
-            <!-- Tab: Vorschläge -->
-            <section id="settings-suggestions" class="settings-panel">
-              <h3>Vorschlags-Verwaltung</h3>
-              <p class="settings-description">Korrigieren oder löschen Sie Begriffe, die in Ihren Vorschlagslisten (Datalists) erscheinen.</p>
-
-              <div class="suggestion-manager">
-                <div style="margin-bottom: 1rem; display: flex; gap: 10px;">
-                  <select id="suggest-type-select" class="form-control" style="flex: 1;">
-                    <option value="taetigkeit">Tätigkeiten / Arbeitsplätze</option>
-                    <option value="bereich">Bereiche / Abteilungen</option>
-                  </select>
-                  <button id="btn-refresh-suggestions" class="btn btn-secondary" title="Liste aktualisieren">${Icons.check}</button>
-                </div>
-
-                <div id="suggestion-list-container" class="suggestion-list">
-                  <!-- Dynamisch befüllt -->
-                  <p style="text-align: center; color: var(--text-muted); padding: 2rem;">Lade Vorschläge...</p>
-                </div>
-              </div>
-            </section>
-
-            <!-- Tab: Betriebsstruktur -->
-            <section id="settings-structure" class="settings-panel">
-              <h3>Betriebsstruktur</h3>
-              <p class="settings-description">Verwalten Sie hier die übergeordneten Standorte und Abteilungen für Ihre Berichte.</p>
-              <div class="form-group">
-                <label>Schnellzugriff auf Betriebe</label>
-                <p style="font-size: 13px; color: var(--text-muted);">Nutzen Sie das Dashboard, um neue Betriebe anzulegen oder bestehende zu bearbeiten.</p>
-              </div>
-              <button class="btn btn-secondary" onclick="window.location.href='/'">Zum Dashboard</button>
-            </section>
-
-            <!-- Tab: Daten & Backup -->
             <section id="settings-data" class="settings-panel">
-              <h3>Datenverwaltung</h3>
-              <p class="settings-description">Sichern Sie Ihre Daten oder übertragen Sie sie auf ein anderes Gerät. Die Speicherung erfolgt aktuell rein lokal in Ihrem Browser.</p>
-
-              <div class="data-actions-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                <div class="card" style="padding: 1.25rem; border: 1px solid var(--border);">
-                  <h4 style="margin-top: 0;">${Icons.download} Export</h4>
-                  <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 1rem;">Lädt alle Betriebe und Beurteilungen als JSON-Datei herunter.</p>
-                  <button id="btn-export-db" class="btn btn-primary" style="width: 100%;">Backup erstellen</button>
-                </div>
-
-                <div class="card" style="padding: 1.25rem; border: 1px solid var(--border);">
-                  <h4 style="margin-top: 0;">${Icons.upload} Import</h4>
-                  <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 1rem;">Wiederherstellung aus einer zuvor exportierten Datei.</p>
-                  <button id="btn-import-trigger" class="btn btn-outline" style="width: 100%;">Datei einlesen</button>
-                  <input type="file" id="db-import-file" style="display: none;" accept=".json">
-                </div>
-              </div>
-
-              <div style="margin-top: 2rem; padding: 1rem; background: #fff1f2; border-radius: 8px; border: 1px solid #fecaca;">
-                <h4 style="margin-top: 0; color: #b91c1c; display: flex; align-items: center; gap: 8px;">${Icons.alert} Gefahrenzone</h4>
-                <p style="font-size: 12px; color: #7f1d1d; margin-bottom: 1rem;">Hiermit werden alle lokalen Daten (inkl. aller Betriebe) unwiderruflich gelöscht.</p>
-                <button id="btn-factory-reset" class="btn btn-outline" style="color: #b91c1c; border-color: #fca5a5;">App zurücksetzen</button>
-              </div>
+              <h3>Backup</h3>
+              <button id="btn-export-db" class="btn btn-primary" style="width: 100%;">Daten exportieren</button>
             </section>
-
           </main>
         </div>
 
-        <!-- Footer -->
         <footer class="settings-footer">
-          <button id="cancel-settings-btn" class="btn btn-secondary">Abbrechen</button>
-          <button id="save-settings-btn" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">
-            ${Icons.save} Speichern
-          </button>
+          <button id="save-settings-btn" class="btn btn-primary">Speichern</button>
         </footer>
-
       </div>
     </dialog>
-  `;
-}
-
-function renderBetriebeUebersicht() {
-  return `
-    <div id="betriebe-view" class="no-print">
-      <div class="betriebe-header">
-        <div>
-          <h2>Meine Betriebe</h2>
-          <p class="betriebe-subtitle">Wählen Sie einen Betrieb aus, um dessen Gefährdungsbeurteilungen zu bearbeiten.</p>
-        </div>
-        <button type="button" class="btn btn-primary" id="btn-new-betrieb">${Icons.plus} Neuer Betrieb</button>
-      </div>
-      <div class="betriebe-grid" id="betriebe-grid">
-        <!-- wird per JS befüllt -->
-      </div>
-    </div>
   `;
 }
 
@@ -581,58 +456,26 @@ function renderBetriebFormModal() {
       <div class="modal-container" style="width: 520px; max-width: 95vw;">
         <form id="betrieb-form">
           <div class="modal-header">
-              <h3 id="betrieb-modal-title" style="font-size: 16px; font-weight: 700; color: #1e293b;">Neuer Betrieb</h3>
-              <button type="button" id="btn-close-betrieb-top" class="btn-icon" style="background: transparent; font-size: 18px; cursor: pointer;">${Icons.x}</button>
+              <h3 id="betrieb-modal-title" style="font-size: 16px; font-weight: 700;">Neuer Betrieb</h3>
+              <button type="button" id="btn-close-betrieb-top" class="btn-icon">${Icons.x}</button>
           </div>
           <div class="modal-body">
               <div class="form-group">
                   <label for="betrieb-name">Name / Firma <span style="color:red;">*</span></label>
                   <input type="text" id="betrieb-name" required placeholder="z.B. Muster GmbH">
               </div>
-
-              <div class="form-group" style="margin-top: 14px;">
-                  <label for="betrieb-strasse">Straße & Hausnummer</label>
-                  <input type="text" id="betrieb-strasse" placeholder="Musterstraße 123">
+              <div class="form-group">
+                  <label for="betrieb-ort">Ort</label>
+                  <input type="text" id="betrieb-ort" placeholder="Musterstadt">
               </div>
-
-              <div class="form-grid" style="margin-top: 14px;">
-                  <div class="form-group">
-                      <label for="betrieb-plz">PLZ</label>
-                      <input type="text" id="betrieb-plz" placeholder="12345">
-                  </div>
-                  <div class="form-group">
-                      <label for="betrieb-ort">Ort</label>
-                      <input type="text" id="betrieb-ort" placeholder="Musterstadt">
-                  </div>
-              </div>
-
-              <div class="form-group" style="margin-top: 14px;">
-                  <label for="betrieb-kontakt">Ansprechpartner</label>
-                  <input type="text" id="betrieb-kontakt" placeholder="Max Mustermann">
-              </div>
-
-              <div class="form-grid" style="margin-top: 14px;">
-                  <div class="form-group">
-                      <label for="betrieb-telefon">Telefon</label>
-                      <input type="tel" id="betrieb-telefon" placeholder="0123 456789">
-                  </div>
-                  <div class="form-group">
-                      <label for="betrieb-email">E-Mail</label>
-                      <input type="email" id="betrieb-email" placeholder="max@beispiel.de">
-                  </div>
-              </div>
-
-              <div class="form-group" style="margin-top: 14px;">
+              <div class="form-group">
                   <label for="betrieb-auditor">Geprüft durch (Name)</label>
                   <input type="text" id="betrieb-auditor" placeholder="Name des Erstellers / SiFa">
               </div>
           </div>
           <div class="modal-footer">
-              <div></div>
-              <div style="display: flex; gap: 10px;">
-                  <button type="button" class="btn btn-secondary" id="btn-close-betrieb-bottom">Abbrechen</button>
-                  <button type="submit" class="btn btn-primary">Speichern</button>
-              </div>
+              <button type="button" class="btn btn-secondary" id="btn-close-betrieb-bottom">Abbrechen</button>
+              <button type="submit" class="btn btn-primary">Speichern</button>
           </div>
         </form>
       </div>

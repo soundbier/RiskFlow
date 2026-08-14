@@ -17,6 +17,7 @@
 @import './components/_forms.css';
 @import './components/_modals.css';
 @import './components/_tables.css';
+@import './components/_cards.css';
 
 /* 4. Views */
 @import './views/_betriebe.css';

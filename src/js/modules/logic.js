@@ -5,7 +5,8 @@
 
 import * as storage from './storage.js';
 import { defaultStandardTemplates } from './storage.js';
-import { navigateTo, setOnNavigateCallback, Icons } from './app.js';
+import { navigateTo, setOnNavigateCallback, updateBetriebeGrid } from './app.js';
+import { Icons } from './ui/icons.js';
 import { escapeHtml } from './utils.js';
 
 // ==========================================
@@ -156,15 +157,15 @@ function setupEventDelegation() {
         if (e.target.closest('#btn-edit-company')) {
             if(activeCompanyId) openCompanyModal(activeCompanyId);
         }
-        if (e.target.closest('#btn-new-betrieb')) openCompanyModal();
+        if (e.target.closest('#btn-new-betrieb') || e.target.closest('#btn-new-betrieb-empty')) openCompanyModal();
         
-        if (e.target.closest('.betrieb-card-main')) {
-            const card = e.target.closest('.betrieb-card');
-            window.location.search = `?action=workspace&companyId=${card.dataset.id}`;
+        if (e.target.closest('.btn-open-betrieb')) {
+            const btn = e.target.closest('.btn-open-betrieb');
+            window.location.search = `?action=workspace&companyId=${btn.dataset.id}`;
         }
         
-        if (e.target.closest('.edit-betrieb')) {
-            openCompanyModal(Number(e.target.closest('.edit-betrieb').dataset.id));
+        if (e.target.closest('.btn-edit-betrieb')) {
+            openCompanyModal(Number(e.target.closest('.btn-edit-betrieb').id.replace('edit-', '')));
         }
         if (e.target.closest('.delete-betrieb')) {
             await deleteCompanyHandler(Number(e.target.closest('.delete-betrieb').dataset.id));
@@ -211,7 +212,12 @@ function setupEventDelegation() {
             await deleteRecord(Number(e.target.closest('tr').dataset.id));
         }
 
-        // Mobile Tab Navigation
+        // Mobile Nav (Bottom Bar)
+        if (e.target.closest('#nav-betriebe')) navigateTo('betriebe');
+        if (e.target.closest('#nav-plus')) openCompanyModal();
+        if (e.target.closest('#nav-settings')) document.getElementById('settings-modal').showModal();
+
+        // Mobile Tab Navigation (im Workspace)
         if (e.target.closest('.mobile-tab')) {
             const tabBtn = e.target.closest('.mobile-tab');
             const tab = tabBtn.dataset.tab;
@@ -749,53 +755,12 @@ async function loadAndRenderCompanies() {
     const gbCounts = await Promise.all(
         companiesList.map(c => storage.getGbsByCompany(c.id).then(gbs => gbs.length))
     );
-    companiesList.forEach((c, i) => { c._gbCount = gbCounts[i]; });
+    companiesList.forEach((c, i) => { c.count = gbCounts[i]; });
 
-    renderCompaniesGrid();
+    updateBetriebeGrid(companiesList);
 }
 
-function renderCompaniesGrid() {
-    const grid = document.getElementById('betriebe-grid');
-    if (!grid) return;
-
-    if (companiesList.length === 0) {
-        grid.innerHTML = `
-            <div class="betriebe-empty">
-                <div style="display:flex; justify-content:center; margin-bottom: 16px;">
-                    <div class="icon-lg">${Icons.building}</div>
-                </div>
-                Noch keine Betriebe angelegt.<br>
-                Legen Sie Ihren ersten Betrieb an, um Gefährdungsbeurteilungen zuzuordnen.
-            </div>`;
-        return;
-    }
-
-    grid.innerHTML = companiesList.map(c => {
-        // Formatted address for display
-        const displayAddr = [c.strasse, [c.plz, c.ort].filter(Boolean).join(' ')].filter(Boolean).join(', ') || c.anschrift || 'Keine Anschrift hinterlegt';
-
-        return `
-            <div class="betrieb-card" data-id="${c.id}" style="cursor: pointer;">
-                <div class="betrieb-card-main">
-                    <div class="betrieb-card-icon">${Icons.building}</div>
-                    <div class="betrieb-card-info">
-                        <div class="betrieb-card-name">${escapeHtml(c.name)}</div>
-                        <div class="betrieb-card-address">${escapeHtml(displayAddr)}</div>
-                        <div class="betrieb-card-meta">${c._gbCount} Gefährdungsbeurteilung${c._gbCount === 1 ? '' : 'en'}</div>
-                    </div>
-                </div>
-                <div class="betrieb-card-actions">
-                    <button type="button" class="btn-icon edit-betrieb" title="Bearbeiten" data-id="${c.id}">
-                        ${Icons.edit}
-                    </button>
-                    <button type="button" class="btn-icon delete-betrieb" title="Löschen" data-id="${c.id}">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
+// renderCompaniesGrid wurde durch updateBetriebeGrid in app.js ersetzt.
 
 function openCompanyModal(id = null) {
     editingCompanyId = id;
@@ -899,7 +864,7 @@ async function saveCompanyForm() {
 
 async function deleteCompanyHandler(id) {
     const company = companiesList.find(c => c.id === id);
-    const gbCount = company?._gbCount || 0;
+    const gbCount = company?.count || 0;
 
     const warning = gbCount > 0
         ? `Der Betrieb "${company?.name}" enthält ${gbCount} Gefährdungsbeurteilung(en). Beim Löschen werden ALLE zugehörigen Beurteilungen unwiderruflich mitgelöscht.\n\nFortfahren?`

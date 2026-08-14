@@ -1,8 +1,16 @@
+/**
+ * RiskFlow Responsive Utilities
+ */
+
 .mobile-only {
     display: none !important;
 }
 
-@media (max-width: 768px) {
+.desktop-only {
+    display: flex !important;
+}
+
+@media (max-width: 600px) {
     .desktop-only {
         display: none !important;
     }
@@ -10,18 +18,19 @@
         display: flex !important;
     }
 
-    /* Global Compact adjustments */
-    :root {
-        --radius: 8px;
+    .app-container {
+        padding: 0; /* Container selbst hat kein Padding mehr, Views regeln das */
     }
 
-    .app-container {
-        padding: 12px;
+    .view-container {
+        padding: var(--space-4);
     }
 }
 
+/* Helper für Grid-Layouts */
+.grid-cols-1 { grid-template-columns: 1fr; }
+.grid-cols-2 { grid-template-columns: 1fr 1fr; }
+
 @media (max-width: 480px) {
-    .app-container {
-        padding: 10px;
-    }
+    .grid-cols-2 { grid-template-columns: 1fr; }
 }

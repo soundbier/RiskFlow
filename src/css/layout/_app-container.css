@@ -1,4 +1,21 @@
+/**
+ * RiskFlow App Container
+ */
+
 .app-container {
-  max-width: 1450px;
-  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-color);
+}
+
+@media (max-width: 600px) {
+  .app-container {
+    padding-bottom: 80px; /* Platz für die mobile Bottom-Bar */
+  }
+}
+
+.workspace {
+  flex: 1;
+  width: 100%;
 }
