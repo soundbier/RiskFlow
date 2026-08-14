@@ -42,7 +42,30 @@ function renderLayout() {
   
   app.innerHTML = `
     <div class="app-container">
-      <header class="app-header">
+      <!-- Audit-Proof Print Header -->
+      <header class="print-header print-only">
+        <div class="print-header-main">
+          <div class="print-logo-placeholder">
+            <span>LOGO</span>
+          </div>
+          <div class="print-title-group">
+            <h1 class="print-main-title">Gefährdungsbeurteilung nach § 5 ArbSchG</h1>
+            <p class="print-subtitle">Dokumentation der Gefährdungen und Maßnahmen</p>
+          </div>
+        </div>
+        <div class="print-company-data">
+          <div class="print-data-row">
+            <div class="data-item"><strong>Betrieb:</strong> <span id="print-c-name">-</span></div>
+            <div class="data-item"><strong>Standort:</strong> <span id="print-c-location">-</span></div>
+          </div>
+          <div class="print-data-row">
+            <div class="data-item"><strong>Prüfer:</strong> <span id="print-c-auditor">-</span></div>
+            <div class="data-item"><strong>Stand:</strong> <span id="print-c-date">-</span></div>
+          </div>
+        </div>
+      </header>
+
+      <header class="app-header no-print">
         <div class="header-container">
           <div class="logo-area" id="brand-title" tabindex="0" role="button">
             <div class="logo-icon">${Icons.shield}</div>
@@ -80,6 +103,25 @@ function renderLayout() {
       </div>
 
       <main id="main-content" class="workspace"></main>
+
+      <!-- Audit-Proof Print Footer -->
+      <footer class="print-footer print-only">
+        <div class="print-footer-container">
+          <div class="signature-block">
+            <div class="signature-line"></div>
+            <div class="signature-label">Ort / Datum</div>
+          </div>
+          <div class="signature-block">
+            <div class="signature-line"></div>
+            <div class="signature-label">Unterschrift Prüfer</div>
+          </div>
+          <div class="signature-block">
+            <div class="signature-line"></div>
+            <div class="signature-label">Unterschrift Geschäftsführung</div>
+          </div>
+        </div>
+        <div class="print-page-numbering"></div>
+      </footer>
 
       <div id="bulk-action-container"></div>
 

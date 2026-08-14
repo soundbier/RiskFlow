@@ -502,15 +502,33 @@ function renderCompanyState() {
     if (!infoBar || !activeCompany) return;
     
     infoBar.classList.remove('hidden');
+
+    const companyName = activeCompany.name;
+    const companyLocation = activeCompany.anschrift || activeCompany.ort || '—';
+    const auditor = activeCompany.auditor || '—';
+    const creationDate = formatDate(activeCompany.createdAt);
+
+    // Workspace UI
     const nameEl = document.getElementById('display-c-name');
     const locEl = document.getElementById('display-c-location');
     const audEl = document.getElementById('display-c-auditor');
     const dateEl = document.getElementById('display-c-date');
 
-    if (nameEl) nameEl.innerText = activeCompany.name;
-    if (locEl) locEl.innerText = activeCompany.anschrift || activeCompany.ort || '—';
-    if (audEl) audEl.innerText = activeCompany.auditor || '—';
-    if (dateEl) dateEl.innerText = formatDate(activeCompany.createdAt);
+    if (nameEl) nameEl.innerText = companyName;
+    if (locEl) locEl.innerText = companyLocation;
+    if (audEl) audEl.innerText = auditor;
+    if (dateEl) dateEl.innerText = creationDate;
+
+    // Print Header UI
+    const pNameEl = document.getElementById('print-c-name');
+    const pLocEl = document.getElementById('print-c-location');
+    const pAudEl = document.getElementById('print-c-auditor');
+    const pDateEl = document.getElementById('print-c-date');
+
+    if (pNameEl) pNameEl.innerText = companyName;
+    if (pLocEl) pLocEl.innerText = companyLocation;
+    if (pAudEl) pAudEl.innerText = auditor;
+    if (pDateEl) pDateEl.innerText = creationDate;
 }
 
 // ==========================================
