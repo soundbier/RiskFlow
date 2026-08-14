@@ -54,6 +54,15 @@ export function initSettings() {
   applyTheme(initialSettings.theme);
   applyUIOptions(initialSettings);
 
+  // Initial visibility
+  panels.forEach(p => {
+    if (!p.classList.contains('active')) {
+      p.style.display = 'none';
+    } else {
+      p.style.display = 'block';
+    }
+  });
+
   // --- Werte in das UI laden ---
   const populateUI = () => {
     const currentSettings = loadUISettings();
@@ -284,10 +293,10 @@ export function initSettings() {
       // 1. Allen Tabs die 'active' Klasse entziehen
       tabs.forEach(t => t.classList.remove('active'));
       
-      // 2. Alle Panels verstecken (Klasse 'hidden' hinzufügen)
+      // 2. Alle Panels verstecken
       panels.forEach(p => {
-        p.classList.add('hidden');
         p.classList.remove('active');
+        p.style.display = 'none'; // Fallback
       });
 
       // 3. Dem geklickten Tab die 'active' Klasse geben
@@ -295,8 +304,8 @@ export function initSettings() {
 
       // 4. Zugehöriges Panel einblenden
       if (targetPanel) {
-        targetPanel.classList.remove('hidden');
         targetPanel.classList.add('active');
+        targetPanel.style.display = 'block'; // Fallback
 
         // Spezielle Logik beim Tab-Wechsel
         if (targetId === 'settings-suggestions') loadSuggestions();

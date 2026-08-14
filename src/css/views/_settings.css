@@ -155,6 +155,20 @@ dialog#settings-modal::backdrop {
   background: var(--surface);
 }
 
+.settings-content section.settings-panel {
+  display: none !important;
+}
+
+.settings-content section.settings-panel.active {
+  display: block !important;
+  animation: settingsFadeIn 0.3s ease;
+}
+
+@keyframes settingsFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .panel-section {
   max-width: 540px;
   margin: 0 auto;
