@@ -25,6 +25,8 @@ export const Icons = {
   user: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`,
   bulb: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15 13a5 5 0 1 0-6 0"></path></svg>`,
   arrowRight: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`,
+  arrowLeft: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>`,
+  chevronRight: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>`,
   arrowUp: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>`,
   arrowDown: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`,
   chevronsUpDown: `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 15 12 20 17 15"></polyline><polyline points="7 9 12 4 17 9"></polyline></svg>`
@@ -378,11 +380,16 @@ function renderPsaModal() {
 function renderSettingsModal() {
   return `
     <dialog id="settings-modal" class="modal">
-      <div class="modal-content settings-container">
+      <div class="modal-content settings-container" id="settings-container">
         
         <!-- Header -->
         <header class="settings-header">
-          <h2 style="display: flex; align-items: center; gap: 8px;">${Icons.settings} Einstellungen</h2>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button id="back-settings-btn" class="btn-icon mobile-only" aria-label="Zurück" style="display: none;">
+              ${Icons.arrowLeft}
+            </button>
+            <h2 id="settings-title" style="display: flex; align-items: center; gap: 8px;">${Icons.settings} Einstellungen</h2>
+          </div>
           <button id="close-settings-btn" class="btn-icon" aria-label="Schließen" style="background: transparent; border: none; cursor: pointer;">
             ${Icons.x}
           </button>
@@ -394,11 +401,36 @@ function renderSettingsModal() {
           <!-- Sidebar Navigation -->
           <nav class="settings-sidebar">
             <ul class="settings-menu">
-              <li><button class="settings-tab active" data-target="settings-general">${Icons.settings} Allgemein</button></li>
-              <li><button class="settings-tab" data-target="settings-profile">${Icons.user} Profil</button></li>
-              <li><button class="settings-tab" data-target="settings-suggestions">${Icons.bulb} Vorschläge</button></li>
-              <li><button class="settings-tab" data-target="settings-structure">${Icons.building} Betrieb</button></li>
-              <li><button class="settings-tab" data-target="settings-data">💾 Daten</button></li>
+              <li>
+                <button class="settings-tab active" data-target="settings-general">
+                  <span class="tab-label">${Icons.settings} Allgemein</span>
+                  <span class="mobile-only tab-chevron">${Icons.chevronRight}</span>
+                </button>
+              </li>
+              <li>
+                <button class="settings-tab" data-target="settings-profile">
+                  <span class="tab-label">${Icons.user} Profil</span>
+                  <span class="mobile-only tab-chevron">${Icons.chevronRight}</span>
+                </button>
+              </li>
+              <li>
+                <button class="settings-tab" data-target="settings-suggestions">
+                  <span class="tab-label">${Icons.bulb} Vorschläge</span>
+                  <span class="mobile-only tab-chevron">${Icons.chevronRight}</span>
+                </button>
+              </li>
+              <li>
+                <button class="settings-tab" data-target="settings-structure">
+                  <span class="tab-label">${Icons.building} Betrieb</span>
+                  <span class="mobile-only tab-chevron">${Icons.chevronRight}</span>
+                </button>
+              </li>
+              <li>
+                <button class="settings-tab" data-target="settings-data">
+                  <span class="tab-label">💾 Daten</span>
+                  <span class="mobile-only tab-chevron">${Icons.chevronRight}</span>
+                </button>
+              </li>
             </ul>
           </nav>
 

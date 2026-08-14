@@ -12,13 +12,17 @@ let currentSuggestions = [];
 export function initSettings() {
   // DOM Elemente referenzieren
   const modal = document.getElementById('settings-modal');
+  const container = document.getElementById('settings-container');
   const openBtn = document.getElementById('open-settings-btn');
   const closeBtn = document.getElementById('close-settings-btn');
+  const backBtn = document.getElementById('back-settings-btn');
   const cancelBtn = document.getElementById('cancel-settings-btn');
   const saveBtn = document.getElementById('save-settings-btn');
   
   const tabs = document.querySelectorAll('.settings-tab');
   const panels = document.querySelectorAll('.settings-panel');
+  const titleEl = document.getElementById('settings-title');
+  const defaultTitle = titleEl ? titleEl.innerHTML : 'Einstellungen';
 
   // Input-Elemente für die Einstellungen referenzieren
   const themeSelect = document.getElementById('theme-select');
@@ -77,7 +81,14 @@ export function initSettings() {
   if (openBtn) {
     openBtn.addEventListener('click', () => {
       populateUI(); // Lade aktuelle Werte in die Formularfelder, bevor das Modal sichtbar wird
-      modal.showModal(); 
+
+      // Auf Mobilgeräten: Immer mit der Kategorieliste starten
+      if (window.innerWidth <= 768) {
+        if (container) container.classList.remove('panel-active');
+        if (titleEl) titleEl.innerHTML = `${Icons.settings} Einstellungen`;
+      }
+
+      modal.showModal();
       document.body.style.overflow = 'hidden'; // Hintergrund-Scrollen verhindern
     });
   }
@@ -86,10 +97,21 @@ export function initSettings() {
   const closeModal = () => {
     modal.close();
     document.body.style.overflow = ''; // Scrollen wieder aktivieren
+
+    // Reset mobile state
+    if (container) container.classList.remove('panel-active');
   };
 
   if (closeBtn) closeBtn.addEventListener('click', closeModal);
   if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+  // --- Zurück-Button (Mobile Drill-Down) ---
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      if (container) container.classList.remove('panel-active');
+      if (titleEl) titleEl.innerHTML = `${Icons.settings} Einstellungen`;
+    });
+  }
 
   // Klick auf den Hintergrund (Backdrop) schließt das Modal ebenfalls
   modal.addEventListener('click', (event) => {
@@ -246,6 +268,19 @@ export function initSettings() {
   // --- Tab Navigation Logik ---
   tabs.forEach(tab => {
     tab.addEventListener('click', (e) => {
+      const clickedTab = e.currentTarget;
+      const targetId = clickedTab.getAttribute('data-target');
+      const targetPanel = document.getElementById(targetId);
+
+      // Mobile Drill-Down Logik
+      if (window.innerWidth <= 768) {
+        if (container) container.classList.add('panel-active');
+        if (titleEl) {
+          const label = clickedTab.querySelector('.tab-label');
+          titleEl.innerHTML = label ? label.innerHTML : 'Einstellungen';
+        }
+      }
+
       // 1. Allen Tabs die 'active' Klasse entziehen
       tabs.forEach(t => t.classList.remove('active'));
       
@@ -256,13 +291,9 @@ export function initSettings() {
       });
 
       // 3. Dem geklickten Tab die 'active' Klasse geben
-      const clickedTab = e.currentTarget;
       clickedTab.classList.add('active');
 
       // 4. Zugehöriges Panel einblenden
-      const targetId = clickedTab.getAttribute('data-target');
-      const targetPanel = document.getElementById(targetId);
-      
       if (targetPanel) {
         targetPanel.classList.remove('hidden');
         targetPanel.classList.add('active');

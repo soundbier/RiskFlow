@@ -179,47 +179,80 @@ dialog.modal::backdrop {
     border-radius: 0;
   }
 
+  /* Drill-Down Logik */
   .settings-body {
-    flex-direction: column;
+    flex-direction: row; /* Beibehalten für Flex-Verhalten, aber Sidebar/Content Breite steuern */
+    position: relative;
+    width: 100%;
   }
 
   .settings-sidebar {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid var(--border);
     background-color: var(--surface);
+    display: block;
+  }
+
+  .settings-content {
+    display: none; /* Standardmäßig versteckt auf Mobilgeräten */
+    padding: 1.5rem;
+    width: 100%;
+  }
+
+  /* Wenn ein Panel aktiv ist (Drill-Down) */
+  .settings-container.panel-active .settings-sidebar {
+    display: none;
+  }
+
+  .settings-container.panel-active .settings-content {
+    display: block;
+  }
+
+  .settings-container.panel-active #back-settings-btn {
+    display: flex !important;
   }
 
   .settings-menu {
     display: flex;
+    flex-direction: column;
     padding: 0;
-    overflow-x: auto;
-    scrollbar-width: none; /* Firefox */
-  }
-
-  .settings-menu::-webkit-scrollbar {
-    display: none; /* Chrome/Safari */
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   .settings-tab {
     border-left: none;
-    border-bottom: 3px solid transparent;
-    padding: 1rem 1.25rem;
-    text-align: center;
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 1.5rem;
+    text-align: left;
     white-space: nowrap;
-    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .settings-tab .tab-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .settings-tab .tab-chevron {
+    color: var(--text-muted);
   }
 
   .settings-tab.active {
-    border-bottom-color: var(--primary);
     background-color: rgba(79, 70, 229, 0.05);
-  }
-
-  .settings-content {
-    padding: 1.5rem;
+    border-bottom-color: var(--border); /* Kein dicker Balken unten in der Liste */
+    color: var(--primary);
   }
 
   .settings-footer {
+    display: none; /* Footer in der mobilen Listenansicht verstecken? Oder nur im Panel? */
+  }
+
+  .settings-container.panel-active .settings-footer {
+    display: flex;
     flex-direction: column-reverse;
     padding: 1rem;
   }
