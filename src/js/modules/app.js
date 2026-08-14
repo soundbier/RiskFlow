@@ -376,6 +376,9 @@ function renderSettingsModal() {
           <nav class="settings-sidebar">
             <ul class="settings-menu">
               <li><button class="settings-tab active" data-target="settings-general">Allgemein</button></li>
+              <li><button class="settings-tab" data-target="settings-structure">Betrieb & Abteilungen</button></li>
+              <li><button class="settings-tab" data-target="settings-compliance">Compliance</button></li>
+              <li><button class="settings-tab" data-target="settings-data">Daten & Sync</button></li>
             </ul>
           </nav>
 
@@ -384,14 +387,64 @@ function renderSettingsModal() {
             
             <!-- Tab: Allgemein -->
             <section id="settings-general" class="settings-panel active">
-              <h3>Allgemeine Darstellung</h3>
+              <h3>Erscheinungsbild</h3>
+              <p class="settings-description">Passen Sie die Darstellung der App an Ihre Arbeitsumgebung an.</p>
+
               <div class="form-group">
-                <label for="theme-select">Erscheinungsbild</label>
+                <label for="theme-select">Farbschema</label>
                 <select id="theme-select" class="form-control">
                   <option value="system">Systemstandard</option>
-                  <option value="light">Hell</option>
-                  <option value="dark">Dunkel</option>
+                  <option value="light">Helles Design</option>
+                  <option value="dark">Dunkles Design (OLED-freundlich)</option>
                 </select>
+              </div>
+            </section>
+
+            <!-- Tab: Betriebsstruktur -->
+            <section id="settings-structure" class="settings-panel">
+              <h3>Betriebsstruktur</h3>
+              <p class="settings-description">Verwalten Sie hier die übergeordneten Standorte und Abteilungen für Ihre Berichte.</p>
+              <div class="form-group">
+                <label>Schnellzugriff auf Betriebe</label>
+                <p style="font-size: 13px; color: var(--text-muted);">Nutzen Sie das Dashboard, um neue Betriebe anzulegen oder bestehende zu bearbeiten.</p>
+              </div>
+              <button class="btn btn-secondary" onclick="window.location.href='/'">Zum Dashboard</button>
+            </section>
+
+            <!-- Tab: Arbeitsschutz & Compliance -->
+            <section id="settings-compliance" class="settings-panel">
+              <h3>Regelwerke & Compliance</h3>
+              <p class="settings-description">Laden Sie standardmäßig Kataloge für spezifische gesetzliche Anforderungen.</p>
+              <div class="form-group checkbox-group" style="display: flex; align-items: flex-start; gap: 10px; border: none;">
+                <input type="checkbox" id="require-arbSchG" style="width: 20px; height: 20px; accent-color: var(--primary);" checked>
+                <div>
+                  <label for="require-arbSchG" style="margin: 0;">ArbSchG-Validierung</label>
+                  <span style="font-size: 11px; color: var(--text-muted);">Prüfung auf Vollständigkeit nach §5 & §6 ArbSchG erzwingen.</span>
+                </div>
+              </div>
+              <div class="form-group checkbox-group" style="display: flex; align-items: flex-start; gap: 10px; border: none;">
+                <input type="checkbox" id="require-arbStattV" style="width: 20px; height: 20px; accent-color: var(--primary);" checked>
+                <div>
+                  <label for="require-arbStattV" style="margin: 0;">ArbStättV-Kataloge</label>
+                  <span style="font-size: 11px; color: var(--text-muted);">Anhänge der Arbeitsstättenverordnung in Begehungen vorschlagen.</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Tab: Daten & Sync -->
+            <section id="settings-data" class="settings-panel">
+              <h3>Datenverwaltung</h3>
+              <p class="settings-description">Kontrollieren Sie Ihre lokalen Daten und den Synchronisationsstatus für den Offline-Betrieb.</p>
+              <div class="form-group">
+                <label>Offline-Status</label>
+                <div style="background: #f1f5f9; padding: 12px; border-radius: 8px; font-size: 13px;">
+                  Status: <span style="color: #10b981; font-weight: 700;">Bereit (Offline-Modus aktiv)</span><br>
+                  Lokale Datenbank: IndexedDB (Version 3)
+                </div>
+              </div>
+              <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-secondary" id="force-sync-btn" style="flex: 1;">Sync erzwingen</button>
+                <button class="btn btn-danger" id="clear-data-btn" style="flex: 1;">Cache leeren</button>
               </div>
             </section>
 
