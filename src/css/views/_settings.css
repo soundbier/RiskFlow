@@ -2,18 +2,31 @@
  * RiskFlow Settings View (Refined)
  */
 
+dialog#settings-modal {
+  padding: 0;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  margin: auto;
+  overflow: visible; /* Wichtig für Schatten */
+}
+
+dialog#settings-modal::backdrop {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(8px);
+}
+
 .settings-container {
-  width: 100%;
-  max-width: 850px;
-  height: 85vh;
-  max-height: 700px;
+  width: 850px;
+  max-width: 95vw;
+  height: 600px;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
-  padding: 0;
-  overflow: hidden;
   background-color: var(--surface);
-  border: none;
+  border-radius: var(--radius);
   box-shadow: var(--shadow-raised);
+  overflow: hidden;
 }
 
 /* Header */
@@ -34,7 +47,7 @@
 
 .header-title-group h2 {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: var(--text-main);
 }
@@ -79,7 +92,8 @@
 
 /* Sidebar */
 .settings-sidebar {
-  width: 260px;
+  width: 240px;
+  min-width: 240px;
   background-color: var(--bg-color);
   border-right: 1px solid var(--border);
   overflow-y: auto;
@@ -115,6 +129,10 @@
   background: var(--surface);
   color: var(--primary);
   font-weight: 700;
+  border-right: 1px solid var(--surface);
+  margin-right: -1px;
+  position: relative;
+  z-index: 2;
   box-shadow: inset 4px 0 0 var(--primary);
 }
 
@@ -132,7 +150,7 @@
 /* Content Area */
 .settings-content {
   flex: 1;
-  padding: var(--space-8);
+  padding: var(--space-6) var(--space-8);
   overflow-y: auto;
   background: var(--surface);
 }
@@ -356,7 +374,7 @@ input:checked + .slider:before {
 
 /* Footer */
 .settings-footer {
-  padding: var(--space-4) var(--space-8);
+  padding: var(--space-4) var(--space-6);
   border-top: 1px solid var(--border);
   background: var(--surface);
   display: flex;
