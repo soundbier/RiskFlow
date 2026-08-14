@@ -321,10 +321,15 @@ function renderCompanyState() {
     if (!infoBar || !activeCompany) return;
     
     infoBar.style.display = 'flex';
-    document.getElementById('display-c-name').innerText = activeCompany.name;
-    document.getElementById('display-c-location').innerText = activeCompany.anschrift || '—';
-    document.getElementById('display-c-auditor').innerText = activeCompany.auditor || '—';
-    document.getElementById('display-c-date').innerText = formatDate(activeCompany.createdAt);
+    const nameEl = document.getElementById('display-c-name');
+    const locEl = document.getElementById('display-c-location');
+    const audEl = document.getElementById('display-c-auditor');
+    const dateEl = document.getElementById('display-c-date');
+
+    if (nameEl) nameEl.innerText = activeCompany.name;
+    if (locEl) locEl.innerText = activeCompany.anschrift || activeCompany.ort || '—';
+    if (audEl) audEl.innerText = activeCompany.auditor || '—';
+    if (dateEl) dateEl.innerText = formatDate(activeCompany.createdAt);
 }
 
 // ==========================================
@@ -339,7 +344,10 @@ function showStep(step) {
     });
     
     if (step === 3 && document.getElementById('step3-current-gefaehrdung')) {
-        document.getElementById('step3-current-gefaehrdung').innerText = document.getElementById('gefaehrdung').value;
+        const gefEl = document.getElementById('gefaehrdung');
+        if (gefEl) {
+            document.getElementById('step3-current-gefaehrdung').innerText = gefEl.value;
+        }
     }
 
     const btnPrev = document.getElementById('btn-prev');
@@ -724,10 +732,16 @@ function renderModalPsaList() {
     
     container.querySelectorAll('.psa-checkbox').forEach(cb => {
         cb.addEventListener('change', () => {
-            document.getElementById('modal-selected-counter').innerText = `${document.querySelectorAll('#modal-psa-list input[type="checkbox"]:checked').length} ausgewählt`;
+            const counter = document.getElementById('modal-selected-counter');
+            if (counter) {
+                counter.innerText = `${document.querySelectorAll('#modal-psa-list input[type="checkbox"]:checked').length} ausgewählt`;
+            }
         });
     });
-    document.getElementById('modal-selected-counter').innerText = `${document.querySelectorAll('#modal-psa-list input[type="checkbox"]:checked').length} ausgewählt`;
+    const finalCounter = document.getElementById('modal-selected-counter');
+    if (finalCounter) {
+        finalCounter.innerText = `${document.querySelectorAll('#modal-psa-list input[type="checkbox"]:checked').length} ausgewählt`;
+    }
 }
 
 function applyPsaModalSelection() {
@@ -739,7 +753,10 @@ function applyPsaModalSelection() {
 function renderStep3PsaPreview() {
     const container = document.getElementById('step3-psa-preview');
     if(!container) return;
-    document.getElementById('psa-badge-count').innerText = `${currentSelectedPsa.length} gewählt`;
+    const badge = document.getElementById('psa-badge-count');
+    if (badge) {
+        badge.innerText = `${currentSelectedPsa.length} gewählt`;
+    }
     if (currentSelectedPsa.length === 0) { container.innerHTML = `<span style="font-size: 12px; color: var(--text-muted); font-style: italic;">Keine PSA ausgewählt</span>`; return; }
     container.innerHTML = currentSelectedPsa.map(p => `<span class="selected-psa-tag">${Icons.shield} ${escapeHtml(p)}</span>`).join('');
 }
