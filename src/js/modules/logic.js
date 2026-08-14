@@ -553,9 +553,9 @@ function renderTable() {
 
     const groupMap = {};
     assessmentList.forEach(item => {
-        const bName = item.bereich ? `${item.bereich} ` + Icons.arrowRight + ' ' : '';
+        const bName = item.bereich || '';
         const tName = item.taetigkeit || 'Ohne Zuordnung';
-        const groupKey = bName + tName;
+        const groupKey = `${bName}:::${tName}`;
         if (!groupMap[groupKey]) groupMap[groupKey] = [];
         groupMap[groupKey].push(item);
     });
@@ -565,13 +565,18 @@ function renderTable() {
         groups.sort((a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1) * (currentSort.dir === 'asc' ? 1 : -1));
     }
 
-    groups.forEach(groupName => {
+    groups.forEach(groupKey => {
+        const [bereich, taetigkeit] = groupKey.split(':::');
+        const displayTitle = bereich
+            ? `${escapeHtml(bereich)} <span style="margin: 0 4px; color: #94a3b8;">${Icons.arrowRight}</span> ${escapeHtml(taetigkeit)}`
+            : escapeHtml(taetigkeit);
+
         const trGroup = document.createElement('tr');
         trGroup.className = 'group-header-row';
-        trGroup.innerHTML = `<td colspan="9"><div style="display:flex; justify-content: space-between; align-items: center;"><span class="group-title">${Icons.folder} <span style="color: var(--primary);">${escapeHtml(groupName)}</span></span><span style="font-size: 11px; font-weight: normal; color: #64748b;">${groupMap[groupName].length} Gefährdung(en)</span></div></td>`;
+        trGroup.innerHTML = `<td colspan="9"><div style="display:flex; justify-content: space-between; align-items: center;"><span class="group-title">${Icons.folder} <span style="color: var(--primary);">${displayTitle}</span></span><span style="font-size: 11px; font-weight: normal; color: #64748b;">${groupMap[groupKey].length} Gefährdung(en)</span></div></td>`;
         tbody.appendChild(trGroup);
 
-        groupMap[groupName].forEach(item => {
+        groupMap[groupKey].forEach(item => {
             const riskVor = riskMatrix[`${item.sVor}-${item.wVor}`];
             const riskNach = riskMatrix[`${item.sNach}-${item.wNach}`];
             
