@@ -13,7 +13,11 @@ import {
   RiskMatrixColumn,
   StopInputGroup,
   ContextBanner,
-  ActionCard
+  ActionCard,
+  BottomNavigation,
+  Switch,
+  RangeSlider,
+  DrillDownPanel
 } from './ui/components.js';
 
 let currentView = 'betriebe';
@@ -77,19 +81,7 @@ function renderLayout() {
 
       <main id="main-content" class="workspace"></main>
 
-      <nav class="mobile-navigation mobile-only no-print">
-        <button class="nav-item active" id="nav-betriebe">
-          ${Icons.building}
-          <span>Betriebe</span>
-        </button>
-        <button class="nav-item" id="nav-plus">
-          <div class="nav-plus-circle">${Icons.plus}</div>
-        </button>
-        <button class="nav-item" id="nav-settings">
-          ${Icons.settings}
-          <span>Optionen</span>
-        </button>
-      </nav>
+      <div id="bottom-nav-container" class="mobile-only no-print"></div>
     </div>
 
     ${renderPsaModal()}
@@ -97,15 +89,9 @@ function renderLayout() {
     ${renderBetriebFormModal()}
   `;
 
-  document.getElementById('brand-title').addEventListener('click', () => navigateTo('betriebe'));
+  updateBottomNavigation();
 
-  // Mobile Nav Handlers
-  document.getElementById('nav-betriebe')?.addEventListener('click', () => navigateTo('betriebe'));
-  document.getElementById('nav-plus')?.addEventListener('click', () => {
-    const btn = document.getElementById('btn-new-betrieb');
-    if (btn) btn.click();
-  });
-  document.getElementById('nav-settings')?.addEventListener('click', () => document.getElementById('settings-modal').showModal());
+  document.getElementById('brand-title').addEventListener('click', () => navigateTo('betriebe'));
 }
 
 function handleRouting() {
@@ -116,14 +102,29 @@ function handleRouting() {
   else navigateTo('betriebe', false);
 }
 
+export function updateBottomNavigation() {
+  const container = document.getElementById('bottom-nav-container');
+  if (!container) return;
+
+  const isWorkspace = currentView === 'workspace';
+
+  const items = [
+    { id: 'nav-betriebe', label: 'Betriebe', icon: 'building' },
+    {
+      id: 'nav-plus',
+      label: isWorkspace ? 'Gefährdung' : 'Betrieb',
+      icon: 'plus'
+    },
+    { id: 'nav-settings', label: 'Optionen', icon: 'settings' }
+  ];
+
+  container.innerHTML = BottomNavigation({ items, activeId: isWorkspace ? '' : 'nav-betriebe' });
+}
+
 export function navigateTo(view, pushState = true) {
   currentView = view;
 
-  const globalNav = document.querySelector('.mobile-navigation');
-  if (globalNav) {
-    if (view === 'betriebe') globalNav.classList.remove('hidden');
-    else globalNav.classList.add('hidden');
-  }
+  updateBottomNavigation();
 
   if (pushState) {
     const params = new URLSearchParams(window.location.search);
@@ -248,17 +249,13 @@ function renderWorkspace() {
                     <div class="risk-split">
                         <div class="risk-split-box">
                             <h4 style="display:flex; align-items:center; gap:8px; margin-bottom: 12px;">${Icons.alert} Risiko vor Maßnahmen</h4>
-                            <div class="form-grid" style="gap: 10px;">
-                                <div><label for="s-vor">Schwere (S)</label><select id="s-vor"><option value="1">1 (Leicht)</option><option value="2">2 (Schwer)</option><option value="3" selected>3 (Tod)</option></select></div>
-                                <div><label for="w-vor">Wahrscheinlichkeit (W)</label><select id="w-vor"><option value="1">1 (Unwahr.)</option><option value="2" selected>2 (Möglich)</option><option value="3">3 (Wahr.)</option></select></div>
-                            </div>
+                            ${RangeSlider({ id: 's-vor', label: 'Schwere (S)', min: 1, max: 3, value: 3 })}
+                            ${RangeSlider({ id: 'w-vor', label: 'Wahrscheinlichkeit (W)', min: 1, max: 3, value: 2 })}
                         </div>
                         <div class="risk-split-box success">
                             <h4 style="display:flex; align-items:center; gap:8px; margin-bottom: 12px;">${Icons.check} Restrisiko nach Maßnahmen</h4>
-                            <div class="form-grid" style="gap: 10px;">
-                                <div><label for="s-nach">Schwere (S)</label><select id="s-nach"><option value="1">1 (Leicht)</option><option value="2">2 (Schwer)</option><option value="3">3 (Tod)</option></select></div>
-                                <div><label for="w-nach">Wahrscheinlichkeit (W)</label><select id="w-nach"><option value="1" selected>1 (Unwahr.)</option><option value="2">2 (Möglich)</option><option value="3">3 (Wahr.)</option></select></div>
-                            </div>
+                            ${RangeSlider({ id: 's-nach', label: 'Schwere (S)', min: 1, max: 3, value: 1 })}
+                            ${RangeSlider({ id: 'w-nach', label: 'Wahrscheinlichkeit (W)', min: 1, max: 3, value: 1 })}
                         </div>
                     </div>
                     <div class="dual-matrix-container">
@@ -282,12 +279,12 @@ function renderWorkspace() {
                         <span id="psa-badge-count" style="background: var(--primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">0 gewählt</span>
                     </button>
                     <div id="step3-psa-preview" class="selected-psa-preview-box"></div>
-                    <div style="margin-top: 12px; display: flex; align-items: center; gap: 12px; background: #f1f5f9; padding: 12px; border-radius: 8px;">
-                        <label class="switch">
-                            <input type="checkbox" id="psa-still-required" checked>
-                            <span class="slider round"></span>
-                        </label>
-                        <label for="psa-still-required" style="margin: 0; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--text-main);">PSA ist nach getroffenen (T/O-)Maßnahmen weiterhin erforderlich</label>
+                    <div style="margin-top: 12px;">
+                      ${Switch({
+                        id: 'psa-still-required',
+                        label: 'PSA ist nach getroffenen (T/O-)Maßnahmen weiterhin erforderlich',
+                        checked: true
+                      })}
                     </div>
                 </div>
                 <div class="form-group" style="margin-top: 20px;">

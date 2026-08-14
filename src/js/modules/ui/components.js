@@ -12,8 +12,8 @@ import { escapeHtml } from '../utils.js';
 export function Button({ text, icon, variant = 'primary', className = '', id = '', attr = '' }) {
   const iconHtml = icon && Icons[icon] ? Icons[icon] : '';
   return `
-    <button id="${id}" class="btn btn-${variant} ${className}" ${attr}>
-      ${iconHtml} ${text}
+    <button id="${id}" class="btn btn-${variant} ${className}" ${attr} style="touch-action: manipulation;">
+      ${iconHtml} <span>${text}</span>
     </button>
   `;
 }
@@ -88,16 +88,94 @@ export function EmptyState({ title, message, icon = 'folder', actionText, action
 }
 
 /**
- * Wizard Header mit Schritten
+ * Wizard Header mit Schritten (kompakt für Mobile)
  */
 export function WizardHeader(steps) {
   return `
     <div class="wizard-header">
-      ${steps.map((step, index) => `
-        <div class="step-indicator ${index === 0 ? 'active current' : ''}" id="ind-${index + 1}">
-          <span>${index + 1}</span> ${step}
-        </div>
-      `).join('')}
+      <div class="wizard-steps-container">
+        ${steps.map((step, index) => `
+          <div class="step-indicator ${index === 0 ? 'active current' : ''}" id="ind-${index + 1}">
+            <span class="step-num">${index + 1}</span>
+            <span class="step-label">${step}</span>
+          </div>
+          ${index < steps.length - 1 ? '<div class="step-divider"></div>' : ''}
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Custom Switch (Toggle) Komponente
+ */
+export function Switch({ id, label, checked = false, className = '' }) {
+  return `
+    <div class="switch-wrapper ${className}">
+      <label class="switch">
+        <input type="checkbox" id="${id}" ${checked ? 'checked' : ''}>
+        <span class="slider round"></span>
+      </label>
+      ${label ? `<span class="switch-label">${label}</span>` : ''}
+    </div>
+  `;
+}
+
+/**
+ * Custom Range Slider Komponente
+ */
+export function RangeSlider({ id, label, min = 1, max = 3, value = 1, step = 1, className = '' }) {
+  return `
+    <div class="form-group ${className}">
+      ${label ? `<label for="${id}">${label}</label>` : ''}
+      <div class="range-container">
+        <span class="range-min">${min}</span>
+        <input type="range" id="${id}" min="${min}" max="${max}" value="${value}" step="${step}" class="range-custom">
+        <span class="range-max">${max}</span>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Mobile Bottom Navigation
+ */
+export function BottomNavigation({ items, activeId }) {
+  return `
+    <nav class="mobile-navigation">
+      ${items.map(item => {
+        if (item.id === 'nav-plus') {
+          return `
+            <button id="${item.id}" class="nav-item nav-plus-item" aria-label="${item.label}">
+              <div class="nav-plus-circle">${Icons[item.icon]}</div>
+              <span class="nav-plus-label">${item.label}</span>
+            </button>
+          `;
+        }
+        return `
+          <button id="${item.id}" class="nav-item ${item.id === activeId ? 'active' : ''}" aria-label="${item.label}">
+            ${Icons[item.icon]}
+            <span>${item.label}</span>
+          </button>
+        `;
+      }).join('')}
+    </nav>
+  `;
+}
+
+/**
+ * Drill-Down Panel (für Seiteneinschübe)
+ */
+export function DrillDownPanel({ id, title, content, isOpen = false }) {
+  return `
+    <div id="${id}" class="drill-down-panel ${isOpen ? 'open' : ''}">
+      <div class="panel-header">
+        <button class="btn-icon btn-panel-close">${Icons.arrowLeft}</button>
+        <h2>${title}</h2>
+      </div>
+      <div class="panel-body">
+        ${content}
+      </div>
     </div>
   `;
 }

@@ -31,6 +31,21 @@ input:active, select:active, textarea:active {
 }
 
 /* Custom Switches (Toggle) */
+.switch-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 12px;
+  background: #f1f5f9;
+  border-radius: 12px;
+}
+
+.switch-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
 .switch {
   position: relative;
   display: inline-block;

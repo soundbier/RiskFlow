@@ -216,7 +216,19 @@ function setupEventDelegation() {
 
         // Mobile Nav (Bottom Bar)
         if (e.target.closest('#nav-betriebe')) navigateTo('betriebe');
-        if (e.target.closest('#nav-plus')) openCompanyModal();
+        if (e.target.closest('#nav-plus')) {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('companyId')) {
+                // Im Workspace: Fokus auf neue Gefährdung
+                currentStep = 1;
+                showStep(currentStep);
+                switchMobileTab('create');
+                document.getElementById('taetigkeit').focus();
+            } else {
+                // In Betriebe: Neuer Betrieb
+                openCompanyModal();
+            }
+        }
         if (e.target.closest('#nav-settings')) document.getElementById('settings-modal').showModal();
 
         // Mobile Tab Navigation (im Workspace)
@@ -241,11 +253,14 @@ function setupEventDelegation() {
         if (e.target.id === 'betrieb-form') await saveCompanyForm();
     });
 
+    document.addEventListener('input', (e) => {
+        if (['s-vor', 'w-vor', 's-nach', 'w-nach'].includes(e.target.id)) updateDualMatrix();
+    });
+
     document.addEventListener('change', (e) => {
         if (e.target.id === 'company-quick-select') {
             window.location.search = `?action=workspace&companyId=${e.target.value}`;
         }
-        if (['s-vor', 'w-vor', 's-nach', 'w-nach'].includes(e.target.id)) updateDualMatrix();
         if (e.target.id === 'frist-typ') {
             const di = document.getElementById('frist-datum');
             if (e.target.value === 'datum') { di.classList.remove('hidden'); di.required = true; }
@@ -379,8 +394,14 @@ function updateDualMatrix() {
     if(!sVor) return;
 
     document.querySelectorAll('.matrix-cell').forEach(c => c.classList.remove('active'));
-    if(document.getElementById(`vor-${sVor}-${wVor}`)) document.getElementById(`vor-${sVor}-${wVor}`).classList.add('active');
-    if(document.getElementById(`nach-${sNach}-${wNach}`)) document.getElementById(`nach-${sNach}-${wNach}`).classList.add('active');
+
+    const vorCell = document.getElementById(`vor-${sVor}-${wVor}`);
+    const nachCell = document.getElementById(`nach-${sNach}-${wNach}`);
+
+    if(vorCell) vorCell.classList.add('active');
+    if(nachCell) nachCell.classList.add('active');
+
+    // Mobile Feedback: Automatisches Scrollen zur Matrix verhindern, aber visuell hervorheben
 }
 
 // ==========================================
@@ -464,8 +485,15 @@ async function saveAssessmentRecord() {
     
     applyCurrentSort(); 
     renderTable(); 
-    switchMobileTab('table');
-    document.getElementById('table-anchor').scrollIntoView({ behavior: 'smooth' });
+
+    // Nach dem Speichern: Im Erfassungs-Modus bleiben für Speed-Entry
+    // Fokus auf Gefährdungs-Select für den nächsten Eintrag (Bereich/Tätigkeit bleiben gleich)
+    document.getElementById('gefaehrdung').focus();
+
+    const tableAnchor = document.getElementById('table-anchor');
+    if (tableAnchor && window.innerWidth > 768) {
+        tableAnchor.scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
 function resetFormAfterSave(keepTaetigkeit, keepBereich) {
@@ -475,8 +503,13 @@ function resetFormAfterSave(keepTaetigkeit, keepBereich) {
     currentSelectedPsa = []; 
     document.getElementById('psa-still-required').checked = true; 
     renderStep3PsaPreview();
-    document.getElementById('s-vor').value = "3"; document.getElementById('w-vor').value = "2"; 
-    document.getElementById('s-nach').value = "1"; document.getElementById('w-nach').value = "1";
+
+    // Reset Slider auf Default-Werte
+    document.getElementById('s-vor').value = "3";
+    document.getElementById('w-vor').value = "2";
+    document.getElementById('s-nach').value = "1";
+    document.getElementById('w-nach').value = "1";
+
     document.getElementById('frist-typ').value = 'datum'; 
     document.getElementById('frist-datum').classList.remove('hidden');
     document.getElementById('frist-datum').required = true;

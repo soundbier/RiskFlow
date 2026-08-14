@@ -1,0 +1,176 @@
+/**
+ * RiskFlow – Motion System
+ * Fokus auf weiche Übergänge und Feedback-Animationen
+ */
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOutRight {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Drill-Down Panel Animationen */
+.drill-down-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--surface);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  visibility: hidden;
+}
+
+.drill-down-panel.open {
+  transform: translateX(0);
+  visibility: visible;
+}
+
+.panel-header {
+  height: 64px;
+  padding: 0 var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  border-bottom: 1px solid var(--border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.panel-header h2 {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Wizard Transitionen */
+.wizard-step {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.wizard-step.active {
+  display: block;
+}
+
+.wizard-body {
+  padding: var(--space-4);
+  background: var(--surface);
+  min-height: 300px;
+}
+
+/* Kompakter Wizard Header */
+.wizard-header {
+  background: var(--bg-color);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
+.wizard-steps-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.4;
+  transition: all 0.3s;
+}
+
+.step-indicator.active {
+  opacity: 1;
+}
+
+.step-num {
+  width: 24px;
+  height: 24px;
+  background: var(--text-muted);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.step-indicator.active .step-num {
+  background: var(--primary);
+}
+
+.step-indicator.current .step-num {
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.step-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.step-indicator.active .step-label {
+  color: var(--text-main);
+}
+
+.step-divider {
+  flex: 1;
+  height: 2px;
+  background: var(--border);
+  margin: 0 var(--space-2);
+  margin-top: -14px;
+}
+
+/* Haptisches Feedback für Karten */
+.card:active {
+  transform: scale(0.98);
+  transition: transform 0.1s;
+}
+
+/* Sticky Action Bar (Wizard) */
+.wizard-actions-sticky {
+  position: fixed;
+  bottom: 72px; /* Über der Bottom-Nav */
+  left: 0;
+  right: 0;
+  padding: var(--space-4);
+  background: linear-gradient(to top, var(--surface) 80%, transparent);
+  display: flex;
+  gap: var(--space-3);
+  z-index: 90;
+}

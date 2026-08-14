@@ -13,6 +13,7 @@
   height: 64px;
   display: flex;
   align-items: center;
+  transition: transform 0.3s ease;
 }
 
 .header-container {
@@ -77,15 +78,16 @@
   gap: var(--space-2);
 }
 
-/* Mobile Navigation Bar (Bottom) */
+/* Mobile Navigation Bar (Bottom) - Context Aware */
 .mobile-navigation {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 64px;
+  height: 72px; /* Etwas höher für bessere Daumen-Erreichbarkeit */
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-around;
@@ -93,6 +95,7 @@
   padding: 0 var(--space-2);
   z-index: 100;
   padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.03);
 }
 
 .nav-item {
@@ -102,16 +105,21 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   flex: 1;
+  height: 100%;
   padding: 8px 0;
   cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .nav-item:active {
-  transform: scale(0.95);
+  transform: translateY(2px);
+  opacity: 0.7;
 }
 
 .nav-item.active {
@@ -119,25 +127,43 @@
 }
 
 .nav-item svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
+}
+
+.nav-plus-item {
+  position: relative;
+  overflow: visible;
 }
 
 .nav-plus-circle {
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   background: var(--primary);
   color: white;
-  border-radius: 50%;
+  border-radius: 18px; /* Squircle Style für moderne Haptik */
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: -30px;
-  box-shadow: var(--shadow-md);
+  margin-top: -36px;
+  box-shadow: 0 8px 16px var(--ring);
   border: 4px solid var(--surface);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.nav-plus-item:active .nav-plus-circle {
+  transform: scale(0.9) rotate(5deg);
+  box-shadow: 0 4px 8px var(--ring);
 }
 
 .nav-plus-circle svg {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
+}
+
+.nav-plus-label {
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--primary);
+  font-weight: 800;
 }
