@@ -412,7 +412,10 @@ function renderSettingsModal() {
       <div class="modal-content settings-container" id="settings-container">
         <header class="settings-header">
           <div class="header-title-group">
-            <div class="icon-circle">${Icons.settings}</div>
+            <button id="back-settings-btn" class="btn-icon-back mobile-only" aria-label="Zurück">
+              ${Icons.arrowLeft}
+            </button>
+            <div class="icon-circle desktop-only">${Icons.settings}</div>
             <h2 id="settings-title">Einstellungen</h2>
           </div>
           <button id="close-settings-btn" class="btn-icon-close" aria-label="Schließen">

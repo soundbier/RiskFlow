@@ -118,7 +118,13 @@ export function initSettings() {
   if (backBtn) {
     backBtn.addEventListener('click', () => {
       if (container) container.classList.remove('panel-active');
-      if (titleEl) titleEl.innerHTML = `${Icons.settings} Einstellungen`;
+      if (titleEl) titleEl.innerText = 'Einstellungen';
+
+      // Deactivate all panels when going back to menu on mobile
+      panels.forEach(p => {
+        p.classList.remove('active');
+        p.style.display = 'none';
+      });
     });
   }
 
