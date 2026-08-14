@@ -1,8 +1,7 @@
-/* ==========================================================================
-   Einstellungen (Settings Modal)
-   ========================================================================== */
+/**
+ * RiskFlow Settings View (Refined)
+ */
 
-/* Basis-Layout des Modals */
 .settings-container {
   width: 100%;
   max-width: 850px;
@@ -14,20 +13,7 @@
   overflow: hidden;
   background-color: var(--surface);
   border: none;
-  box-shadow: var(--shadow-lg);
-}
-
-/* Modal Styling für native <dialog> Zentrierung */
-dialog.modal {
-  padding: 0;
-  border: none;
-  border-radius: var(--radius);
-  margin: auto; /* Zentrierung auf dem Desktop */
-}
-
-dialog.modal::backdrop {
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
+  box-shadow: var(--shadow-raised);
 }
 
 /* Header */
@@ -35,28 +21,65 @@ dialog.modal::backdrop {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 1.5rem;
+  padding: var(--space-4) var(--space-6);
   border-bottom: 1px solid var(--border);
-  background-color: var(--bg-color);
+  background: var(--surface);
 }
 
-.settings-header h2 {
+.header-title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.header-title-group h2 {
   margin: 0;
-  font-size: 1.2rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 800;
   color: var(--text-main);
 }
 
-/* Body (Split-Layout) */
+.icon-circle {
+  width: 32px;
+  height: 32px;
+  background: var(--ring);
+  color: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-circle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-icon-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.btn-icon-close:hover {
+  background: var(--bg-color);
+  color: var(--text-main);
+}
+
+/* Body Layout */
 .settings-body {
   display: flex;
   flex: 1;
   overflow: hidden;
 }
 
-/* Sidebar Navigation */
+/* Sidebar */
 .settings-sidebar {
-  width: 240px;
+  width: 260px;
   background-color: var(--bg-color);
   border-right: 1px solid var(--border);
   overflow-y: auto;
@@ -64,142 +87,307 @@ dialog.modal::backdrop {
 
 .settings-menu {
   list-style: none;
-  padding: 0.75rem 0;
+  padding: var(--space-3) 0;
   margin: 0;
 }
 
 .settings-tab {
   width: 100%;
-  text-align: left;
-  padding: 0.875rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 12px var(--space-6);
   background: none;
   border: none;
-  border-left: 4px solid transparent;
   cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 500;
   color: var(--text-muted);
-  transition: all 0.2s ease;
+  font-weight: 500;
+  transition: all 0.2s;
+  text-align: left;
 }
 
 .settings-tab:hover {
-  background-color: rgba(79, 70, 229, 0.05);
+  background: rgba(79, 70, 229, 0.04);
   color: var(--primary);
 }
 
 .settings-tab.active {
-  background-color: var(--surface);
-  border-left-color: var(--primary);
-  font-weight: 700;
+  background: var(--surface);
   color: var(--primary);
+  font-weight: 700;
+  box-shadow: inset 4px 0 0 var(--primary);
 }
 
-/* Main Content Area */
+.tab-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Content Area */
 .settings-content {
   flex: 1;
-  padding: 2rem;
+  padding: var(--space-8);
   overflow-y: auto;
-  background-color: var(--surface);
+  background: var(--surface);
 }
 
-/* Panels (Tabs) */
-.settings-panel {
-  display: none;
-  animation: fadeIn 0.3s ease;
+.panel-section {
+  max-width: 540px;
+  margin: 0 auto;
 }
 
-.settings-panel.active {
-  display: block;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.settings-panel h3 {
-  margin-top: 0;
-  margin-bottom: 0.5rem;
-  font-size: 1.25rem;
-  font-weight: 700;
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 var(--space-1) 0;
   color: var(--text-main);
 }
 
-.settings-description {
+.section-desc {
   color: var(--text-muted);
-  margin-bottom: 2rem;
   font-size: 0.9rem;
+  margin: 0 0 var(--space-8) 0;
   line-height: 1.5;
 }
 
-/* Form Groups in Settings */
-.settings-panel .form-group {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
+/* Settings Rows */
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4) 0;
   border-bottom: 1px solid var(--border);
+  gap: var(--space-4);
 }
 
-.settings-panel .form-group:last-child {
-  border-bottom: none;
+.settings-row.vertical {
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-.settings-panel label {
-  display: block;
+.setting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.setting-info label {
   font-weight: 700;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
   color: var(--text-main);
+  font-size: 0.95rem;
 }
 
-/* Footer / Actions */
+.setting-info span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Custom Switches (Toggle) */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: var(--primary);
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.slider.round {
+  border-radius: 24px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Custom Range Slider */
+.range-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.range-min, .range-max {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.range-custom {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-color);
+  border-radius: 3px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.range-custom::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--primary);
+  border: 4px solid var(--surface);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Data Cards */
+.data-action-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.action-card {
+  padding: var(--space-4);
+  background: var(--bg-color);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.action-card .card-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--surface);
+  color: var(--primary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-card h4 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.action-card p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Danger Zone */
+.danger-zone-box {
+  padding: var(--space-6);
+  background: #fff1f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius);
+}
+
+.danger-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: #b91c1c;
+  margin-bottom: var(--space-2);
+}
+
+.danger-header h4 {
+  margin: 0;
+  font-weight: 800;
+}
+
+.danger-zone-box p {
+  font-size: 0.85rem;
+  color: #7f1d1d;
+  margin-bottom: var(--space-4);
+}
+
+.btn-danger-soft {
+  background: white;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  width: 100%;
+}
+
+.btn-danger-soft:hover {
+  background: #fee2e2;
+}
+
+/* Footer */
 .settings-footer {
+  padding: var(--space-4) var(--space-8);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  border-top: 1px solid var(--border);
-  background-color: var(--bg-color);
 }
 
-/* ==========================================================================
-   Responsive Design (Mobile)
-   ========================================================================== */
-@media (max-width: 768px) {
-  dialog.modal {
-    width: 100%;
-    height: 100%;
-    max-height: 100vh;
-    border-radius: 0;
-    margin: 0;
-  }
+.btn-save-all {
+  padding: 12px 24px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
+/* Mobile Adjustments */
+@media (max-width: 768px) {
   .settings-container {
     height: 100vh;
     max-height: 100vh;
-    border-radius: 0;
-  }
-
-  /* Drill-Down Logik */
-  .settings-body {
-    flex-direction: row; /* Beibehalten für Flex-Verhalten, aber Sidebar/Content Breite steuern */
-    position: relative;
-    width: 100%;
   }
 
   .settings-sidebar {
     width: 100%;
-    border-right: none;
-    background-color: var(--surface);
     display: block;
   }
 
   .settings-content {
-    display: none; /* Standardmäßig versteckt auf Mobilgeräten */
-    padding: 1.5rem;
-    width: 100%;
+    display: none;
+    padding: var(--space-4);
   }
 
-  /* Wenn ein Panel aktiv ist (Drill-Down) */
   .settings-container.panel-active .settings-sidebar {
     display: none;
   }
@@ -208,87 +396,12 @@ dialog.modal::backdrop {
     display: block;
   }
 
-  .settings-container.panel-active #back-settings-btn {
-    display: flex !important;
-  }
-
-  .settings-menu {
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-
   .settings-tab {
-    border-left: none;
+    padding: var(--space-5) var(--space-6);
     border-bottom: 1px solid var(--border);
-    padding: 1.25rem 1.5rem;
-    text-align: left;
-    white-space: nowrap;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
   }
 
-  .settings-tab .tab-label {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  .data-action-cards {
+    grid-template-columns: 1fr;
   }
-
-  .settings-tab .tab-chevron {
-    color: var(--text-muted);
-  }
-
-  .settings-tab.active {
-    background-color: rgba(79, 70, 229, 0.05);
-    border-bottom-color: var(--border); /* Kein dicker Balken unten in der Liste */
-    color: var(--primary);
-  }
-
-  .settings-footer {
-    display: none; /* Footer in der mobilen Listenansicht verstecken? Oder nur im Panel? */
-  }
-
-  .settings-container.panel-active .settings-footer {
-    display: flex;
-    flex-direction: column-reverse;
-    padding: 1rem;
-  }
-
-  .settings-footer .btn {
-    width: 100%;
-    justify-content: center;
-    padding: 0.75rem;
-  }
-}
-
-/* ==========================================================================
-   Anzeige-Optionen (Kompakt-Ansicht)
-   ========================================================================== */
-:root.view-compact {
-  --radius: 6px;
-}
-
-:root.view-compact #gb-table th,
-:root.view-compact #gb-table td {
-  padding: 6px 8px;
-  font-size: 0.85rem;
-}
-
-:root.view-compact .badge {
-  padding: 2px 6px;
-  font-size: 10px;
-}
-
-:root.view-compact .btn-icon {
-  width: 28px;
-  height: 28px;
-}
-
-:root.view-compact .table-stop-indicator {
-  width: 14px;
-  height: 14px;
-  font-size: 8px;
 }

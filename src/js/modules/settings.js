@@ -146,11 +146,11 @@ export function initSettings() {
       applyUIOptions(newSettings);
 
       // 4. Visuelles Feedback
-      const originalText = saveBtn.textContent;
-      saveBtn.textContent = 'Gespeichert!';
+      const originalHTML = saveBtn.innerHTML;
+      saveBtn.innerHTML = `${Icons.check} Gespeichert!`;
       
       setTimeout(() => {
-        saveBtn.textContent = originalText;
+        saveBtn.innerHTML = originalHTML;
         closeModal();
       }, 800);
     });

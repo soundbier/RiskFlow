@@ -411,10 +411,11 @@ function renderSettingsModal() {
     <dialog id="settings-modal" class="modal">
       <div class="modal-content settings-container" id="settings-container">
         <header class="settings-header">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <h2 id="settings-title" style="display: flex; align-items: center; gap: 8px;">${Icons.settings} Einstellungen</h2>
+          <div class="header-title-group">
+            <div class="icon-circle">${Icons.settings}</div>
+            <h2 id="settings-title">Einstellungen</h2>
           </div>
-          <button id="close-settings-btn" class="btn-icon" aria-label="Schließen">
+          <button id="close-settings-btn" class="btn-icon-close" aria-label="Schließen">
             ${Icons.x}
           </button>
         </header>
@@ -422,92 +423,148 @@ function renderSettingsModal() {
         <div class="settings-body">
           <nav class="settings-sidebar">
             <ul class="settings-menu">
-              <li><button class="settings-tab active" data-target="settings-general">${Icons.settings} <span class="tab-label">Allgemein</span></button></li>
-              <li><button class="settings-tab" data-target="settings-profile">${Icons.user} <span class="tab-label">Profil</span></button></li>
-              <li><button class="settings-tab" data-target="settings-data">${Icons.save} <span class="tab-label">Daten</span></button></li>
+              <li>
+                <button class="settings-tab active" data-target="settings-general">
+                  <span class="tab-icon">${Icons.settings}</span>
+                  <span class="tab-label">Allgemein</span>
+                  <span class="mobile-only">${Icons.chevronRight}</span>
+                </button>
+              </li>
+              <li>
+                <button class="settings-tab" data-target="settings-profile">
+                  <span class="tab-icon">${Icons.user}</span>
+                  <span class="tab-label">Profil</span>
+                  <span class="mobile-only">${Icons.chevronRight}</span>
+                </button>
+              </li>
+              <li>
+                <button class="settings-tab" data-target="settings-data">
+                  <span class="tab-icon">${Icons.save}</span>
+                  <span class="tab-label">Daten & Backup</span>
+                  <span class="mobile-only">${Icons.chevronRight}</span>
+                </button>
+              </li>
             </ul>
           </nav>
 
           <main class="settings-content">
+            <!-- Tab: Allgemein -->
             <section id="settings-general" class="settings-panel active">
-              <div class="panel-header">
-                <h3>Erscheinungsbild</h3>
-                <p>Passen Sie die Darstellung der App an.</p>
-              </div>
-              <div class="form-group">
-                <label for="theme-select">Farbschema</label>
-                <select id="theme-select" class="form-control">
-                  <option value="system">Systemstandard</option>
-                  <option value="light">Helles Design</option>
-                  <option value="dark">Dunkles Design</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="checkbox-label">
-                  <input type="checkbox" id="compact-view-check">
-                  <span>Kompakt-Ansicht aktivieren</span>
-                </label>
-              </div>
-              <div class="form-group">
-                <label for="font-size-range">Schriftgröße (<span id="font-size-label">100</span>%)</label>
-                <input type="range" id="font-size-range" min="80" max="150" step="5" value="100" style="width: 100%; cursor: pointer;">
+              <div class="panel-section">
+                <h3 class="section-title">Erscheinungsbild</h3>
+                <p class="section-desc">Passen Sie das Design der Anwendung an Ihre Vorlieben an.</p>
+
+                <div class="settings-row">
+                  <div class="setting-info">
+                    <label for="theme-select">Farbschema</label>
+                    <span>Wählen Sie zwischen hellem, dunklem oder System-Design.</span>
+                  </div>
+                  <select id="theme-select" class="form-control select-custom">
+                    <option value="system">Systemstandard</option>
+                    <option value="light">Helles Design</option>
+                    <option value="dark">Dunkles Design</option>
+                  </select>
+                </div>
+
+                <div class="settings-row">
+                  <div class="setting-info">
+                    <label for="compact-view-check">Kompakt-Modus</label>
+                    <span>Reduziert Abstände in Tabellen für mehr Übersicht.</span>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" id="compact-view-check">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+
+                <div class="settings-row vertical">
+                  <div class="setting-info">
+                    <label>Schriftgröße (<span id="font-size-label">100</span>%)</label>
+                  </div>
+                  <div class="range-container">
+                    <span class="range-min">80%</span>
+                    <input type="range" id="font-size-range" min="80" max="150" step="5" value="100" class="range-custom">
+                    <span class="range-max">150%</span>
+                  </div>
+                </div>
               </div>
             </section>
 
             <section id="settings-profile" class="settings-panel">
-              <div class="panel-header">
-                <h3>Prüfer-Profil</h3>
-                <p>Hinterlegen Sie Standardwerte für neue Berichte.</p>
-              </div>
-              <div class="form-group">
-                <label for="prof-name">Name des Prüfers</label>
-                <input type="text" id="prof-name" class="form-control" placeholder="z.B. Max Mustermann">
-              </div>
-              <div class="form-group">
-                <label for="prof-role">Position / Fachkunde</label>
-                <input type="text" id="prof-role" class="form-control" placeholder="z.B. Fachkraft für Arbeitssicherheit">
-              </div>
-              <div class="form-group" style="display:none;">
-                 <input type="text" id="prof-cert">
+              <div class="panel-section">
+                <h3 class="section-title">Prüfer-Profil</h3>
+                <p class="section-desc">Diese Daten werden automatisch in neue Berichte übernommen.</p>
+
+                <div class="form-group">
+                  <label for="prof-name">Vollständiger Name</label>
+                  <input type="text" id="prof-name" class="form-control" placeholder="z.B. Max Mustermann">
+                </div>
+
+                <div class="form-group">
+                  <label for="prof-role">Position / Fachkunde</label>
+                  <input type="text" id="prof-role" class="form-control" placeholder="z.B. Fachkraft für Arbeitssicherheit">
+                </div>
+
+                <div class="form-group" style="display:none;">
+                  <input type="text" id="prof-cert">
+                </div>
               </div>
             </section>
 
             <section id="settings-data" class="settings-panel">
-              <div class="panel-header">
-                <h3>Datenverwaltung</h3>
-                <p>Exportieren oder importieren Sie Ihre lokale Datenbank.</p>
-              </div>
-              <div class="data-grid" style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <button id="btn-export-db" class="btn btn-primary" style="flex: 1;">${Icons.download} Backup erstellen</button>
-                <button id="btn-import-trigger" class="btn btn-outline" style="flex: 1;">${Icons.upload} Backup einlesen</button>
-                <input type="file" id="db-import-file" style="display: none;" accept=".json">
-              </div>
-              <div class="danger-zone" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
-                <h4 style="color: #ef4444; margin-bottom: 10px;">Gefahrenzone</h4>
-                <button id="btn-factory-reset" class="btn btn-outline" style="color: #ef4444; border-color: #fecaca; width: 100%;">App vollständig zurücksetzen</button>
+              <div class="panel-section">
+                <h3 class="section-title">Datenverwaltung</h3>
+                <p class="section-desc">Sichern Sie Ihre lokalen Daten oder stellen Sie diese wieder her.</p>
+
+                <div class="data-action-cards">
+                  <div class="action-card">
+                    <div class="card-icon">${Icons.download}</div>
+                    <div class="card-text">
+                      <h4>Exportieren</h4>
+                      <p>Alle Daten als JSON-Datei sichern.</p>
+                    </div>
+                    <button id="btn-export-db" class="btn btn-outline btn-sm">Backup erstellen</button>
+                  </div>
+
+                  <div class="action-card">
+                    <div class="card-icon">${Icons.upload}</div>
+                    <div class="card-text">
+                      <h4>Importieren</h4>
+                      <p>Daten aus einer Sicherung einlesen.</p>
+                    </div>
+                    <button id="btn-import-trigger" class="btn btn-outline btn-sm">Datei wählen</button>
+                    <input type="file" id="db-import-file" style="display: none;" accept=".json">
+                  </div>
+                </div>
+
+                <div class="danger-zone-box">
+                  <div class="danger-header">
+                    ${Icons.alert}
+                    <h4>Gefahrenzone</h4>
+                  </div>
+                  <p>Durch das Zurücksetzen werden alle Betriebe, Beurteilungen und Einstellungen unwiderruflich gelöscht.</p>
+                  <button id="btn-factory-reset" class="btn btn-danger-soft">App vollständig zurücksetzen</button>
+                </div>
               </div>
             </section>
 
-            <section id="settings-suggestions" class="settings-panel">
-              <div class="panel-header">
-                <h3>Vorschlags-Verwaltung</h3>
-                <p>Verwalten Sie die Begriffe in den Auswahl-Listen.</p>
-              </div>
-              <div class="form-group">
-                <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                  <select id="suggest-type-select" class="form-control" style="flex: 1;">
-                    <option value="taetigkeit">Tätigkeiten / Arbeitsplätze</option>
-                    <option value="bereich">Bereiche / Abteilungen</option>
-                  </select>
-                  ${IconButton({ icon: 'check', id: 'btn-refresh-suggestions', ariaLabel: 'Aktualisieren' })}
-                </div>
-                <div id="suggestion-list-container" class="suggestion-list-box">
-                  <!-- Dynamisch befüllt durch settings.js -->
-                </div>
-              </div>
+            <section id="settings-suggestions" class="settings-panel" style="display:none;">
+                <select id="suggest-type-select"><option value="taetigkeit"></option></select>
+                <div id="suggestion-list-container"></div>
+                <button id="btn-refresh-suggestions"></button>
             </section>
           </main>
         </div>
+
+        <footer class="settings-footer">
+          <button id="save-settings-btn" class="btn btn-primary btn-save-all">
+            ${Icons.check} Einstellungen speichern
+          </button>
+        </footer>
+      </div>
+    </dialog>
+  `;
+}
 
         <footer class="settings-footer">
           <button id="save-settings-btn" class="btn btn-primary" style="width: 100%;">Einstellungen speichern</button>
