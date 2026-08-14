@@ -1,7 +1,0 @@
-- [x] Überarbeitung der Betriebsverwaltung
-    - [x] UI-Erweiterung in `app.js` (Neue Formularfelder)
-    - [x] Fix Event-Delegation in `logic.js` (Bearbeiten/Löschen Buttons)
-    - [x] Daten-Logik in `logic.js` (Speichern & Laden der neuen Felder)
-    - [x] UI-Darstellung in `logic.js` (Anzeige der kombinierten Adresse)
-    - [x] Styling-Anpassungen in `_betriebe.css`
-- [x] Verifizierung der Funktionen
