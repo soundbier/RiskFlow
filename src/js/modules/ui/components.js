@@ -202,7 +202,7 @@ export function BulkActionBar({ count, onCancelId, onPrintId, onExportId }) {
         <div class="bulk-divider"></div>
         <div class="bulk-actions">
           ${Button({ text: 'Drucken', icon: 'printer', id: onPrintId, variant: 'secondary', className: 'btn-sm' })}
-          ${Button({ text: 'Excel Export', icon: 'spreadsheet', id: onExportId, variant: 'secondary', className: 'btn-sm' })}
+          ${Button({ text: 'Excel Bericht', icon: 'spreadsheet', id: onExportId, variant: 'primary', className: 'btn-sm' })}
           <button id="${onCancelId}" class="btn-bulk-cancel">${Icons.x}</button>
         </div>
       </div>

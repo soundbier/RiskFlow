@@ -169,7 +169,7 @@ function setupEventDelegation() {
         
         // Navigation & Globale Aktionen
         if (e.target.closest('#btn-goto-betriebe') || e.target.closest('#btn-close-workspace')) navigateTo('betriebe');
-        if (e.target.closest('#btn-export') || e.target.closest('#btn-export-mobile')) exportCompanyToCSV();
+        if (e.target.closest('#btn-export') || e.target.closest('#btn-export-mobile')) exportCompanyToExcel();
         if (e.target.closest('#btn-print') || e.target.closest('#btn-print-mobile')) window.print();
 
         // Betriebe Verwaltung
@@ -249,7 +249,7 @@ function setupEventDelegation() {
             printSelection();
         }
         if (e.target.closest('#btn-bulk-export')) {
-            exportCompanyToCSV(true);
+            exportCompanyToExcel(true);
         }
         if (e.target.closest('.btn-icon.edit')) {
             editRecord(Number(e.target.closest('tr').dataset.id));
@@ -320,60 +320,128 @@ function setupEventDelegation() {
 }
 
 // ==========================================
-// EXPORT PRO BETRIEB (EXCEL / CSV)
+// EXPORT PRO BETRIEB (EXCEL / FORMATTED)
 // ==========================================
 
-function exportCompanyToCSV(onlySelected = false) {
+function exportCompanyToExcel(onlySelected = false) {
     if (!activeCompany) return;
-
-    const sanitize = (text) => `"${(text || '').toString().replace(/"/g, '""')}"`;
-    let csvContent = '\uFEFF'; 
-
-    csvContent += `GEFÄHRDUNGSBEURTEILUNG - ${activeCompany.name.toUpperCase()}\n`;
-    csvContent += `Standort / Anschrift:;${sanitize(activeCompany.anschrift)}\n`;
-    csvContent += `Geprüft durch:;${sanitize(activeCompany.auditor)}\n`;
-    csvContent += `Angelegt am:;${formatDate(activeCompany.createdAt)}\n`;
-    csvContent += `Export-Datum:;${new Date().toLocaleDateString('de-DE')}\n\n`;
-
-    const headers = [
-        'Bereich', 'Tätigkeit', 'Gefährdungsfaktor', 
-        'S (vor)', 'W (vor)', 'Risiko (vor)', 
-        'STOP-S', 'STOP-T', 'STOP-O', 'STOP-P', 'PSA', 'PSA weiterhin erforderlich',
-        'S (nach)', 'W (nach)', 'Restrisiko (nach)', 
-        'Verantwortlich', 'Frist'
-    ];
-    csvContent += headers.map(h => sanitize(h)).join(';') + '\n';
 
     const itemsToExport = onlySelected
         ? assessmentList.filter(a => selectedAssessmentIds.has(a.id))
         : assessmentList;
 
-    itemsToExport.forEach(item => {
-        const riskVor = riskMatrix[`${item.sVor}-${item.wVor}`]?.level || '-';
-        const riskNach = riskMatrix[`${item.sNach}-${item.wNach}`]?.level || '-';
+    if (itemsToExport.length === 0) {
+        alert("Keine Daten zum Exportieren ausgewählt.");
+        return;
+    }
 
-        const row = [
-            item.bereich || 'Allgemein',
-            item.taetigkeit,
-            item.gefaehrdung,
-            item.sVor, item.wVor, riskVor,
-            (item.stopS || '').replace(/\|/g, ' / '),
-            (item.stopT || '').replace(/\|/g, ' / '),
-            (item.stopO || '').replace(/\|/g, ' / '),
-            (item.stopP || '').replace(/\|/g, ' / '),
-            (item.psaList || []).join(' / '),
-            item.psaStillRequired !== false ? 'Ja' : 'Nein',
-            item.sNach, item.wNach, riskNach,
-            item.verantwortlich,
-            formatFrist(item.frist)
-        ];
-        csvContent += row.map(cell => sanitize(cell)).join(';') + '\n';
+    // Farben & Styles für Excel
+    const styles = {
+        header: 'background-color: #f1f5f9; font-weight: bold; border: 1px solid #94a3b8;',
+        cell: 'border: 1px solid #cbd5e1; vertical-align: top; padding: 5px;',
+        low: 'background-color: #dcfce7; color: #15803d; font-weight: bold; text-align: center;',
+        medium: 'background-color: #fef9c3; color: #a16207; font-weight: bold; text-align: center;',
+        high: 'background-color: #fee2e2; color: #b91c1c; font-weight: bold; text-align: center;',
+        group: 'background-color: #e2e8f0; font-weight: bold; border: 1px solid #94a3b8; font-size: 14px;'
+    };
+
+    // Erstelle HTML-Tabelle für Excel
+    let html = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+            <meta charset="utf-8">
+            <!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>GBU Report</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+            <style>
+                td { mso-number-format:"\\@"; } /* Verhindert ungewollte Zahlenformatierung */
+                .br { mso-data-placement:same-cell; } /* Erlaubt Zeilenumbrüche in Excel-Zellen */
+            </style>
+        </head>
+        <body>
+            <table>
+                <tr><td colspan="8" style="font-size: 18px; font-weight: bold;">GEFÄHRDUNGSBEURTEILUNG</td></tr>
+                <tr><td colspan="2" style="font-weight: bold;">Betrieb / Firma:</td><td colspan="6">${escapeHtml(activeCompany.name)}</td></tr>
+                <tr><td colspan="2" style="font-weight: bold;">Standort / Ort:</td><td colspan="6">${escapeHtml(activeCompany.ort || activeCompany.anschrift || '—')}</td></tr>
+                <tr><td colspan="2" style="font-weight: bold;">Erstellt durch:</td><td colspan="6">${escapeHtml(activeCompany.auditor || '—')}</td></tr>
+                <tr><td colspan="2" style="font-weight: bold;">Export-Datum:</td><td colspan="6">${new Date().toLocaleDateString('de-DE')}</td></tr>
+                <tr><td colspan="8"></td></tr>
+                <thead>
+                    <tr>
+                        <th style="${styles.header}">Bereich / Tätigkeit</th>
+                        <th style="${styles.header}">Gefährdungsfaktor</th>
+                        <th style="${styles.header}">Risiko (Vorher)</th>
+                        <th style="${styles.header}">Schutzmaßnahmen (STOP-Prinzip)</th>
+                        <th style="${styles.header}">PSA / Schutzausrüstung</th>
+                        <th style="${styles.header}">Restrisiko (Nachher)</th>
+                        <th style="${styles.header}">Verantwortlich</th>
+                        <th style="${styles.header}">Frist</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    // Gruppierung wie in der Tabelle
+    const groupMap = {};
+    itemsToExport.forEach(item => {
+        const bName = item.bereich || '';
+        const tName = item.taetigkeit || 'Ohne Zuordnung';
+        const groupKey = `${bName}:::${tName}`;
+        if (!groupMap[groupKey]) groupMap[groupKey] = [];
+        groupMap[groupKey].push(item);
     });
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    Object.keys(groupMap).forEach(groupKey => {
+        const [bereich, taetigkeit] = groupKey.split(':::');
+        const displayTitle = bereich ? `${bereich} > ${taetigkeit}` : taetigkeit;
+
+        html += `<tr><td colspan="8" style="${styles.group}">${escapeHtml(displayTitle)}</td></tr>`;
+
+        groupMap[groupKey].forEach(item => {
+            const riskVor = riskMatrix[`${item.sVor}-${item.wVor}`];
+            const riskNach = riskMatrix[`${item.sNach}-${item.wNach}`];
+
+            // STOP Maßnahmen mit Zeilenumbrüchen
+            let stopContent = '';
+            ['S','T','O','P'].forEach(l => {
+                if (item[`stop${l}`]) {
+                    const lines = item[`stop${l}`].split('|');
+                    lines.forEach((line, idx) => {
+                        stopContent += `[${l}] ${escapeHtml(line)}<br class="br">`;
+                    });
+                }
+            });
+
+            // PSA Content
+            let psaContent = (item.psaList || []).map(p => `• ${escapeHtml(p)}`).join('<br class="br">');
+            if (item.psaStillRequired !== false && item.psaList?.length > 0) {
+                psaContent += `<br class="br"><i>(PSA weiterhin erforderlich)</i>`;
+            }
+
+            html += `
+                <tr>
+                    <td style="${styles.cell}">${escapeHtml(item.taetigkeit)}</td>
+                    <td style="${styles.cell}">${escapeHtml(item.gefaehrdung)}</td>
+                    <td style="${styles.cell} ${styles[riskVor.class]}">${riskVor.level} (S${item.sVor}/W${item.wVor})</td>
+                    <td style="${styles.cell}">${stopContent}</td>
+                    <td style="${styles.cell}">${psaContent}</td>
+                    <td style="${styles.cell} ${styles[riskNach.class]}">${riskNach.level} (S${item.sNach}/W${item.wNach})</td>
+                    <td style="${styles.cell}">${escapeHtml(item.verantwortlich)}</td>
+                    <td style="${styles.cell}">${formatFrist(item.frist)}</td>
+                </tr>
+            `;
+        });
+    });
+
+    html += `
+                </tbody>
+            </table>
+        </body>
+        </html>
+    `;
+
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    const filename = `Gefaehrdungsbeurteilung_${activeCompany.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.csv`;
+    const filename = `GBU_${activeCompany.name.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.xls`;
     
     link.setAttribute('href', url);
     link.setAttribute('download', filename);
