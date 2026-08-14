@@ -213,9 +213,53 @@ export async function resetFactorySettings() {
   await saveSetting('branchTemplates', defaultTemplates);
 }
 
+// ============================================================================
+// 5. BACKUP & EXPORT (JSON)
+// ============================================================================
+
+/**
+ * Exportiert die gesamte Datenbank als JSON-String
+ */
+export async function exportDatabase() {
+  const companies = await db.getAll('companies');
+  const assessments = await db.getAll('assessments');
+  const settings = await db.getAll('settings');
+
+  const data = {
+    version: DB_VERSION,
+    timestamp: new Date().toISOString(),
+    companies,
+    assessments,
+    settings
+  };
+
+  return JSON.stringify(data, null, 2);
+}
+
+/**
+ * Importiert Daten aus einem JSON-Objekt in die Datenbank
+ */
+export async function importDatabase(data) {
+  if (!data || !data.companies || !data.assessments) {
+    throw new Error('Ungültiges Backup-Format.');
+  }
+
+  const tx = db.transaction(['companies', 'assessments', 'settings'], 'readwrite');
+
+  // Optional: Vorher leeren? In diesem Fall überschreiben wir lieber (put)
+  for (const c of data.companies) await tx.objectStore('companies').put(c);
+  for (const a of data.assessments) await tx.objectStore('assessments').put(a);
+  if (data.settings) {
+    for (const s of data.settings) await tx.objectStore('settings').put(s);
+  }
+
+  await tx.done;
+  return true;
+}
+
 
 // ============================================================================
-// 4. LOKALE APP-EINSTELLUNGEN (LocalStorage)
+// 6. LOKALE APP-EINSTELLUNGEN (LocalStorage)
 // ============================================================================
 // Diese Funktionen arbeiten synchron, damit das UI (z.B. Darkmode) direkt
 // beim Seitenaufbau ohne Datenbank-Verzögerung angewendet werden kann.
@@ -223,7 +267,14 @@ export async function resetFactorySettings() {
 const UI_SETTINGS_KEY = 'riskflow_ui_settings';
 
 const defaultUiSettings = {
-  theme: 'system'
+  theme: 'system',
+  compactView: false,
+  fontSize: 100, // in Prozent
+  auditorProfile: {
+    name: '',
+    role: '',
+    cert: ''
+  }
 };
 
 /**
@@ -271,4 +322,21 @@ export function applyTheme(themeValue) {
       root.classList.add('theme-dark');
     }
   }
+}
+
+/**
+ * Wendet UI-Optionen wie Kompaktansicht und Schriftgröße an
+ */
+export function applyUIOptions(settings) {
+  const root = document.documentElement;
+
+  // Kompakt-Ansicht
+  if (settings.compactView) {
+    root.classList.add('view-compact');
+  } else {
+    root.classList.remove('view-compact');
+  }
+
+  // Schriftgröße
+  root.style.fontSize = settings.fontSize ? `${(settings.fontSize / 100) * 16}px` : '16px';
 }

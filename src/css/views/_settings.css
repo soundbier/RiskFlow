@@ -230,3 +230,32 @@ dialog.modal::backdrop {
     padding: 0.75rem;
   }
 }
+
+/* ==========================================================================
+   Anzeige-Optionen (Kompakt-Ansicht)
+   ========================================================================== */
+:root.view-compact {
+  --radius: 6px;
+}
+
+:root.view-compact #gb-table th,
+:root.view-compact #gb-table td {
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
+
+:root.view-compact .badge {
+  padding: 2px 6px;
+  font-size: 10px;
+}
+
+:root.view-compact .btn-icon {
+  width: 28px;
+  height: 28px;
+}
+
+:root.view-compact .table-stop-indicator {
+  width: 14px;
+  height: 14px;
+  font-size: 8px;
+}

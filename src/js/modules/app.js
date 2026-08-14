@@ -376,7 +376,10 @@ function renderSettingsModal() {
           <nav class="settings-sidebar">
             <ul class="settings-menu">
               <li><button class="settings-tab active" data-target="settings-general">Allgemein</button></li>
+              <li><button class="settings-tab" data-target="settings-profile">Profil</button></li>
+              <li><button class="settings-tab" data-target="settings-suggestions">Vorschläge</button></li>
               <li><button class="settings-tab" data-target="settings-structure">Betrieb & Abteilungen</button></li>
+              <li><button class="settings-tab" data-target="settings-data">Daten & Backup</button></li>
             </ul>
           </nav>
 
@@ -396,6 +399,58 @@ function renderSettingsModal() {
                   <option value="dark">Dunkles Design (OLED-freundlich)</option>
                 </select>
               </div>
+
+              <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                  <input type="checkbox" id="compact-view-check" style="width: 18px; height: 18px; cursor: pointer;">
+                  <span>Kompakt-Ansicht (Tabellen verkleinern)</span>
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label for="font-size-range">Schriftgröße (<span id="font-size-label">100</span>%)</label>
+                <input type="range" id="font-size-range" min="80" max="150" step="5" value="100" style="width: 100%; cursor: pointer;">
+              </div>
+            </section>
+
+            <!-- Tab: Profil -->
+            <section id="settings-profile" class="settings-panel">
+              <h3>Standard-Prüfer</h3>
+              <p class="settings-description">Hinterlegen Sie hier Ihre Daten, um sie beim Erstellen neuer Betriebe automatisch einzufügen.</p>
+
+              <div class="form-group">
+                <label for="prof-name">Name des Prüfers</label>
+                <input type="text" id="prof-name" class="form-control" placeholder="z.B. Max Mustermann">
+              </div>
+              <div class="form-group">
+                <label for="prof-role">Position / Fachkunde</label>
+                <input type="text" id="prof-role" class="form-control" placeholder="z.B. Fachkraft für Arbeitssicherheit">
+              </div>
+              <div class="form-group">
+                <label for="prof-cert">Zertifikats- / ID-Nummer</label>
+                <input type="text" id="prof-cert" class="form-control" placeholder="Optional">
+              </div>
+            </section>
+
+            <!-- Tab: Vorschläge -->
+            <section id="settings-suggestions" class="settings-panel">
+              <h3>Vorschlags-Verwaltung</h3>
+              <p class="settings-description">Korrigieren oder löschen Sie Begriffe, die in Ihren Vorschlagslisten (Datalists) erscheinen.</p>
+
+              <div class="suggestion-manager">
+                <div style="margin-bottom: 1rem; display: flex; gap: 10px;">
+                  <select id="suggest-type-select" class="form-control" style="flex: 1;">
+                    <option value="taetigkeit">Tätigkeiten / Arbeitsplätze</option>
+                    <option value="bereich">Bereiche / Abteilungen</option>
+                  </select>
+                  <button id="btn-refresh-suggestions" class="btn btn-secondary" title="Liste aktualisieren">${Icons.check}</button>
+                </div>
+
+                <div id="suggestion-list-container" class="suggestion-list">
+                  <!-- Dynamisch befüllt -->
+                  <p style="text-align: center; color: var(--text-muted); padding: 2rem;">Lade Vorschläge...</p>
+                </div>
+              </div>
             </section>
 
             <!-- Tab: Betriebsstruktur -->
@@ -407,6 +462,33 @@ function renderSettingsModal() {
                 <p style="font-size: 13px; color: var(--text-muted);">Nutzen Sie das Dashboard, um neue Betriebe anzulegen oder bestehende zu bearbeiten.</p>
               </div>
               <button class="btn btn-secondary" onclick="window.location.href='/'">Zum Dashboard</button>
+            </section>
+
+            <!-- Tab: Daten & Backup -->
+            <section id="settings-data" class="settings-panel">
+              <h3>Datenverwaltung</h3>
+              <p class="settings-description">Sichern Sie Ihre Daten oder übertragen Sie sie auf ein anderes Gerät. Die Speicherung erfolgt aktuell rein lokal in Ihrem Browser.</p>
+
+              <div class="data-actions-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="card" style="padding: 1.25rem; border: 1px solid var(--border);">
+                  <h4 style="margin-top: 0;">${Icons.download} Export</h4>
+                  <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 1rem;">Lädt alle Betriebe und Beurteilungen als JSON-Datei herunter.</p>
+                  <button id="btn-export-db" class="btn btn-primary" style="width: 100%;">Backup erstellen</button>
+                </div>
+
+                <div class="card" style="padding: 1.25rem; border: 1px solid var(--border);">
+                  <h4 style="margin-top: 0;">${Icons.upload} Import</h4>
+                  <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 1rem;">Wiederherstellung aus einer zuvor exportierten Datei.</p>
+                  <button id="btn-import-trigger" class="btn btn-outline" style="width: 100%;">Datei einlesen</button>
+                  <input type="file" id="db-import-file" style="display: none;" accept=".json">
+                </div>
+              </div>
+
+              <div style="margin-top: 2rem; padding: 1rem; background: #fff1f2; border-radius: 8px; border: 1px solid #fecaca;">
+                <h4 style="margin-top: 0; color: #b91c1c; display: flex; align-items: center; gap: 8px;">${Icons.alert} Gefahrenzone</h4>
+                <p style="font-size: 12px; color: #7f1d1d; margin-bottom: 1rem;">Hiermit werden alle lokalen Daten (inkl. aller Betriebe) unwiderruflich gelöscht.</p>
+                <button id="btn-factory-reset" class="btn btn-outline" style="color: #b91c1c; border-color: #fca5a5;">App zurücksetzen</button>
+              </div>
             </section>
 
           </main>

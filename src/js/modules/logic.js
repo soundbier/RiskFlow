@@ -803,7 +803,15 @@ function openCompanyModal(id = null) {
         title.textContent = 'Neuer Betrieb';
         nameInput.value = '';
         anschriftInput.value = '';
-        if(auditorInput) auditorInput.value = '';
+
+        // Pre-fill from Auditor Profile
+        const uiSettings = storage.loadUISettings();
+        if (auditorInput && uiSettings.auditorProfile) {
+            const p = uiSettings.auditorProfile;
+            auditorInput.value = [p.name, p.role].filter(Boolean).join(', ');
+        } else if (auditorInput) {
+            auditorInput.value = '';
+        }
     }
 
     document.getElementById('betrieb-modal').style.display = 'flex';
