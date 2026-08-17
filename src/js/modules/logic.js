@@ -311,10 +311,13 @@ function setupEventDelegation() {
         if (e.target.id === 'company-quick-select') {
             window.location.search = `?action=workspace&companyId=${e.target.value}`;
         }
-        if (e.target.id === 'frist-typ') {
-            const di = document.getElementById('frist-datum');
-            if (e.target.value === 'datum') { di.classList.remove('hidden'); di.required = true; }
-            else { di.classList.add('hidden'); di.required = false; di.value = ''; }
+        // Fristtyp je STOP-Maßnahmenzeile (nicht mehr global)
+        if (e.target.classList.contains('stop-frist-typ')) {
+            const meta = e.target.closest('.stop-row-meta');
+            const dateInput = meta ? meta.querySelector('.stop-frist-datum') : null;
+            if (!dateInput) return;
+            if (e.target.value === 'datum') { dateInput.classList.remove('hidden'); }
+            else { dateInput.classList.add('hidden'); dateInput.value = ''; }
         }
     });
 }
@@ -399,16 +402,22 @@ function exportCompanyToExcel(onlySelected = false) {
             const riskVor = riskMatrix[`${item.sVor}-${item.wVor}`];
             const riskNach = riskMatrix[`${item.sNach}-${item.wNach}`];
 
-            // STOP Maßnahmen mit Zeilenumbrüchen
+            // STOP Maßnahmen sowie Verantwortlich/Frist je Maßnahmenzeile, zeilenweise ausgerichtet
+            const measureRows = getAllMeasures(item);
             let stopContent = '';
-            ['S','T','O','P'].forEach(l => {
-                if (item[`stop${l}`]) {
-                    const lines = item[`stop${l}`].split('|');
-                    lines.forEach((line, idx) => {
-                        stopContent += `[${l}] ${escapeHtml(line)}<br class="br">`;
-                    });
-                }
+            let verantwContent = '';
+            let fristContent = '';
+            measureRows.forEach(m => {
+                stopContent += `[${m.letter}] ${escapeHtml(m.text)}<br class="br">`;
+                verantwContent += `${m.verantwortlich ? escapeHtml(m.verantwortlich) : '—'}<br class="br">`;
+                const fristVal = m.fristTyp === 'datum' ? m.fristDatum : m.fristTyp;
+                fristContent += `${formatFrist(fristVal)}<br class="br">`;
             });
+            if (measureRows.length === 0) {
+                stopContent = '—';
+                verantwContent = '—';
+                fristContent = '—';
+            }
 
             // PSA Content
             let psaContent = (item.psaList || []).map(p => `• ${escapeHtml(p)}`).join('<br class="br">');
@@ -424,8 +433,8 @@ function exportCompanyToExcel(onlySelected = false) {
                     <td style="${styles.cell}">${stopContent}</td>
                     <td style="${styles.cell}">${psaContent}</td>
                     <td style="${styles.cell} ${styles[riskNach.class]}">${riskNach.level} (S${item.sNach}/W${item.wNach})</td>
-                    <td style="${styles.cell}">${escapeHtml(item.verantwortlich)}</td>
-                    <td style="${styles.cell}">${formatFrist(item.frist)}</td>
+                    <td style="${styles.cell}">${verantwContent}</td>
+                    <td style="${styles.cell}">${fristContent}</td>
                 </tr>
             `;
         });
@@ -590,7 +599,7 @@ function updateDualMatrix() {
 // STOP-PRINZIP & FORMULAR
 // ==========================================
 
-function addStopRow(letter, placeholder, value = '') {
+function addStopRow(letter, placeholder, value = {}) {
     const container = document.getElementById(`multi-${letter}`);
     if(!container) return;
 
@@ -606,8 +615,20 @@ function addStopRow(letter, placeholder, value = '') {
 function removeStopRow(btn) {
     const letter = btn.dataset.letter;
     const container = document.getElementById(`multi-${letter}`);
-    if (container.children.length === 1) { container.querySelector('input').value = ''; return; }
-    btn.closest('.input-row').remove();
+
+    if (container.children.length === 1) {
+        // Letzte Zeile: nicht entfernen, sondern alle Felder zurücksetzen
+        const row = container.querySelector('.stop-input-row');
+        if (!row) return;
+        row.querySelector('.stop-val').value = '';
+        row.querySelector('.stop-verantwortlich').value = '';
+        const fristTypSel = row.querySelector('.stop-frist-typ');
+        if (fristTypSel) fristTypSel.value = 'datum';
+        const fristDatumInput = row.querySelector('.stop-frist-datum');
+        if (fristDatumInput) { fristDatumInput.value = ''; fristDatumInput.classList.remove('hidden'); }
+        return;
+    }
+    btn.closest('.stop-input-row').remove();
     updateStopNumbers(letter);
 }
 
@@ -628,9 +649,71 @@ function resetStopFields() {
     addStopRow('p', 'Persönliche Maßnahmen (sonstige)');
 }
 
-function getStopValues(letter) { 
-    return Array.from(document.querySelectorAll(`#multi-${letter} .stop-val`))
-                .map(i => i.value.trim()).filter(v => v !== '').join('|'); 
+/**
+ * Liest alle Maßnahmenzeilen eines STOP-Buchstabens aus dem Formular aus.
+ * Gibt eine Liste strukturierter Objekte zurück: { text, verantwortlich, fristTyp, fristDatum }
+ * Leere Zeilen (kein Maßnahmentext) werden verworfen.
+ */
+function getStopValues(letter) {
+    return Array.from(document.querySelectorAll(`#multi-${letter} .stop-input-row`))
+        .map(row => {
+            const text = row.querySelector('.stop-val').value.trim();
+            const verantwortlich = row.querySelector('.stop-verantwortlich').value.trim();
+            const fristTyp = row.querySelector('.stop-frist-typ').value;
+            const fristDatum = fristTyp === 'datum' ? row.querySelector('.stop-frist-datum').value : '';
+            return { text, verantwortlich, fristTyp, fristDatum };
+        })
+        .filter(v => v.text !== '');
+}
+
+/**
+ * Wandelt gespeicherte STOP-Maßnahmen in eine einheitliche Objekt-Liste um.
+ * Unterstützt weiterhin das alte Format (Pipe-getrennter String ohne Verantwortlich/Frist)
+ * für bereits vorhandene Altdatensätze.
+ */
+function normalizeStopMeasures(value) {
+    if (Array.isArray(value)) {
+        return value.filter(m => m && m.text);
+    }
+    if (typeof value === 'string' && value.trim() !== '') {
+        return value.split('|').map(t => t.trim()).filter(t => t !== '').map(text => ({
+            text, verantwortlich: '', fristTyp: 'datum', fristDatum: ''
+        }));
+    }
+    return [];
+}
+
+/**
+ * Liefert alle Maßnahmenzeilen (S, T, O, P) eines Datensatzes als flache, geordnete Liste,
+ * jeweils mit ihrem STOP-Buchstaben angereichert. Bildet die Grundlage für die
+ * zeilenweise, ausgerichtete Darstellung von Maßnahme / Verantwortlich / Frist.
+ */
+function getAllMeasures(item) {
+    const rows = [];
+    ['S', 'T', 'O', 'P'].forEach(letter => {
+        normalizeStopMeasures(item[`stop${letter}`]).forEach(m => rows.push({ letter, ...m }));
+    });
+    return rows;
+}
+
+function getPrimaryVerantwortlich(item) {
+    const found = getAllMeasures(item).find(m => m.verantwortlich);
+    return found ? found.verantwortlich : '';
+}
+
+/**
+ * Sortierwert für die Frist-Spalte: das früheste konkrete Datum über alle Maßnahmenzeilen,
+ * ersatzweise das erste hinterlegte Intervall, sonst leer.
+ */
+function getPrimaryFristSortValue(item) {
+    const measures = getAllMeasures(item);
+    const dates = measures
+        .filter(m => m.fristTyp === 'datum' && m.fristDatum)
+        .map(m => m.fristDatum)
+        .sort();
+    if (dates.length > 0) return dates[0];
+    const interval = measures.find(m => m.fristTyp && m.fristTyp !== 'datum');
+    return interval ? interval.fristTyp : '';
 }
 
 // ==========================================
@@ -638,8 +721,6 @@ function getStopValues(letter) {
 // ==========================================
 
 async function saveAssessmentRecord() {
-    const fristTyp = document.getElementById('frist-typ').value;
-    const finalFrist = fristTyp === 'datum' ? document.getElementById('frist-datum').value : fristTyp;
     const currentTaetigkeit = document.getElementById('taetigkeit').value;
     const currentBereich = document.getElementById('bereich-input').value;
 
@@ -651,11 +732,10 @@ async function saveAssessmentRecord() {
         gefaehrdung: document.getElementById('gefaehrdung').value,
         sVor: document.getElementById('s-vor').value, wVor: document.getElementById('w-vor').value, 
         sNach: document.getElementById('s-nach').value, wNach: document.getElementById('w-nach').value,
+        // Verantwortlich und Frist werden jetzt strukturiert je Maßnahmenzeile erfasst
         stopS: getStopValues('s'), stopT: getStopValues('t'), stopO: getStopValues('o'), stopP: getStopValues('p'),
         psaList: [...currentSelectedPsa], 
-        psaStillRequired: document.getElementById('psa-still-required').checked,
-        verantwortlich: document.getElementById('verantwortlich').value, 
-        frist: finalFrist
+        psaStillRequired: document.getElementById('psa-still-required').checked
     };
 
     await storage.saveAssessment(record);
@@ -692,9 +772,6 @@ function resetFormAfterSave(keepTaetigkeit, keepBereich) {
     document.getElementById('s-nach').value = "1";
     document.getElementById('w-nach').value = "1";
 
-    document.getElementById('frist-typ').value = 'datum'; 
-    document.getElementById('frist-datum').classList.remove('hidden');
-    document.getElementById('frist-datum').required = true;
     resetStopFields(); 
     currentStep = 1; 
     showStep(currentStep); 
@@ -772,12 +849,31 @@ function renderTable() {
             const riskVor = riskMatrix[`${item.sVor}-${item.wVor}`];
             const riskNach = riskMatrix[`${item.sNach}-${item.wNach}`];
             
+            // Maßnahme, Verantwortlich und Frist werden pro STOP-Zeile ausgerichtet gerendert,
+            // damit die drei Spalten Zeile für Zeile zusammengehören.
+            const measureRows = getAllMeasures(item);
+
             let stopHtml = `<div class="table-stop-display">`;
-            ['S','T','O','P'].forEach(l => { 
-                if(item[`stop${l}`]) stopHtml += `<div class="table-stop-row"><div class="table-stop-indicator ${l.toLowerCase()}">${l}</div> <div class="table-stop-text">${renderStopList(item[`stop${l}`])}</div></div>`; 
+            measureRows.forEach(m => {
+                stopHtml += `<div class="table-stop-row"><div class="table-stop-indicator ${m.letter.toLowerCase()}">${m.letter}</div> <div class="table-stop-text">${escapeHtml(m.text)}</div></div>`;
             });
             stopHtml += `</div>`;
-            if(!item.stopS && !item.stopT && !item.stopO && !item.stopP) stopHtml = `<span style="color:#94a3b8; font-style:italic;">Keine Maßnahmen</span>`;
+            if (measureRows.length === 0) stopHtml = `<span style="color:#94a3b8; font-style:italic;">Keine Maßnahmen</span>`;
+
+            let verantwHtml = `<div class="table-stop-display">`;
+            measureRows.forEach(m => {
+                verantwHtml += `<div class="table-stop-row">${m.verantwortlich ? escapeHtml(m.verantwortlich) : '<span style="color:#cbd5e1;">—</span>'}</div>`;
+            });
+            verantwHtml += `</div>`;
+            if (measureRows.length === 0) verantwHtml = `<span style="color:#cbd5e1;">—</span>`;
+
+            let fristHtml = `<div class="table-stop-display">`;
+            measureRows.forEach(m => {
+                const fristVal = m.fristTyp === 'datum' ? m.fristDatum : m.fristTyp;
+                fristHtml += `<div class="table-stop-row frist-container"><div class="status-dot ${getFristColor(fristVal)}"></div>${formatFrist(fristVal)}</div>`;
+            });
+            fristHtml += `</div>`;
+            if (measureRows.length === 0) fristHtml = `<span style="color:#cbd5e1;">—</span>`;
 
             let psaColHtml = `<span style="color:#94a3b8; font-style:italic;">Keine PSA</span>`;
             if (item.psaList && item.psaList.length > 0) {
@@ -799,8 +895,8 @@ function renderTable() {
                 <td data-label="Risiko"><div><span class="badge ${riskVor.class}">${riskVor.level}</span><span class="risk-arrow">${Icons.arrowRight}</span><span class="badge ${riskNach.class}">${riskNach.level}</span></div></td>
                 <td data-label="Maßnahmen (STOP)">${stopHtml}</td>
                 <td data-label="PSA / Schutzausrüstung">${psaColHtml}</td>
-                <td data-label="Verantw.">${escapeHtml(item.verantwortlich)}</td>
-                <td data-label="Frist"><div class="frist-container"><div class="status-dot ${getFristColor(item.frist)}"></div>${formatFrist(item.frist)}</div></td>
+                <td data-label="Verantw.">${verantwHtml}</td>
+                <td data-label="Frist">${fristHtml}</td>
                 <td class="no-print action-td">
                     <div class="action-cell">
                         <button type="button" class="btn-icon edit" title="Bearbeiten">${Icons.edit}</button>
@@ -820,13 +916,6 @@ function renderTable() {
 // ==========================================
 // UTILS & HELPER
 // ==========================================
-
-function renderStopList(dataStr) {
-    if (!dataStr) return '';
-    const items = dataStr.split('|');
-    if (items.length === 1) return escapeHtml(items[0]); 
-    return `<ol>${items.map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ol>`;
-}
 
 function formatDate(dateStr) {
     if(!dateStr) return '—';
@@ -892,17 +981,14 @@ function editRecord(id) {
 
     ['s', 't', 'o', 'p'].forEach(letter => {
         const container = document.getElementById(`multi-${letter}`); container.innerHTML = '';
-        (record[`stop${letter.toUpperCase()}`] || '').split('|').forEach(pVal => addStopRow(letter, 'Maßnahme', pVal));
-        if(container.children.length === 0) addStopRow(letter, 'Maßnahme', '');
+        const measures = normalizeStopMeasures(record[`stop${letter.toUpperCase()}`]);
+        if (measures.length > 0) {
+            measures.forEach(m => addStopRow(letter, 'Maßnahme', m));
+        } else {
+            addStopRow(letter, 'Maßnahme', {});
+        }
     });
 
-    document.getElementById('verantwortlich').value = record.verantwortlich || '';
-    const fristVal = record.frist || '';
-    if (validIntervals.includes(fristVal)) {
-        document.getElementById('frist-typ').value = fristVal; document.getElementById('frist-datum').classList.add('hidden'); document.getElementById('frist-datum').required = false; document.getElementById('frist-datum').value = '';
-    } else {
-        document.getElementById('frist-typ').value = 'datum'; document.getElementById('frist-datum').classList.remove('hidden'); document.getElementById('frist-datum').required = true; document.getElementById('frist-datum').value = fristVal;
-    }
     currentStep = 1; showStep(currentStep);
     switchMobileTab('create');
     document.getElementById('gb-form').scrollIntoView({ behavior: 'smooth' });
@@ -927,6 +1013,8 @@ function applyCurrentSort() {
         let valA, valB;
         if (currentSort.key === 'risiko') { valA = parseInt(a.sVor) * parseInt(a.wVor); valB = parseInt(b.sVor) * parseInt(b.wVor); } 
         else if (currentSort.key === 'gefaehrdung') { valA = gefaehrdungOrder.indexOf(a.gefaehrdung); valB = gefaehrdungOrder.indexOf(b.gefaehrdung); } 
+        else if (currentSort.key === 'verantwortlich') { valA = getPrimaryVerantwortlich(a).toLowerCase(); valB = getPrimaryVerantwortlich(b).toLowerCase(); }
+        else if (currentSort.key === 'frist') { valA = getPrimaryFristSortValue(a); valB = getPrimaryFristSortValue(b); }
         else { valA = (a[currentSort.key] || '').toString().toLowerCase(); valB = (b[currentSort.key] || '').toString().toLowerCase(); }
         if (valA < valB) return currentSort.dir === 'asc' ? -1 : 1;
         if (valA > valB) return currentSort.dir === 'asc' ? 1 : -1;
