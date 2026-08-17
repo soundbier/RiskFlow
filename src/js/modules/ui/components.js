@@ -250,14 +250,43 @@ export function StopInputGroup({ letter, label, placeholder }) {
 }
 
 /**
- * Einzelne STOP-Eingabezeile
+ * Fristen-Intervalle für die Fristenauswahl je STOP-Maßnahmenzeile
  */
-export function StopInputRow({ letter, index, placeholder, value = '' }) {
+const FRIST_INTERVALLE = ['Täglich', 'Wöchentlich', 'Monatlich', 'Quartalsweise', 'Halbjährlich', 'Jährlich', 'Laufend'];
+
+/**
+ * Einzelne STOP-Eingabezeile
+ * value: { text, verantwortlich, fristTyp, fristDatum }
+ * Fristen und Verantwortliche sind pro Maßnahmenzeile erfasst (nicht mehr global im Wizard).
+ */
+export function StopInputRow({ letter, index, placeholder, value = {} }) {
+  const text = value.text || '';
+  const verantwortlich = value.verantwortlich || '';
+  const fristTyp = value.fristTyp || 'datum';
+  const fristDatum = value.fristDatum || '';
+  const isInterval = fristTyp !== 'datum';
+
+  const fristOptions = [
+    `<option value="datum" ${!isInterval ? 'selected' : ''}>Spezifisches Datum</option>`,
+    ...FRIST_INTERVALLE.map(iv => `<option value="${iv}" ${fristTyp === iv ? 'selected' : ''}>${iv}</option>`)
+  ].join('');
+
   return `
-    <div class="input-row">
-        <span class="row-num">${index}.</span>
-        <input type="text" class="stop-val" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(value)}">
-        <button type="button" class="btn-remove" data-letter="${letter}">${Icons.x}</button>
+    <div class="stop-input-row" data-letter="${letter}" style="margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px dashed var(--border, #e2e8f0);">
+        <div class="input-row" style="margin-bottom: 6px;">
+            <span class="row-num">${index}.</span>
+            <input type="text" class="stop-val" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(text)}">
+            <button type="button" class="btn-remove" data-letter="${letter}">${Icons.x}</button>
+        </div>
+        <div class="stop-row-meta" style="display: flex; gap: 8px; padding-left: 26px; flex-wrap: wrap;">
+            <input type="text" class="stop-verantwortlich" placeholder="Verantwortlich" value="${escapeHtml(verantwortlich)}"
+                style="flex: 1 1 140px; min-width: 120px; font-size: 12px; padding: 6px 8px; border: 1px solid var(--border, #cbd5e1); border-radius: 6px; background: #fff;">
+            <select class="stop-frist-typ" style="flex: 1 1 130px; min-width: 110px; font-size: 12px; padding: 6px 8px; border: 1px solid var(--border, #cbd5e1); border-radius: 6px; background: #fff;">
+                ${fristOptions}
+            </select>
+            <input type="date" class="stop-frist-datum ${isInterval ? 'hidden' : ''}" value="${escapeHtml(fristDatum)}"
+                style="flex: 1 1 130px; min-width: 120px; font-size: 12px; padding: 6px 8px; border: 1px solid var(--border, #cbd5e1); border-radius: 6px; background: #fff;">
+        </div>
     </div>
   `;
 }
