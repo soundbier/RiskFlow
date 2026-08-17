@@ -328,30 +328,12 @@ function renderWorkspace() {
                 </div>
                 <div class="form-group" style="margin-top: 20px;">
                     <span style="display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 12px;">Schutzmaßnahmen nach STOP-Prinzip</span>
+                    <p style="font-size: 12px; color: var(--text-muted); margin: -6px 0 12px;">Verantwortliche(r) und Frist werden direkt je Maßnahme erfasst.</p>
                     <div class="stop-input-container">
                         ${StopInputGroup({ letter: 'S', label: 'Substitution', placeholder: 'Substitution (Gefahr beseitigen)' })}
                         ${StopInputGroup({ letter: 'T', label: 'Technisch', placeholder: 'Technische Maßnahmen' })}
                         ${StopInputGroup({ letter: 'O', label: 'Organisatorisch', placeholder: 'Organisatorische Maßnahmen' })}
                         ${StopInputGroup({ letter: 'P', label: 'Persönlich', placeholder: 'Persönliche Schutzmaßnahmen' })}
-                    </div>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group"><label for="verantwortlich">Verantwortlich <span style="color:red;">*</span></label><input type="text" id="verantwortlich" required placeholder="Name / Abteilung"></div>
-                    <div class="form-group">
-                        <label for="frist-typ">Realisierung / Frist <span style="color:red;">*</span></label>
-                        <div style="display: flex; gap: 10px;">
-                            <select id="frist-typ" required style="flex: 1;">
-                                <option value="datum">Spezifisches Datum</option>
-                                <option value="Täglich">Täglich</option>
-                                <option value="Wöchentlich">Wöchentlich</option>
-                                <option value="Monatlich">Monatlich</option>
-                                <option value="Quartalsweise">Quartalsweise</option>
-                                <option value="Halbjährlich">Halbjährlich</option>
-                                <option value="Jährlich">Jährlich</option>
-                                <option value="Laufend">Laufend</option>
-                            </select>
-                            <input type="date" id="frist-datum" required style="flex: 1;">
-                        </div>
                     </div>
                 </div>
             </div>
